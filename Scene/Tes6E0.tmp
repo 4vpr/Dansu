@@ -1,0 +1,61 @@
+[gd_scene load_steps=9 format=3 uid="uid://b8in7w7bfex2h"]
+
+[ext_resource type="Script" path="res://scripts/playScene.gd" id="1_kw8k4"]
+[ext_resource type="Texture2D" uid="uid://ds0pax4p4xljv" path="res://Textures/miku.png" id="2_3s707"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="3_f0kkb"]
+
+[sub_resource type="Environment" id="Environment_uxsa0"]
+background_mode = 1
+background_color = Color(0.31641, 0.292207, 0.566389, 1)
+background_energy_multiplier = 2.52
+reflected_light_source = 1
+glow_enabled = true
+glow_normalized = true
+glow_intensity = 1.0
+
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_0q75b"]
+
+[sub_resource type="Compositor" id="Compositor_iom8a"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6xpcg"]
+transparency = 1
+blend_mode = 4
+albedo_color = Color(0.678431, 0.447059, 1, 0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_w3liu"]
+
+[node name="PlayScene" type="Node3D"]
+script = ExtResource("1_kw8k4")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1.803)
+near = 0.001
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_uxsa0")
+camera_attributes = SubResource("CameraAttributesPractical_0q75b")
+compositor = SubResource("Compositor_iom8a")
+
+[node name="Player" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.005, 0.75, 1.054)
+pixel_size = 0.001
+texture = ExtResource("2_3s707")
+region_rect = Rect2(0, 0, 214.879, 510.717)
+script = ExtResource("3_f0kkb")
+
+[node name="line" type="MeshInstance3D" parent="."]
+transform = Transform3D(2, -7.27596e-11, -1.45519e-11, 1.16835e-09, 0.0939692, -0.017101, 1.04468e-09, 0.0342021, 0.0469846, 0, 0.41, 1.021)
+sorting_offset = 1.0
+material_override = SubResource("StandardMaterial3D_6xpcg")
+cast_shadow = 0
+mesh = SubResource("BoxMesh_w3liu")
+skeleton = NodePath("../Ground")
+
+[node name="Ground" type="CSGBox3D" parent="."]
+transform = Transform3D(0.999999, 0, 0, 0, 0.939692, -0.34202, 0, 0.34202, 0.939693, 0, 1.758, -4)
+size = Vector3(2, 1, 13)
+
+[node name="RailContainor" type="Node3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 2.98023e-08, 0, 0, 1, 0, 0, 0)
+
+[node name="SongPlayer" type="AudioStreamPlayer" parent="."]

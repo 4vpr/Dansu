@@ -1,0 +1,32 @@
+[gd_scene load_steps=7 format=3 uid="uid://bj0av4l8fi75k"]
+
+[ext_resource type="Script" path="res://objects/editor/editor_rail.gd" id="1_q6es3"]
+[ext_resource type="Script" path="res://objects/editor/rail_mesh.gd" id="2_5bbke"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_v5q5a"]
+
+[sub_resource type="Gradient" id="Gradient_bblch"]
+offsets = PackedFloat32Array(0.573913)
+colors = PackedColorArray(0.423651, 0.423651, 0.423651, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_41duj"]
+gradient = SubResource("Gradient_bblch")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rtrbg"]
+
+[node name="rail" type="Node2D"]
+script = ExtResource("1_q6es3")
+
+[node name="mesh" type="MeshInstance2D" parent="."]
+position = Vector2(0, -540)
+scale = Vector2(40, 1080)
+mesh = SubResource("QuadMesh_v5q5a")
+texture = SubResource("GradientTexture1D_41duj")
+script = ExtResource("2_5bbke")
+
+[node name="Collision" type="CollisionShape2D" parent="mesh"]
+scale = Vector2(0.05, 0.05)
+shape = SubResource("RectangleShape2D_rtrbg")
+
+[node name="notes" type="Node2D" parent="."]
+position = Vector2(0, -10)

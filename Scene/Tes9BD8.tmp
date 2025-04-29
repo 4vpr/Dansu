@@ -1,0 +1,129 @@
+[gd_scene load_steps=13 format=3 uid="uid://b8in7w7bfex2h"]
+
+[ext_resource type="Script" path="res://scripts/playScene.gd" id="1_kw8k4"]
+[ext_resource type="Texture2D" uid="uid://cs2xw8o0qc3uy" path="res://Resources/Miku.jpg" id="2_g4adv"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="3_f0kkb"]
+[ext_resource type="Texture2D" uid="uid://cutwk4vtb2r6w" path="res://Textures/panel.png" id="4_piqfe"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_8tjm2"]
+sky_top_color = Color(0.570373, 0.345151, 0.628942, 1)
+sky_horizon_color = Color(0.642046, 0.688987, 0.362699, 1)
+sky_curve = 0.0989632
+sky_energy_multiplier = 1.56
+sky_cover_modulate = Color(0.0156863, 1, 1, 1)
+ground_bottom_color = Color(0, 0, 0, 1)
+ground_horizon_color = Color(0.643137, 0.690196, 0.360784, 1)
+ground_curve = 0.077275
+energy_multiplier = 0.1
+
+[sub_resource type="Sky" id="Sky_cgh6o"]
+sky_material = SubResource("ProceduralSkyMaterial_8tjm2")
+
+[sub_resource type="Environment" id="Environment_uxsa0"]
+background_mode = 1
+background_color = Color(0.31641, 0.292207, 0.566389, 1)
+background_energy_multiplier = 1.63
+sky = SubResource("Sky_cgh6o")
+reflected_light_source = 1
+glow_enabled = true
+
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_0q75b"]
+
+[sub_resource type="Compositor" id="Compositor_iom8a"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s7qk6"]
+transparency = 1
+albedo_texture = ExtResource("4_piqfe")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_vlhvm"]
+size = Vector2(2, 13)
+
+[sub_resource type="LabelSettings" id="LabelSettings_4uwsm"]
+line_spacing = 0.0
+font_size = 40
+font_color = Color(1, 0.964706, 1, 1)
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 0
+shadow_color = Color(0.780392, 1, 1, 1)
+shadow_offset = Vector2(0, 0)
+
+[node name="PlayScene" type="Node3D"]
+script = ExtResource("1_kw8k4")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_uxsa0")
+camera_attributes = SubResource("CameraAttributesPractical_0q75b")
+compositor = SubResource("Compositor_iom8a")
+
+[node name="Player" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.005, 0.75, 1.054)
+pixel_size = 0.001
+texture = ExtResource("2_g4adv")
+region_rect = Rect2(0, 0, 214.879, 510.717)
+script = ExtResource("3_f0kkb")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1.8)
+near = 0.001
+
+[node name="Ground" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.939693, -0.34202, 0, 0.34202, 0.939693, 0, 2.25, -3.8)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 2.98023e-08, 1, 0.000394821, -0.0241548, 0.018528)
+material_override = SubResource("StandardMaterial3D_s7qk6")
+mesh = SubResource("PlaneMesh_vlhvm")
+skeleton = NodePath("../..")
+
+[node name="RailContainor" type="Node3D" parent="Ground"]
+transform = Transform3D(0.999999, 0, 0, 0, 0.999999, 2.68221e-07, 0, 1.19209e-07, 1, 0, -0.5, -0.034)
+
+[node name="SongPlayer" type="AudioStreamPlayer" parent="."]
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Judge" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -90.0
+offset_right = 20.0
+offset_bottom = -21.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "perfect"
+label_settings = SubResource("LabelSettings_4uwsm")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Combo" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -34.5
+offset_right = 20.0
+offset_bottom = 34.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "0"
+label_settings = SubResource("LabelSettings_4uwsm")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.986118, -0.139732, 0.0896992, 0.0920471, 0.909635, 0.405081, -0.138196, -0.391202, 0.90987, 0, 3.39844, 3.63343)
