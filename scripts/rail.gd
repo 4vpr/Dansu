@@ -9,7 +9,7 @@ var size = 11.3
 var offset = -0.7
 var moves = []
 var move_i = 0
-var fix = Game.ok
+var rail_fix = 130
 var active = false
 var initial_position = Vector3.ZERO
 
@@ -29,7 +29,7 @@ func _process(delta: float) -> void:
 				initial_position = position
 	mesh.position.z = Game.panelSize -((start - Game.currentTime) * Game.velocity / 1000) - mesh.scale.z / 2
 
-	if start - Game.currentTime < fix:
+	if start - Game.currentTime < rail_fix:
 		active = true
 	if end < Game.currentTime:
 		active = false

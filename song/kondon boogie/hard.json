@@ -1,0 +1,867 @@
+{
+	"animations": [
+		{
+			"effect": "none",
+			"fps": 2,
+			"frames": [
+				"jako1.png"
+			],
+			"id": 1,
+			"name": "none"
+		},
+		{
+			"effect": "shake",
+			"fps": 2,
+			"frames": [
+				"jako2.png"
+			],
+			"id": 2,
+			"name": "none"
+		},
+		{
+			"effect": "none",
+			"fps": 2,
+			"frames": [
+				"jako3.png"
+			],
+			"id": 3,
+			"name": "none"
+		},
+		{
+			"effect": "rotate",
+			"fps": 2,
+			"frames": [
+				"jako4.png"
+			],
+			"id": 4,
+			"name": "none"
+		}
+	],
+	"artist": "?",
+	"bpm": 190,
+	"bpmstart": 550,
+	"creator": "test",
+	"difficulty": 5,
+	"notes": [
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 550,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 865.789473684211,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 2,
+			"time": 1181.57894736842,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 2,
+			"time": 1497.36842105263,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 1813.15789473684,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 2128.94736842105,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 2444.73684210526,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 2760.52631578947,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 3076.31578947368,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 3392.10526315789,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 2,
+			"time": 3707.89473684211,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 4023.68421052632,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 4339.47368421053,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 4655.26315789474,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 4971.05263157895,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 5286.84210526316,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 5602.63157894737,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 2,
+			"time": 5918.42105263158,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 6234.21052631579,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 6550,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 6865.78947368421,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 2,
+			"time": 7181.57894736842,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 7497.36842105263,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 7813.15789473684,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 8128.94736842105,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 8444.73684210526,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 8760.52631578947,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 9076.31578947368,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 9392.1052631579,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 9865.78947368421,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 10023.6842105263,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 2,
+			"time": 10102.6315789474,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 2,
+			"time": 10181.5789473684,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 2,
+			"time": 10260.5263157895,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 10339.4736842105,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 10655.2631578947,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 10971.0526315789,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 11128.9473684211,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 11286.8421052632,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 11444.7368421053,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 11602.6315789474,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 11760.5263157895,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 11918.4210526316,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 12234.2105263158,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 12392.1052631579,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 12550,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 12707.8947368421,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 12865.7894736842,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 13023.6842105263,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 13181.5789473684,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 13339.4736842105,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 2,
+			"time": 13497.3684210526,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 3,
+			"time": 13655.2631578947,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 2,
+			"time": 13813.1578947368,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 3,
+			"time": 13971.0526315789,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 3,
+			"time": 14128.9473684211,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 3,
+			"time": 14286.8421052632,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 14444.7368421053,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 1,
+			"time": 14602.6315789474,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 4,
+			"time": 14760.5263157895,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 4,
+			"time": 14918.4210526316,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 15076.3157894737,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 15234.2105263158,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 15392.1052631579,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 15707.8947368421,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 16023.6842105263,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 16181.5789473684,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 16339.4736842105,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 16497.3684210526,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 16655.2631578947,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 16813.1578947368,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 16971.0526315789,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 17286.8421052632,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 2,
+			"time": 17444.7368421053,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 2,
+			"time": 17602.6315789474,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 2,
+			"time": 17760.5263157895,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 3,
+			"time": 18076.3157894737,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 3,
+			"time": 17918.4210526316,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 3,
+			"time": 18234.2105263158,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 18550,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 1,
+			"time": 18865.7894736842,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 4,
+			"time": 19023.6842105263,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 19339.4736842105,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 19497.3684210526,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 19655.2631578947,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 19813.1578947368,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 19971.0526315789,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 20128.9473684211,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 20286.8421052632,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 20444.7368421053,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 20760.5263157895,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 21076.3157894737,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 21234.2105263158,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 21392.1052631579,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 21550,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 21707.8947368421,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 21865.7894736842,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 2,
+			"time": 22023.6842105263,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 22339.4736842105,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 22497.3684210526,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 22655.2631578947,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 22813.1578947368,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 22971.0526315789,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 23128.9473684211,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 2,
+			"time": 23286.8421052632,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 23602.6315789474,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 2,
+			"time": 23918.4210526316,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 24234.2105263158,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 24550,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 24865.7894736842,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 25181.5789473684,
+			"type": 1
+		}
+	],
+	"player": {
+		"defaultdance": [
+			2,
+			3,
+			4
+		],
+		"idle": 1,
+		"jump": 1,
+		"land": 1,
+		"left": 0,
+		"right": 0
+	},
+	"rails": [
+		{
+			"end": 25181.5789473684,
+			"id": 1,
+			"move": [],
+			"position": -0.15,
+			"start": 0
+		},
+		{
+			"end": 25000.6315789474,
+			"id": 2,
+			"move": [],
+			"position": 0.15,
+			"start": 0
+		},
+		{
+			"end": 20000,
+			"id": 3,
+			"move": [],
+			"position": 0.45,
+			"start": 10289
+		},
+		{
+			"end": 20000,
+			"id": 4,
+			"move": [],
+			"position": -0.45,
+			"start": 10289
+		}
+	],
+	"title": "kondon boogie"
+}

@@ -8,29 +8,21 @@ var thread := Thread.new()
 var rail_scene = load("res://objects/rail.tscn")
 var note_scene = load("res://objects/note.tscn")
 var judge_scene = load("res://objects/judge.tscn")
-var exe_dir = OS.get_executable_path().get_base_dir()
-var user_dir = OS.get_user_data_dir()
-var max_score :float = 0
-var score :float = 0
 var sfx_pool = SfxPool.new()
+var score = Score.new()
 var combo = 0
 var judgeDisplayDuration = 1
 var judgeDisplayDurationCurrent = 0
 var canplay = false
 var score_final = 0
+var song_end
 @onready var player = $Player
 @onready var rail_container = $Ground/RailContainor
 @onready var songplayer = $SongPlayer
 @onready var comboDisplayer = $UI/Combo/Combo
 @onready var comboVbox = $UI/Combo
 @onready var accDisplayer = $UI/Acc/Acc
-var result_notes :float = 0
-var result_perfect_plus = 0
-var result_perfect = 0 
-var result_good = 0
-var result_ok = 0
-var result_bad = 0
-var result_miss = 0
+
 func _ready() -> void:
 	add_child(sfx_pool)
 	Game.currentTime = 0
@@ -43,10 +35,8 @@ func _ready() -> void:
 		canplay = true
 		current_time_msec = Time.get_ticks_msec()
 		thread.start(self._update)
-		
 		var image_extensions = [".jpg", ".jpeg", ".png"]
-		print(Game.GetFile("path"))
-		var dir = DirAccess.open(Game.GetFile("path"))
+		var dir = DirAccess.open(Game.select_folder)
 		var image_path := ""
 		if dir:
 			dir.list_dir_begin()
@@ -54,7 +44,7 @@ func _ready() -> void:
 			while file_name != "":
 				for ext in image_extensions:
 					if file_name.to_lower().ends_with(ext):
-						image_path = Game.GetFile("path").path_join(file_name)
+						image_path = Game.select_folder.path_join(file_name)
 						break
 				if image_path != "":
 					break
@@ -114,11 +104,13 @@ func setNextNote():
 	if nextnote_i < notes.size():
 		notes[nextnote_i].queue_free()
 		nextnote_i += 1
+		if nextnote_i >= notes.size():
+			song_end = true
 
 #일반노트 판정확인
 func check_judge():
 	if nextnote_i < notes.size():
-		if notes[nextnote_i].time + Game.ok < Game.currentTime:
+		if notes[nextnote_i].time + score.t_ok < Game.currentTime:
 			call_deferred("write_judge",0)
 			setNextNote()
 # 노트스폰, 레일 스폰,디스폰;
@@ -149,7 +141,6 @@ func check_objects():
 		else:
 			break
 
-
 var running := true
 var current_time_msec := 0
 
@@ -169,8 +160,8 @@ func _update(_data = null):
 				check_judge()
 		OS.delay_msec(1)
 func load_files() -> Dictionary:
-	var map_path = Game.GetFile("map")
-	var song_path = Game.GetFile("song")
+	var map_path = Game.select_folder.path_join(Game.select_map)
+	var song_path = Game.select_folder.path_join("song.mp3")
 	var song_stream = AudioStreamMP3.new()
 	var song_file = FileAccess.open(song_path, FileAccess.READ)
 	if song_file:
@@ -194,74 +185,37 @@ func playerAction() -> void:
 	if nextnote_i < notes.size():
 		var acc = notes[nextnote_i].time - Game.currentTime
 		if player.standRail.id == notes[nextnote_i].rail && notes[nextnote_i].type == 1:
-			GetJudge(acc)
+			var j = score.getJudge(acc)
+			if j != -1:
+				write_judge(j)
+				setNextNote()
 		pass
 func playerMove(dir:int,_rail) -> void:
 	if nextnote_i < notes.size():
 		if notes[nextnote_i].type == 2 && notes[nextnote_i].rail == player.standRail.id:
 			if notes[nextnote_i].dir == dir:
 				var acc = notes[nextnote_i].time - Game.currentTime
-				GetJudge(acc)
-func getScore() -> float:
-	var f:float = 0
-	if result_notes <= result_perfect_plus + result_perfect:
-		f = (result_perfect_plus / result_notes) + 100
-	else:
-		f = score / max_score * 100
-	return f
-func GetJudge(acc):
-	if acc < Game.perfect_plus && acc > Game.perfect_plus * -1:
-		write_judge(5)
-		setNextNote()
-	elif acc < Game.perfect && acc > Game.perfect * -1:
-		write_judge(1)
-		setNextNote()
-	elif acc < Game.great && acc > Game.great * -1:
-		write_judge(2)
-		setNextNote()
-	elif acc < Game.ok && acc > Game.ok * -1:
-		write_judge(3)
-		setNextNote()
-	elif acc < Game.bad && acc > Game.bad * -1:
-		write_judge(4)
-		setNextNote()
+				var j = score.getJudge(acc)
+				if j != -1:
+					write_judge(j)
+					setNextNote()
 func write_judge(j:int):
 	judgeDisplayDurationCurrent = judgeDisplayDuration
 	var new_judge = judge_scene.instantiate()
 	new_judge.judge = j
 	new_judge.position.x = player.position.x
 	add_child(new_judge)
+	score.addScore(j)
 	comboVbox._play()
-	max_score += Game.perfect_plus_score
-	result_notes += 1
-	if j == 5:
-		result_perfect_plus += 1
-		score += Game.perfect_plus_score
-		combo += 1
-	if j == 1:
-		result_perfect += 1
-		score += Game.perfect_score
-		combo += 1
-	if j == 2:
-		result_good += 1
-		score += Game.great_score
-		combo += 1
-	if j == 3:
-		result_ok += 1
-		score += Game.ok_score
-		combo += 1
-	if j == 4:
-		result_bad += 1
-		score += Game.bad_score
-		combo = 0
-	if j == 0:
-		result_miss += 1
-		combo = 0
-	accDisplayer.text = str(snapped(getScore(), 0.01)) + "%"
+	accDisplayer.text = str(snapped(score.getScore(), 0.01)) + "%"
 	if j != 0:
+		if j != 4:
+			combo += 1
 		sfx_pool.play_sound(preload("res://Resources/drum-slidertick.wav"))
 		player.sprites_current = null
 		if notes[nextnote_i].animation > 0:
 			player.setAnimation(notes[nextnote_i].animation)
 		else:
 			player.setAnimation(player.getNextDefaultDance())
+	else:
+		combo = 0

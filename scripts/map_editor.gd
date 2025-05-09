@@ -6,38 +6,26 @@ var player_animation = {}
 var animations = []
 var beatsdiv = 2
 var sfx_pool = SfxPool.new()
-@onready var le_title = $"Song Setup/Control/VBox/title/LineEdit"
-@onready var le_artist = $"Song Setup/Control/VBox/artist/LineEdit"
-@onready var le_startpoint = $"Song Setup/Control/VBox/SelectSong"
-@onready var le_bpm = $"Song Setup/Control/VBox/bpm"
-@onready var B_Pause = $SongControl/B_Pause
-@onready var SongSlider = $SongSlider
-@onready var B_Remove = $NoteControl/B_Remove
-@onready var B_Save = $NoteControl/B_Save
-@onready var B_AddNote = $NoteControl/B_Note
-@onready var B_AddRight = $NoteControl/B_Right
-@onready var B_AddLeft = $NoteControl/B_Left
-@onready var B_AddRail = $NoteControl/B_Rail
-@onready var Inspecter = $Inspecter
-@onready var Song = $AudioStreamPlayer
-@onready var RailContainer = $Preview/RailContainer
-@onready var B_Animation = $animation
+var beatmap = Beatmap.new()
+@onready var B_Pause = $SongControl/B_Pause;@onready var SongSlider = $SongSlider
+@onready var B_Remove = $NoteControl/B_Remove;@onready var B_Save = $NoteControl/B_Save
+@onready var B_AddNote = $NoteControl/B_Note;@onready var B_AddRight = $NoteControl/B_Right
+@onready var B_AddLeft = $NoteControl/B_Left;@onready var B_AddRail = $NoteControl/B_Rail
+@onready var Inspecter = $Inspecter;@onready var Song = $AudioStreamPlayer
+@onready var RailContainer = $Preview/RailContainer;@onready var B_Animation = $animation
 @onready var Win_Animation = $Animation
 var user_dir = OS.get_user_data_dir()
 var SongIsPlaying = false
 var map_data = {}
 var exe_dir = OS.get_executable_path().get_base_dir()
-var map_path = Game.GetFile("map")
-var song_path = Game.GetFile("song")
+var map_path = Game.select_folder.path_join(Game.select_map)
+var song_path = Game.select_folder.path_join("song.mp3")
 var rail_scene = load("res://objects/editor/rail.tscn")
 var note_scene = load("res://objects/editor/note.tscn")
 var selected = null
 var everything = {}; var undoredo = {}; var undoredo_i = 0
 var rails = []; var notes = []
 var rail_scope = null
-var meta_title:String; var meta_artist:String; var meta_creator:String
-var song_difficulty;
-var song_bpmstart:float; var song_lerp:float; var song_bpm:float; var current_bpm:float
 func scope_rail():
 	if selected != null:
 		if selected.get("rail") != null:
@@ -117,12 +105,12 @@ func create_rail():
 	pass
 
 func snap_to_bpm(timing: float,division: int = beatsdiv) -> float:
-	var beat_interval = 60000 / song_bpm
+	var beat_interval = 60000 / beatmap.song_bpm
 	var snap_interval = beat_interval / division
 	print(beat_interval)
-	var relative_timing = timing - song_bpmstart
+	var relative_timing = timing - beatmap.song_bpmstart
 	
-	var snapped_timing = round(relative_timing / snap_interval) * snap_interval + song_bpmstart
+	var snapped_timing = round(relative_timing / snap_interval) * snap_interval + beatmap.song_bpmstart
 	return snapped_timing
 
 
@@ -244,12 +232,12 @@ func snap_notes():
 		
 func save_to_json():
 	var json_data = {}
-	json_data["title"] = meta_title
-	json_data["artist"] = meta_artist
-	json_data["creator"] = meta_creator
-	json_data["difficulty"] = song_difficulty
-	json_data["bpm"] = song_bpm
-	json_data["bpmstart"] = song_bpmstart
+	json_data["title"] = beatmap.meta_title
+	json_data["artist"] = beatmap.meta_artist
+	json_data["creator"] = beatmap.meta_creator
+	json_data["difficulty"] = beatmap.diff_value
+	json_data["bpm"] = beatmap.song_bpm
+	json_data["bpmstart"] = beatmap.song_bpmstart
 	json_data["player"] = {
 		"idle": player_animation["idle"],
 		"left": player_animation["left"],
@@ -297,17 +285,17 @@ var texture_cache = {} # 파일명을 키로, Texture2D를 값으로 저장
 func get_texture(file_name):
 	if file_name in texture_cache:
 		return texture_cache[file_name] # 캐싱된 텍스처 반환
-	var texture_path = Game.GetSprite(file_name)
+	var texture_path = Game.select_folder.path_join("/sprite/" + file_name)
 	var image = Image.new()
 	if image.load(texture_path) == OK:
 		var texture = ImageTexture.create_from_image(image)
 		texture_cache[file_name] = texture
 		return texture
 func parse_data(json_data):
-	meta_title = json_data.get("title", "?")
-	meta_artist = json_data.get("artist", "?")
-	meta_creator = json_data.get("creator", "test")
-	song_difficulty = json_data.get("difficulty", 5)
+	beatmap.meta_title = json_data.get("title", "?")
+	beatmap.meta_artist = json_data.get("artist", "?")
+	beatmap.meta_creator = json_data.get("creator", "test")
+	beatmap.diff_value = json_data.get("difficulty", 5)
 	if "animations" in json_data:
 		for animation in json_data["animations"]:
 			var frames = animation.get("frames", [])
@@ -337,8 +325,8 @@ func parse_data(json_data):
 			"land": animation.get("land", 0),
 			"defaultdance": animation.get("defaultdance", [])
 		}
-	song_bpm = json_data.get("bpm", 100)
-	song_bpmstart = json_data.get("bpmstart", 100)
+	beatmap.song_bpm = json_data.get("bpm", 100)
+	beatmap.song_bpmstart = json_data.get("bpmstart", 100)
 	if "rails" in json_data:
 		for rail in json_data["rails"]:
 			var new_rail = rail_scene.instantiate()
@@ -364,11 +352,10 @@ func _input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
 			SongSlider.value = snap_to_bpm(SongSlider.value * 1000) / 1000
-			SongSlider.value += 60 / song_bpm / beatsdiv
+			SongSlider.value += 60 / beatmap.song_bpm / beatmap.beatsdiv
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
 			SongSlider.value = snap_to_bpm(SongSlider.value * 1000) / 1000
-			SongSlider.value -= 60 / song_bpm / beatsdiv
-	
+			SongSlider.value -= 60 / beatmap.song_bpm / beatmap.beatsdiv
 func _on_pause_pressed() -> void:
 	if SongIsPlaying:
 		paused_position = Song.get_playback_position()

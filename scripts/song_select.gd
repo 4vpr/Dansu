@@ -11,12 +11,12 @@ func _ready() -> void:
 	shader_mat.set_shader_parameter("current_tex", new_texture)
 	_load()
 func _load() -> void:
-	var maps = get_folders_in_path(OS.get_user_data_dir().path_join("Songs"))
-	for map in maps:
+	var folders = get_folders_in_path(OS.get_user_data_dir().path_join("Songs"))
+	folders += get_folders_in_path("res://song/")
+	for folder in folders:
 		var new_map = map_scene.instantiate()
-		new_map.folder = map
-		var map_path = OS.get_user_data_dir().path_join("Songs").path_join(map)
-		var json_files = get_json_files_in_path(map_path)
+		new_map.folder = folder
+		var json_files = get_json_files_in_path(folder)
 		new_map.map = json_files
 		if Game.select_map == null:
 			Game.select_folder = new_map.folder
@@ -24,7 +24,7 @@ func _load() -> void:
 			pass
 
 		if json_files.size() > 0:
-			var json_path = map_path.path_join(json_files[0])
+			var json_path = folder.path_join(json_files[0])
 			var file = FileAccess.open(json_path, FileAccess.READ)
 			if file:
 				var content = file.get_as_text()
@@ -37,7 +37,7 @@ func _load() -> void:
 				new_map.title = "?"
 
 		var image_extensions = [".jpg", ".jpeg", ".png"]
-		var dir = DirAccess.open(map_path)
+		var dir = DirAccess.open(folder)
 		var image_path := ""
 		if dir:
 			dir.list_dir_begin()
@@ -45,7 +45,7 @@ func _load() -> void:
 			while file_name != "":
 				for ext in image_extensions:
 					if file_name.to_lower().ends_with(ext):
-						image_path = map_path.path_join(file_name)
+						image_path = folder.path_join(file_name)
 						break
 				if image_path != "":
 					break
@@ -74,7 +74,7 @@ func get_folders_in_path(path: String) -> Array:
 				var sub_path = path.path_join(file_name)
 				var sub_dir = DirAccess.open(sub_path)
 				if sub_dir and sub_dir.file_exists("song.mp3"):
-					folders.append(file_name)
+					folders.append(path + "/" + file_name)
 			file_name = dir.get_next()
 		dir.list_dir_end()
 	else:

@@ -1,7 +1,7 @@
 extends TextureButton
-var time
-var dir
-var type
+var time:int
+var dir:int
+var type:int
 var rail
 var animation
 var dragging = false

@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dleo65mgbojk5"
 path.s3tc="res://.godot/imported/Just.png-89dff3398e4a4237da7eb6ac2f1590b6.s3tc.ctex"
+path.etc2="res://.godot/imported/Just.png-89dff3398e4a4237da7eb6ac2f1590b6.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://Textures/Judges/Just.png"
-dest_files=["res://.godot/imported/Just.png-89dff3398e4a4237da7eb6ac2f1590b6.s3tc.ctex"]
+dest_files=["res://.godot/imported/Just.png-89dff3398e4a4237da7eb6ac2f1590b6.s3tc.ctex", "res://.godot/imported/Just.png-89dff3398e4a4237da7eb6ac2f1590b6.etc2.ctex"]
 
 [params]
 

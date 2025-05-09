@@ -57,7 +57,7 @@ var texture_cache = {} # 파일명을 키로, Texture2D를 값으로 저장
 func get_texture(file_name):
 	if file_name in texture_cache:
 		return texture_cache[file_name] # 캐싱된 텍스처 반환
-	var texture_path = user_dir.path_join("Songs/" + Game.select_folder + "/sprite/" + file_name)
+	var texture_path = Game.select_folder.path_join("/sprite/" + file_name)
 	var image = Image.new()
 	if image.load(texture_path) == OK:
 		var texture = ImageTexture.create_from_image(image)
