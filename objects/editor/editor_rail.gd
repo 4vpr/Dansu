@@ -1,5 +1,5 @@
 extends TextureButton
-var id
+var id:int
 var start
 var end
 var moves = []
@@ -29,6 +29,10 @@ func _ready() -> void:
 func _update() -> void:
 	for note in notes.get_children():
 		note.position.y = (end - note.time) * Game.editor_velocity
+		if note.time < start:
+			start = note.time
+		if note.time > end:
+			end = note.time
 	size.y = (end - start) * Game.editor_velocity
 	position.x = pos * 250 / 0.9
 func _on_mouse_entered():

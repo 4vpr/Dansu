@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://c6pv45raq5p8j"]
+
+[ext_resource type="Shader" path="res://Resources/blur.gdshader" id="1_xnta2"]
+
+[resource]
+shader = ExtResource("1_xnta2")
+shader_parameter/radius = 10.0
+shader_parameter/strength = 0.0
+shader_parameter/darken = 0.3
+shader_parameter/mix_amount = 0.1

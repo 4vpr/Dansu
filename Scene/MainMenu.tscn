@@ -1,8 +1,8 @@
 [gd_scene load_steps=4 format=3 uid="uid://bsqos371ambbp"]
 
-[ext_resource type="Script" path="res://Scene/main_menu.gd" id="1_52tjq"]
-[ext_resource type="Script" path="res://Scene/play.gd" id="2_1hqv3"]
-[ext_resource type="Script" path="res://Scene/edit.gd" id="3_gmfmm"]
+[ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_52tjq"]
+[ext_resource type="Script" path="res://scripts/play.gd" id="2_1hqv3"]
+[ext_resource type="Script" path="res://scripts/edit.gd" id="3_gmfmm"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3

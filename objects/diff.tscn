@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://7l0jd2n6p3vw"]
+
+[ext_resource type="Script" path="res://scripts/diff.gd" id="1_73yte"]
+
+[node name="Diff" type="Button"]
+offset_right = 8.0
+offset_bottom = 14.0
+size_flags_vertical = 8
+focus_mode = 0
+text = "?"
+script = ExtResource("1_73yte")

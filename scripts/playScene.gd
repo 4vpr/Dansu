@@ -1,21 +1,18 @@
 extends Node3D
-
 var rails_i = 0
 var rails = []
 var notes_i = 0
 var notes = []
-
 var nextnote_i = 0
+var thread := Thread.new()
 var rail_scene = load("res://objects/rail.tscn")
 var note_scene = load("res://objects/note.tscn")
-var judge_scene = load("res://judge.tscn")
-
-
+var judge_scene = load("res://objects/judge.tscn")
 var exe_dir = OS.get_executable_path().get_base_dir()
 var user_dir = OS.get_user_data_dir()
 var max_score :float = 0
 var score :float = 0
-#var movenote_scene
+var sfx_pool = SfxPool.new()
 var combo = 0
 var judgeDisplayDuration = 1
 var judgeDisplayDurationCurrent = 0
@@ -27,7 +24,6 @@ var score_final = 0
 @onready var comboDisplayer = $UI/Combo/Combo
 @onready var comboVbox = $UI/Combo
 @onready var accDisplayer = $UI/Acc/Acc
-@onready var nextnote = $UI/nextnote
 var result_notes :float = 0
 var result_perfect_plus = 0
 var result_perfect = 0 
@@ -36,6 +32,7 @@ var result_ok = 0
 var result_bad = 0
 var result_miss = 0
 func _ready() -> void:
+	add_child(sfx_pool)
 	Game.currentTime = 0
 	var map_data = load_files()
 	if map_data:
@@ -43,25 +40,55 @@ func _ready() -> void:
 		player.parse_data(map_data)
 		check_objects()
 		songplayer.volume_db = linear_to_db(Game.volume)
-		songplayer.play()
 		canplay = true
+		current_time_msec = Time.get_ticks_msec()
+		thread.start(self._update)
+		
+		var image_extensions = [".jpg", ".jpeg", ".png"]
+		print(Game.GetFile("path"))
+		var dir = DirAccess.open(Game.GetFile("path"))
+		var image_path := ""
+		if dir:
+			dir.list_dir_begin()
+			var file_name = dir.get_next()
+			while file_name != "":
+				for ext in image_extensions:
+					if file_name.to_lower().ends_with(ext):
+						image_path = Game.GetFile("path").path_join(file_name)
+						break
+				if image_path != "":
+					break
+				file_name = dir.get_next()
+			dir.list_dir_end()
+		if image_path != "":
+			var image = Image.new()
+			var err = image.load(image_path)
+			if err == OK:
+				#var tex = ImageTexture.create_from_image(image)
+				#$Background.texture = tex
+				pass
 var lastTime = 0
-#WAV 쓰는거 CHATGPT한테 물어보자
-#혹시 까먹을까봐 적어두고 자러간다 수고
+var start_time = 0
+var started = false
+var wait = true
+var lerping = 1.5
 func _process(delta: float) -> void:
+	if lerping < 0 && wait:
+		songplayer.play()
+		wait = false
+	elif wait:
+		lerping -= delta
+		Game.currentTime = lerping * -1000
 	if canplay:
-		var playback: AudioStreamPlayback = songplayer.get_stream_playback()
-		Game.currentTime = (playback.get_playing_position() + AudioServer.get_time_since_last_mix()) * 1000
-		if(lastTime > Game.currentTime):
-			print("[Debug] currentTime is going back bruh")
-			print(lastTime - Game.currentTime)
-			pass
 		check_objects()
-		check_judge()
+		comboDisplayer.text = str(combo)
+		if not started and songplayer.playing:
+			start_time = Time.get_ticks_msec() - songplayer.get_playback_position() * 1000
+			print("오차값")
+			print(songplayer.get_playback_position() * 1000)
+			started = true
 		if Input.is_action_just_pressed("ui_cancel"):
-			get_tree().change_scene_to_file("res://Scene/MainMenu.tscn")
-		lastTime = Game.currentTime
-
+			get_tree().change_scene_to_file("res://Scene/SongSelect.tscn")
 func parse_objects(json_data):
 	if "rails" in json_data:
 		for rail in json_data["rails"]:
@@ -91,9 +118,8 @@ func setNextNote():
 #일반노트 판정확인
 func check_judge():
 	if nextnote_i < notes.size():
-		var acc = notes[nextnote_i].time - Game.currentTime
-		if notes[nextnote_i].time + Game.bad < Game.currentTime:
-			write_judge(0)
+		if notes[nextnote_i].time + Game.ok < Game.currentTime:
+			call_deferred("write_judge",0)
 			setNextNote()
 # 노트스폰, 레일 스폰,디스폰;
 var canSpawnRail = true
@@ -123,9 +149,28 @@ func check_objects():
 		else:
 			break
 
+
+var running := true
+var current_time_msec := 0
+
+func _exit_tree():
+	running = false
+	thread.wait_to_finish()
+
+func _update(_data = null):
+	var last = Time.get_ticks_msec()
+	while running:
+		var now = Time.get_ticks_msec()
+		while now - last >= 1:
+			last += 1
+			current_time_msec = last
+			if started:
+				Game.currentTime = Time.get_ticks_msec() - start_time - Game.offset_recom
+				check_judge()
+		OS.delay_msec(1)
 func load_files() -> Dictionary:
-	var map_path = user_dir.path_join("Songs/" + Game.selected + "/map.json")
-	var song_path = user_dir.path_join("Songs/" + Game.selected + "/song.mp3")
+	var map_path = Game.GetFile("map")
+	var song_path = Game.GetFile("song")
 	var song_stream = AudioStreamMP3.new()
 	var song_file = FileAccess.open(song_path, FileAccess.READ)
 	if song_file:
@@ -149,15 +194,14 @@ func playerAction() -> void:
 	if nextnote_i < notes.size():
 		var acc = notes[nextnote_i].time - Game.currentTime
 		if player.standRail.id == notes[nextnote_i].rail && notes[nextnote_i].type == 1:
-			judege_acc(acc)
+			GetJudge(acc)
 		pass
-
 func playerMove(dir:int,_rail) -> void:
 	if nextnote_i < notes.size():
 		if notes[nextnote_i].type == 2 && notes[nextnote_i].rail == player.standRail.id:
 			if notes[nextnote_i].dir == dir:
 				var acc = notes[nextnote_i].time - Game.currentTime
-				judege_acc(acc)
+				GetJudge(acc)
 func getScore() -> float:
 	var f:float = 0
 	if result_notes <= result_perfect_plus + result_perfect:
@@ -165,7 +209,7 @@ func getScore() -> float:
 	else:
 		f = score / max_score * 100
 	return f
-func judege_acc(acc):
+func GetJudge(acc):
 	if acc < Game.perfect_plus && acc > Game.perfect_plus * -1:
 		write_judge(5)
 		setNextNote()
@@ -212,12 +256,12 @@ func write_judge(j:int):
 		combo = 0
 	if j == 0:
 		result_miss += 1
-		combo = 0;
+		combo = 0
 	accDisplayer.text = str(snapped(getScore(), 0.01)) + "%"
 	if j != 0:
+		sfx_pool.play_sound(preload("res://Resources/drum-slidertick.wav"))
 		player.sprites_current = null
 		if notes[nextnote_i].animation > 0:
 			player.setAnimation(notes[nextnote_i].animation)
 		else:
 			player.setAnimation(player.getNextDefaultDance())
-	comboDisplayer.text = str(combo)

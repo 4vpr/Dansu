@@ -5,9 +5,12 @@ var was_playing = false
 var player_animation = {}
 var animations = []
 var beatsdiv = 2
+var sfx_pool = SfxPool.new()
+@onready var le_title = $"Song Setup/Control/VBox/title/LineEdit"
+@onready var le_artist = $"Song Setup/Control/VBox/artist/LineEdit"
+@onready var le_startpoint = $"Song Setup/Control/VBox/SelectSong"
+@onready var le_bpm = $"Song Setup/Control/VBox/bpm"
 @onready var B_Pause = $SongControl/B_Pause
-@onready var B_LEFT = $SongControl/B_LEFT
-@onready var B_RIGHT = $SongControl/B_RIGHT
 @onready var SongSlider = $SongSlider
 @onready var B_Remove = $NoteControl/B_Remove
 @onready var B_Save = $NoteControl/B_Save
@@ -24,30 +27,17 @@ var user_dir = OS.get_user_data_dir()
 var SongIsPlaying = false
 var map_data = {}
 var exe_dir = OS.get_executable_path().get_base_dir()
-var map_path = user_dir.path_join("Songs/" + Game.selected + "/map.json")
-var song_path = user_dir.path_join("Songs/" + Game.selected + "/song.mp3")
+var map_path = Game.GetFile("map")
+var song_path = Game.GetFile("song")
 var rail_scene = load("res://objects/editor/rail.tscn")
 var note_scene = load("res://objects/editor/note.tscn")
-
 var selected = null
-
-var everything = {}
-var undoredo = {}
-var undoredo_i = 0
-
-var rails = []
-var notes = []
-
-
+var everything = {}; var undoredo = {}; var undoredo_i = 0
+var rails = []; var notes = []
 var rail_scope = null
-
-var meta_name
-var meta_artist
-var meta_creator
-var song_bpmstart
-var song_lerp
-var song_bpm
-var current_bpm
+var meta_title:String; var meta_artist:String; var meta_creator:String
+var song_difficulty;
+var song_bpmstart:float; var song_lerp:float; var song_bpm:float; var current_bpm:float
 func scope_rail():
 	if selected != null:
 		if selected.get("rail") != null:
@@ -95,7 +85,7 @@ func create_note(type,dir = 0):
 	var new_note = note_scene.instantiate()
 	var time = snap_to_bpm(Game.currentTime)
 	for note in notes:
-		if note.time == time:
+		if round(note.time) == round(time):
 			notes.erase(note)
 			note.queue_free()
 	if selected != null:
@@ -113,12 +103,12 @@ func create_note(type,dir = 0):
 func create_rail():
 	var new_rail = rail_scene.instantiate()
 	new_rail.start = Game.currentTime - 50
-	var i = 1
+	var used_ids := {}
 	for rail in rails:
-		if rail.id == i:
-			i += 1
-		else:
-			break
+		used_ids[rail.id] = true
+	var i = 1
+	while used_ids.has(i):
+		i += 1
 	new_rail.id = i
 	new_rail.end = Game.currentTime + 500
 	new_rail.pos = 0
@@ -137,8 +127,6 @@ func snap_to_bpm(timing: float,division: int = beatsdiv) -> float:
 
 
 func load_files() -> Dictionary:
-	var map_path = user_dir.path_join("Songs/" + Game.selected + "/map.json")
-	var song_path = user_dir.path_join("Songs/" + Game.selected + "/song.mp3")
 	var song_stream = AudioStreamMP3.new()
 	var song_file = FileAccess.open(song_path, FileAccess.READ)
 	if song_file:
@@ -194,9 +182,23 @@ func paste() -> void:
 func _ready() -> void:
 	Game.currentTime = 0
 	Song.volume_db = linear_to_db(Game.volume)
+	add_child(sfx_pool)
 	for button in get_tree().get_nodes_in_group("ui_buttons"):
 		button.focus_mode = Control.FOCUS_NONE
 	parse_data(load_files())
+	var fields = {
+		"meta_title": TYPE_STRING,
+		"meta_artist": TYPE_STRING,
+		"song_bpm": TYPE_FLOAT,
+		"song_bpmstart": TYPE_FLOAT
+		}
+	for name in fields:
+		var field = find_child(name, true, false)
+		if field is LineEdit:
+			field.text = str(get(name))
+			field.text_changed.connect(func(new_text): set(name, new_text))
+			
+			
 	B_Pause.pressed.connect(_on_pause_pressed)
 	B_AddNote.pressed.connect(create_note.bind(1))
 	B_AddLeft.pressed.connect(create_note.bind(2,2))
@@ -205,15 +207,13 @@ func _ready() -> void:
 	B_AddRail.pressed.connect(create_rail)
 	B_Remove.pressed.connect(_on_remove_pressed)
 	SongSlider.value_changed.connect(_on_slider_changed)
-var time_prev = 0
-var lastmix_prev = 0
-var playback_prev = 0
-var playback = 0
-var last_mix_time = 0
+	
+var nextHitSound = -INF
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("ui_cancel"):
 		save_files()
-		get_tree().change_scene_to_file("res://Scene/MainMenu.tscn")
+		get_tree().change_scene_to_file("res://Scene/SongSelect.tscn")
+		print("exit")
 	rail_check()
 	check_drag()
 	scope_rail()
@@ -222,25 +222,32 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("ui_paste"):
 		paste()
 	if SongIsPlaying and not is_dragging:
-		playback = Song.get_playback_position() * 1000
 		SongSlider.value = Song.get_playback_position()
-		var current_time = Time.get_ticks_msec()
-		if playback > playback_prev:
-			last_mix_time = current_time
-		var lastmix = (current_time - last_mix_time)
-		Game.currentTime = playback + lastmix - Game.offset_recom
-		playback_prev = playback 
+		Game.currentTime = Song.get_playback_position() * 1000
+		var h = INF
+		if Game.currentTime > nextHitSound:
+			if nextHitSound > 0:
+				sfx_pool.play_sound(preload("res://Resources/normal-hitnormal.wav"))
+				nextHitSound = INF
+			for note in notes:
+				if note.time > Game.currentTime &&  note.time < h:
+					nextHitSound = note.time
+					h = note.time
+			if Game.currentTime > h:
+				nextHitSound = INF
 	else:
 		Game.currentTime = SongSlider.value * 1000
-
+		nextHitSound = -INF
 func snap_notes():
 	for note in notes:
 		note.time = snap_to_bpm(note.time)
 		
 func save_to_json():
-	var map_path = user_dir.path_join("Songs/" + Game.selected + "/map.json")
 	var json_data = {}
-
+	json_data["title"] = meta_title
+	json_data["artist"] = meta_artist
+	json_data["creator"] = meta_creator
+	json_data["difficulty"] = song_difficulty
 	json_data["bpm"] = song_bpm
 	json_data["bpmstart"] = song_bpmstart
 	json_data["player"] = {
@@ -257,6 +264,7 @@ func save_to_json():
 		"id": animation["id"],
 		"frames": animation["frame_filenames"],
 		"fps": animation["fps"],
+		"name": animation["name"],
 		"effect": animation["effect"]
 		})
 	json_data["rails"] = []
@@ -289,16 +297,20 @@ var texture_cache = {} # 파일명을 키로, Texture2D를 값으로 저장
 func get_texture(file_name):
 	if file_name in texture_cache:
 		return texture_cache[file_name] # 캐싱된 텍스처 반환
-	var texture_path = user_dir.path_join("Songs/" + Game.selected + "/sprite/" + file_name)
+	var texture_path = Game.GetSprite(file_name)
 	var image = Image.new()
 	if image.load(texture_path) == OK:
 		var texture = ImageTexture.create_from_image(image)
 		texture_cache[file_name] = texture
 		return texture
 func parse_data(json_data):
+	meta_title = json_data.get("title", "?")
+	meta_artist = json_data.get("artist", "?")
+	meta_creator = json_data.get("creator", "test")
+	song_difficulty = json_data.get("difficulty", 5)
 	if "animations" in json_data:
 		for animation in json_data["animations"]:
-			var frames = animation.get("frames", []) 
+			var frames = animation.get("frames", [])
 			var texture_frames = []
 			var texture_filenames = []
 			# 캐싱된 Texture2D 가져오기
@@ -312,6 +324,7 @@ func parse_data(json_data):
 				"frames": texture_frames,
 				"fps": animation.get("fps", 1),
 				"effect": animation.get("effect", "none"),
+				"name": animation.get("name","none"),
 				"frame_filenames": texture_filenames
 				})
 	if "player" in json_data:
@@ -351,10 +364,10 @@ func _input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
 			SongSlider.value = snap_to_bpm(SongSlider.value * 1000) / 1000
-			SongSlider.value = SongSlider.value + 60 / song_bpm / beatsdiv
+			SongSlider.value += 60 / song_bpm / beatsdiv
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
 			SongSlider.value = snap_to_bpm(SongSlider.value * 1000) / 1000
-			SongSlider.value = SongSlider.value - 60 / song_bpm / beatsdiv
+			SongSlider.value -= 60 / song_bpm / beatsdiv
 	
 func _on_pause_pressed() -> void:
 	if SongIsPlaying:

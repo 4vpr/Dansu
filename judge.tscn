@@ -1,9 +1,0 @@
-[gd_scene load_steps=3 format=3 uid="uid://cu6rssiirekjh"]
-
-[ext_resource type="Texture2D" uid="uid://dleo65mgbojk5" path="res://Textures/Judges/Just.png" id="1_v3b1q"]
-[ext_resource type="Script" path="res://judge.gd" id="2_x2ji4"]
-
-[node name="judge" type="Sprite3D"]
-pixel_size = 0.0013
-texture = ExtResource("1_v3b1q")
-script = ExtResource("2_x2ji4")

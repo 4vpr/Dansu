@@ -23,6 +23,11 @@ var player_animation = {}
 var animations = []
 var default_dance_i = 0
 
+var rightPress:float = 0
+var leftPress:float = 0
+var PressInput:float = 0.1
+
+
 func _groove():
 	groove = 0
 
@@ -36,22 +41,23 @@ func _ready() -> void:
 			target_size.x / texture_size.x,
 			target_size.y / texture_size.y
 		)
+	scale = Vector3(scale_factor.y, scale_factor.y, 1)
 	var tex_size = sprite.texture.get_size()
 	var world_height = tex_size.y * sprite.pixel_size
-	scale = Vector3(scale_factor.y, scale_factor.y, 1)
-	sprite.position.y = world_height / 2 * scale_factor.y
-	scaleVel = scale
+	sprite.position.y = world_height * scale_factor.y / (target_size.y / texture_size.y) / 2
 	scene = get_parent()
 	groundHeight = position.y
 	rails = railContainer.get_children()
 	if rails.size() > 0:
 		standRail = closest_rail()
 
+	scaleVel = scale
+
 var texture_cache = {} # 파일명을 키로, Texture2D를 값으로 저장
 func get_texture(file_name):
 	if file_name in texture_cache:
 		return texture_cache[file_name] # 캐싱된 텍스처 반환
-	var texture_path = user_dir.path_join("Songs/" + Game.selected + "/sprite/" + file_name)
+	var texture_path = user_dir.path_join("Songs/" + Game.select_folder + "/sprite/" + file_name)
 	var image = Image.new()
 	if image.load(texture_path) == OK:
 		var texture = ImageTexture.create_from_image(image)
@@ -98,7 +104,7 @@ func _process(delta: float) -> void:
 	else:
 		scale = scaleVel
 	
-	#점프 구현부
+	#점프 구현부$"
 	if isJumping:
 		jumpDurationCurrent -= delta
 		if Input.is_action_just_pressed("move_down") || jumpDurationCurrent < 0:
@@ -108,12 +114,25 @@ func _process(delta: float) -> void:
 		position.y = lerp(position.y, groundHeight, delta * 20)
 
 	#이동 구현부
+
 	if standRail != null:
-		position.x = lerp(position.x, standRail.position.x, delta * 35)
-		if Input.is_action_just_pressed("move_left"):
+		position.x = lerp(position.x, standRail.position.x, delta * 20)
+		if Input.is_action_pressed("move_right"):
+			#rightPress += delta
+			pass
+		else:
+			rightPress = 0
+		if Input.is_action_pressed("move_left"):
+			#leftPress += delta
+			pass
+		else:
+			leftPress = 0
+		if Input.is_action_just_pressed("move_left") || leftPress > PressInput:
+			leftPress = 0
 			scene.playerMove(2, standRail)
 			standRail = move_rail(-1)
-		if Input.is_action_just_pressed("move_right"):
+		if Input.is_action_just_pressed("move_right") || rightPress > PressInput:
+			rightPress = 0
 			scene.playerMove(4, standRail)
 			standRail = move_rail(1)
 		if Input.is_action_just_pressed("move_up") && !isJumping:
@@ -127,15 +146,15 @@ func closest_rail() -> Node3D:
 	if rails.size() == 0:
 		return standRail
 	var current_x = position.x
-	var closest_rail = null
+	var c_rail = null
 	var min_distance = INF
 	for rail in rails:
 		if rail.active:
 			var distance = abs(rail.position.x - current_x)
 			if distance < min_distance:
 				min_distance = distance
-				closest_rail = rail
-	return closest_rail
+				c_rail = rail
+	return c_rail
 	
 
 #이동방향에서 가장 가까운 레일 찾기
@@ -170,7 +189,7 @@ func setPlayerIdle():
 func setAnimation(id):
 	for animation in animations:
 		_groove()
-		if animation["id"] == id:
+		if animation["id"] == id :
 				sprites_current = animation["frames"]
 				sprites_current_index = 0
 				sprites_current_update = Game.currentTime
