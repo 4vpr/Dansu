@@ -18,7 +18,7 @@ func _ready() -> void:
 	mesh.scale.z = (end - start) * size / Game.travelTime
 	mesh.position.z = 200
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if moves.size() > 0:
 		if move_i < moves.size():
 			var move = moves[move_i]
@@ -27,7 +27,7 @@ func _process(delta: float) -> void:
 			elif Game.currentTime >= move["endtime"]:
 				move_i += 1
 				initial_position = position
-	mesh.position.z = Game.panelSize -((start - Game.currentTime) * Game.velocity / 1000) - mesh.scale.z / 2
+	mesh.position.z = Game.panelSize -((start - Game.currentTime) * Game.settings.velocity / 1000) - mesh.scale.z / 2
 
 	if start - Game.currentTime < rail_fix:
 		active = true

@@ -71,13 +71,15 @@ func save_everything():
 	pass
 func create_note(type,dir = 0):
 	var new_note = note_scene.instantiate()
-	var time = snap_to_bpm(Game.currentTime)
+	var time = int(snap_to_bpm(Game.currentTime))
 	for note in notes:
-		if round(note.time) == round(time):
+		if note.time == time:
 			notes.erase(note)
 			note.queue_free()
+			print("sametime")
+		print(note.time)
+	print(time)
 	if selected != null:
-		print("works")
 		new_note.type = type
 		new_note.time = time
 		print(Game.currentTime)
@@ -169,7 +171,7 @@ func paste() -> void:
 					notes.push_back(new_note)
 func _ready() -> void:
 	Game.currentTime = 0
-	Song.volume_db = linear_to_db(Game.volume)
+	Song.volume_db = linear_to_db(Game.settings.volume_song * Game.settings.volume_master)
 	add_child(sfx_pool)
 	for button in get_tree().get_nodes_in_group("ui_buttons"):
 		button.focus_mode = Control.FOCUS_NONE
@@ -179,14 +181,21 @@ func _ready() -> void:
 		"meta_artist": TYPE_STRING,
 		"song_bpm": TYPE_FLOAT,
 		"song_bpmstart": TYPE_FLOAT
-		}
+	}
 	for name in fields:
 		var field = find_child(name, true, false)
 		if field is LineEdit:
-			field.text = str(get(name))
-			field.text_changed.connect(func(new_text): set(name, new_text))
+			field.text = str(beatmap.get(name))
+			field.text_changed.connect(
+				func(new_text, field_name = name, field_type = fields[name]):
+					match field_type:
+						TYPE_STRING:
+							beatmap.set(field_name, new_text)
+						TYPE_FLOAT:
+							beatmap.set(field_name, new_text.to_float())
+		)
 			
-			
+	
 	B_Pause.pressed.connect(_on_pause_pressed)
 	B_AddNote.pressed.connect(create_note.bind(1))
 	B_AddLeft.pressed.connect(create_note.bind(2,2))
@@ -197,7 +206,7 @@ func _ready() -> void:
 	SongSlider.value_changed.connect(_on_slider_changed)
 	
 var nextHitSound = -INF
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("ui_cancel"):
 		save_files()
 		get_tree().change_scene_to_file("res://Scene/SongSelect.tscn")
@@ -267,10 +276,10 @@ func save_to_json():
 	json_data["notes"] = []
 	for note in notes:
 		json_data["notes"].append({
-			"type": note.type,
-			"time": note.time,
-			"rail": note.rail,
-			"dir": note.dir,
+			"type": int(note.type),
+			"time": int(note.time),
+			"rail": int(note.rail),
+			"dir": int(note.dir),
 			"animation": note.animation
 			})
 	var file = FileAccess.open(map_path, FileAccess.WRITE)
@@ -352,10 +361,10 @@ func _input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
 			SongSlider.value = snap_to_bpm(SongSlider.value * 1000) / 1000
-			SongSlider.value += 60 / beatmap.song_bpm / beatmap.beatsdiv
+			SongSlider.value += 60 / beatmap.song_bpm / beatsdiv
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
 			SongSlider.value = snap_to_bpm(SongSlider.value * 1000) / 1000
-			SongSlider.value -= 60 / beatmap.song_bpm / beatmap.beatsdiv
+			SongSlider.value -= 60 / beatmap.song_bpm / beatsdiv
 func _on_pause_pressed() -> void:
 	if SongIsPlaying:
 		paused_position = Song.get_playback_position()

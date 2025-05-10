@@ -1,0 +1,111 @@
+[gd_scene load_steps=8 format=3 uid="uid://dqyrp3v4bjcuj"]
+
+[ext_resource type="Script" path="res://scripts/song_select.gd" id="1_mrfqk"]
+[ext_resource type="Material" uid="uid://c6pv45raq5p8j" path="res://Resources/blur.tres" id="2_wrjm4"]
+[ext_resource type="Script" path="res://scripts/edit.gd" id="3_keo4n"]
+[ext_resource type="Script" path="res://scripts/bg.gd" id="4_1ronj"]
+[ext_resource type="Script" path="res://scripts/h_slider.gd" id="5_pbdis"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yuyws"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_7c3fw"]
+
+[node name="SongSelect" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_mrfqk")
+
+[node name="Image" type="TextureRect" parent="."]
+material = ExtResource("2_wrjm4")
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+expand_mode = 1
+stretch_mode = 6
+script = ExtResource("4_1ronj")
+
+[node name="MapPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_right = 1020.0
+offset_bottom = 1080.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_yuyws")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MapPanel"]
+layout_mode = 0
+offset_left = 25.0
+offset_top = 25.0
+offset_right = 825.0
+offset_bottom = 125.0
+
+[node name="Edit" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1809.0
+offset_top = 996.0
+offset_right = 1904.0
+offset_bottom = 1068.0
+text = "Edit
+"
+script = ExtResource("3_keo4n")
+
+[node name="Edit" type="Button" parent="Edit"]
+layout_mode = 0
+offset_left = 1809.0
+offset_top = 996.0
+offset_right = 1904.0
+offset_bottom = 1068.0
+text = "Edit
+"
+script = ExtResource("3_keo4n")
+
+[node name="volume_master" type="HSlider" parent="."]
+layout_mode = 0
+offset_left = 1140.0
+offset_top = 1044.0
+offset_right = 1765.0
+offset_bottom = 1060.0
+min_value = 5.0
+max_value = 20.0
+step = 0.5
+value = 5.0
+script = ExtResource("5_pbdis")
+
+[node name="Label" type="Label" parent="volume_master"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = -5.19
+anchor_right = 0.5
+anchor_bottom = -2.121
+offset_left = 16.0
+offset_top = 49.04
+offset_right = -144.0
+offset_bottom = 22.936
+label_settings = SubResource("LabelSettings_7c3fw")
+
+[node name="velocity" type="HSlider" parent="."]
+offset_left = 1140.0
+offset_top = 976.0
+offset_right = 1765.0
+offset_bottom = 992.0
+min_value = 5.0
+max_value = 20.0
+step = 0.5
+value = 5.0
+script = ExtResource("5_pbdis")
+
+[node name="Label" type="Label" parent="velocity"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = -5.19
+anchor_right = 0.5
+anchor_bottom = -2.121
+offset_left = 16.0
+offset_top = 49.04
+offset_right = -144.0
+offset_bottom = 22.936
+text = "volume"
+label_settings = SubResource("LabelSettings_7c3fw")

@@ -26,7 +26,27 @@ var score :float = 0
 var max_score :float = 0
 var high_combo = 0
 
-
+func getRank():
+	var a = getScore()
+	if a >= 101:
+		return "AP"
+	elif a >= 100.9:
+		return "X+"
+	elif a >= 100:
+		return "X"
+	elif a >= 99:
+		return "S+"
+	elif a >= 95:
+		return "S"
+	elif a >= 90:
+		return "A"
+	elif a >= 80:
+		return "B"
+	elif a >= 70:
+		return "C"
+	else:
+		return "D"
+	pass
 func getJudge(i) -> int:
 	var j:int = -1
 	if i < t_perfect_plus && i > t_perfect_plus * -1:
@@ -65,7 +85,7 @@ func addScore(i):
 func getScore() -> float:
 	var f:float = 0
 	if c_note <= c_perfect_plus + c_perfect:
-		f = (c_perfect_plus / c_note) + 100
+		f = (float(c_perfect_plus) / float(c_note)) + 100
 	else:
 		f = score / max_score * 100
 	return f

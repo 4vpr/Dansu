@@ -11,15 +11,15 @@ var can_drag = false
 @onready var notes = $NoteContainer
 
 func sizeToNotes() -> void:
-	var min = INF
-	var max = 0
+	var _min = INF
+	var _max = 0
 	for note in notes.get_children():
-		if note.time < min:
-			min = note.time
-		if note.time > max:
-			max = note.time
-	start = min - Game.great
-	end = max + Game.great
+		if note.time < _min:
+			_min = note.time
+		if note.time > _max:
+			_max = note.time
+	start = _min - 85
+	end = _max + 85
 func _ready() -> void:
 	_update()
 	mouse_exited.connect(_on_mouse_exited)

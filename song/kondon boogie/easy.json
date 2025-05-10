@@ -54,140 +54,140 @@
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 1181.57894736842,
+			"time": 1181,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 1813.15789473684,
+			"time": 1813,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 2444.73684210526,
+			"time": 2444,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 1,
-			"time": 3076.31578947368,
+			"time": 3076,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 3,
-			"time": 3707.89473684211,
+			"time": 3707,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 3,
-			"time": 4339.47368421053,
+			"time": 4339,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 3,
-			"time": 4971.05263157895,
+			"time": 4971,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 3,
-			"time": 5602.63157894737,
+			"time": 5602,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 6234.21052631579,
+			"time": 6234,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 6865.78947368421,
+			"time": 6865,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 2,
-			"time": 7497.36842105263,
+			"time": 7497,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 8128.94736842105,
+			"time": 8128,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 1,
-			"time": 8760.52631578947,
+			"time": 8760,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 3,
-			"time": 9392.1052631579,
+			"time": 9392,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 3,
-			"time": 9707.89473684211,
+			"time": 9707,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 3,
-			"time": 10023.6842105263,
+			"time": 10023,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 3,
-			"time": 10339.4736842105,
+			"time": 10339,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 10655.2631578947,
+			"time": 10655,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 11286.8421052632,
+			"time": 11286,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 11918.4210526316,
+			"time": 11918,
 			"type": 2
 		},
 		{
@@ -201,70 +201,49 @@
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 13181.5789473684,
+			"time": 13181,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 13497.3684210526,
+			"time": 13813,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 1,
-			"time": 14128.9473684211,
+			"time": 14128,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 3,
-			"time": 14760.5263157895,
+			"time": 14760,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 3,
-			"time": 15392.1052631579,
-			"type": 2
-		},
-		{
-			"animation": 0,
-			"dir": 4,
-			"rail": 1,
-			"time": 15707.8947368421,
-			"type": 2
-		},
-		{
-			"animation": 0,
-			"dir": 0,
-			"rail": 2,
-			"time": 16023.6842105263,
-			"type": 1
-		},
-		{
-			"animation": 0,
-			"dir": 2,
-			"rail": 2,
-			"time": 16655.2631578947,
+			"time": 15392,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
-			"rail": 1,
-			"time": 17286.8421052632,
+			"rail": 2,
+			"time": 16655,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 3,
-			"time": 17918.4210526316,
+			"time": 17918,
 			"type": 1
 		},
 		{
@@ -278,64 +257,162 @@
 			"animation": 0,
 			"dir": 4,
 			"rail": 3,
-			"time": 19181.5789473684,
+			"time": 19181,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 19813.1578947368,
+			"time": 19813,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 4,
-			"time": 20760.5263157895,
-			"type": 1
-		},
-		{
-			"animation": 0,
-			"dir": 0,
-			"rail": 4,
-			"time": 21076.3157894737,
-			"type": 1
-		},
-		{
-			"animation": 0,
-			"dir": 0,
-			"rail": 4,
-			"time": 21392.1052631579,
+			"time": 20760,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 5,
-			"time": 22023.6842105263,
+			"time": 22339,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 5,
-			"time": 22339.4736842105,
+			"time": 22655,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
-			"rail": 5,
-			"time": 22655.2631578947,
+			"rail": 1,
+			"time": 13497,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 3,
+			"time": 14444,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 3,
+			"time": 15076,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 15707,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 16339,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 1,
+			"time": 16971,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 2,
-			"rail": 5,
-			"time": 22971.0526315789,
+			"rail": 1,
+			"time": 17602,
 			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 3,
+			"time": 18234,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 4,
+			"time": 21392,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 4,
+			"time": 20444,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 4,
+			"time": 21076,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 4,
+			"time": 22023,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 5,
+			"time": 22971,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 4,
+			"time": 23286,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 4,
+			"time": 23918,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 4,
+			"time": 24550,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 4,
+			"time": 24865,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 4,
+			"time": 25181,
+			"type": 1
 		}
 	],
 	"player": {
@@ -373,7 +450,7 @@
 			"start": 0
 		},
 		{
-			"end": 21500.1052631579,
+			"end": 50000,
 			"id": 4,
 			"move": [],
 			"position": 0,

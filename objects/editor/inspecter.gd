@@ -59,7 +59,7 @@ func _on_text_changed(text,edit):
 		pass
 	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if root.selected != null && root.selected != selected:
 		selected = root.selected
 		_update(selected)

@@ -14,8 +14,8 @@ var combo = 0
 var judgeDisplayDuration = 1
 var judgeDisplayDurationCurrent = 0
 var canplay = false
-var score_final = 0
-var song_end
+var song_end:int = 0
+var song_length
 @onready var player = $Player
 @onready var rail_container = $Ground/RailContainor
 @onready var songplayer = $SongPlayer
@@ -31,7 +31,7 @@ func _ready() -> void:
 		parse_objects(map_data)
 		player.parse_data(map_data)
 		check_objects()
-		songplayer.volume_db = linear_to_db(Game.volume)
+		songplayer.volume_db = linear_to_db(Game.settings.volume_song * Game.settings.volume_master)
 		canplay = true
 		current_time_msec = Time.get_ticks_msec()
 		thread.start(self._update)
@@ -50,13 +50,13 @@ func _ready() -> void:
 					break
 				file_name = dir.get_next()
 			dir.list_dir_end()
-		if image_path != "":
-			var image = Image.new()
-			var err = image.load(image_path)
-			if err == OK:
+		#if image_path != "":
+			#var image = Image.new()
+			#var err = image.load(image_path)
+			#if err == OK:
 				#var tex = ImageTexture.create_from_image(image)
 				#$Background.texture = tex
-				pass
+				#pass
 var lastTime = 0
 var start_time = 0
 var started = false
@@ -69,6 +69,13 @@ func _process(delta: float) -> void:
 	elif wait:
 		lerping -= delta
 		Game.currentTime = lerping * -1000
+	#if Game.currentTime > songplayer.stream.get_length() * 1000:
+	if Game.currentTime > song_end:
+		songplayer.volume_db -= delta * 30
+		if Game.currentTime > song_end + 2000:
+			Game.score = score
+			get_tree().change_scene_to_file("res://Scene/result_scene.tscn")
+		pass
 	if canplay:
 		check_objects()
 		comboDisplayer.text = str(combo)
@@ -100,12 +107,16 @@ func parse_objects(json_data):
 			new_note.animation = note.get("animation",0)
 			notes.push_back (new_note)
 	notes.sort_custom(func(a, b): return a.time < b.time)
+	if notes.size() > 0:
+		song_end = notes[notes.size() - 1].time + 1000
+	else:
+		song_end = 0
 func setNextNote():
 	if nextnote_i < notes.size():
 		notes[nextnote_i].queue_free()
 		nextnote_i += 1
 		if nextnote_i >= notes.size():
-			song_end = true
+			canplay = false
 
 #일반노트 판정확인
 func check_judge():

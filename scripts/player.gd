@@ -13,7 +13,7 @@ var groove = 0.2
 var scaleVel
 var groove_rst = 0.2
 var user_dir = OS.get_user_data_dir()
-
+var useDefaultSkin = false
 var sprites = []
 var sprites_current = []
 var sprites_current_index
@@ -36,7 +36,7 @@ func _ready() -> void:
 	setPlayerIdle()
 	playAnimation()
 	var texture_size = sprite.texture.get_size()
-	var target_size = Vector2(200,Game.playerSize)
+	var target_size = Vector2(200,Game.settings.playerheight)
 	var scale_factor = Vector2(
 			target_size.x / texture_size.x,
 			target_size.y / texture_size.y
@@ -59,10 +59,14 @@ func get_texture(file_name):
 		return texture_cache[file_name] # 캐싱된 텍스처 반환
 	var texture_path = Game.select_folder.path_join("/sprite/" + file_name)
 	var image = Image.new()
-	if image.load(texture_path) == OK:
-		var texture = ImageTexture.create_from_image(image)
-		texture_cache[file_name] = texture
-		return texture
+	var texture
+	if texture_path.contains("res://"):
+		texture = load(texture_path)
+	else:
+		texture = ImageTexture.create_from_image(image)
+	texture_cache[file_name] = texture
+	return texture
+
 func parse_data(json_data):
 	if "animations" in json_data:
 		for animation in json_data["animations"]:
@@ -162,7 +166,7 @@ func move_rail(direction: int) -> Node3D:
 	if rails.size() == 0:
 		return standRail
 	var current_x = standRail.position.x
-	var closest_rail = standRail
+	var c_rail = standRail
 	var min_distance = INF
 
 	for rail in rails:
@@ -170,8 +174,8 @@ func move_rail(direction: int) -> Node3D:
 			var distance = abs(rail.position.x - current_x)
 			if distance < min_distance:
 				min_distance = distance
-				closest_rail = rail
-	return closest_rail
+				c_rail = rail
+	return c_rail
 
 
 #애니메이션 구현부

@@ -3,8 +3,8 @@
 [ext_resource type="Script" path="res://scripts/song_select.gd" id="1_mrfqk"]
 [ext_resource type="Material" uid="uid://c6pv45raq5p8j" path="res://Resources/blur.tres" id="2_wrjm4"]
 [ext_resource type="Script" path="res://scripts/edit.gd" id="3_keo4n"]
-[ext_resource type="Script" path="res://Scene/bg.gd" id="4_1ronj"]
-[ext_resource type="Script" path="res://Scene/h_slider.gd" id="5_pbdis"]
+[ext_resource type="Script" path="res://scripts/bg.gd" id="4_1ronj"]
+[ext_resource type="Script" path="res://scripts/h_slider.gd" id="5_pbdis"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yuyws"]
 
@@ -24,6 +24,7 @@ material = ExtResource("2_wrjm4")
 layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
+expand_mode = 1
 stretch_mode = 6
 script = ExtResource("4_1ronj")
 
@@ -61,19 +62,18 @@ text = "Edit
 "
 script = ExtResource("3_keo4n")
 
-[node name="HSlider" type="HSlider" parent="."]
-layout_mode = 0
+[node name="velocity" type="HSlider" parent="."]
 offset_left = 1140.0
-offset_top = 1044.0
+offset_top = 1032.0
 offset_right = 1765.0
-offset_bottom = 1060.0
+offset_bottom = 1048.0
 min_value = 5.0
 max_value = 20.0
 step = 0.5
 value = 5.0
 script = ExtResource("5_pbdis")
 
-[node name="Label" type="Label" parent="HSlider"]
+[node name="Label" type="Label" parent="velocity"]
 layout_mode = 1
 anchors_preset = -1
 anchor_top = -5.19
@@ -83,5 +83,6 @@ offset_left = 16.0
 offset_top = 49.04
 offset_right = -144.0
 offset_bottom = 22.936
-text = "asdasd"
+text = "notespeed
+"
 label_settings = SubResource("LabelSettings_7c3fw")

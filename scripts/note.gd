@@ -22,5 +22,5 @@ func _ready() -> void:
 		NoteSprite.texture = MoveTex
 		ArrowSprite.visible = true
 		pass
-func _process(delta: float) -> void:
-	position.z = Game.panelSize -((time - Game.currentTime) * Game.velocity / 1000)
+func _process(_delta: float) -> void:
+	position.z = Game.panelSize -((time - Game.currentTime) * Game.settings.velocity / 1000)

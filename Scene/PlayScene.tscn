@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/playScene.gd" id="1_rq5yt"]
 [ext_resource type="Script" path="res://scripts/player.gd" id="2_pb52u"]
 [ext_resource type="Script" path="res://scripts/sprite.gd" id="3_xo6ek"]
-[ext_resource type="Script" path="res://Scene/camera_3d.gd" id="4_6a102"]
+[ext_resource type="Script" path="res://scripts/camera_3d.gd" id="4_6a102"]
 [ext_resource type="Texture2D" uid="uid://cutwk4vtb2r6w" path="res://Textures/panel.png" id="4_m3bnh"]
 [ext_resource type="Script" path="res://scripts/combo.gd" id="5_8ajhp"]
 [ext_resource type="FontFile" uid="uid://dyqkpg5wawdxu" path="res://Resources/Next Bravo.ttf" id="6_qkpip"]

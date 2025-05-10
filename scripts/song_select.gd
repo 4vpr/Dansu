@@ -53,9 +53,10 @@ func _load() -> void:
 			dir.list_dir_end()
 		if image_path != "":
 			var bg_node = new_map.get_node("BG")
-			if bg_node and bg_node is TextureRect:
-				var tex = ImageTexture.create_from_image(Image.load_from_file(image_path))
-				bg_node.texture = tex
+			if image_path.contains("res://song/"):
+				bg_node.texture = load(image_path)
+			else:
+				bg_node.texture = ImageTexture.create_from_image(Image.load_from_file(image_path))
 		map_panel.add_child(new_map)
 func update_bg(i):
 	$Image.texture = i

@@ -53,127 +53,113 @@
 		{
 			"animation": 0,
 			"dir": 0,
-			"rail": 1,
-			"time": 865.789473684211,
-			"type": 1
-		},
-		{
-			"animation": 0,
-			"dir": 0,
 			"rail": 2,
-			"time": 1181.57894736842,
-			"type": 1
-		},
-		{
-			"animation": 0,
-			"dir": 0,
-			"rail": 2,
-			"time": 1497.36842105263,
+			"time": 1181,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 1813.15789473684,
+			"time": 1813,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 2128.94736842105,
+			"time": 2128,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 2444.73684210526,
+			"time": 2444,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 2760.52631578947,
+			"time": 2760,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 3076.31578947368,
+			"time": 3076,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 3392.10526315789,
+			"time": 3392,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 2,
-			"time": 3707.89473684211,
+			"time": 3707,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 4023.68421052632,
+			"time": 4023,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 4339.47368421053,
+			"time": 4339,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 4655.26315789474,
+			"time": 4655,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 4971.05263157895,
+			"time": 4971,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 5286.84210526316,
+			"time": 5286,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 5602.63157894737,
+			"time": 5602,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 2,
-			"time": 5918.42105263158,
+			"time": 5918,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 6234.21052631579,
+			"time": 6234,
 			"type": 2
 		},
 		{
@@ -187,175 +173,175 @@
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 6865.78947368421,
+			"time": 6865,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 2,
-			"time": 7181.57894736842,
+			"time": 7181,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 7497.36842105263,
+			"time": 7497,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 7813.15789473684,
+			"time": 7813,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 8128.94736842105,
+			"time": 8128,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 8444.73684210526,
+			"time": 8444,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 8760.52631578947,
+			"time": 8760,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 9076.31578947368,
+			"time": 9076,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 9392.1052631579,
+			"time": 9392,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 9865.78947368421,
+			"time": 9865,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 10023.6842105263,
+			"time": 10023,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 2,
-			"time": 10102.6315789474,
+			"time": 10102,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 2,
-			"time": 10181.5789473684,
+			"time": 10181,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 2,
-			"time": 10260.5263157895,
+			"time": 10260,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 10339.4736842105,
+			"time": 10339,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 10655.2631578947,
+			"time": 10655,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 10971.0526315789,
+			"time": 10971,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 11128.9473684211,
+			"time": 11128,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 11286.8421052632,
+			"time": 11286,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 11444.7368421053,
+			"time": 11444,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 11602.6315789474,
+			"time": 11602,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 11760.5263157895,
+			"time": 11760,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 11918.4210526316,
+			"time": 11918,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 12234.2105263158,
+			"time": 12234,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 12392.1052631579,
+			"time": 12392,
 			"type": 2
 		},
 		{
@@ -369,231 +355,231 @@
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 12707.8947368421,
+			"time": 12707,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 12865.7894736842,
+			"time": 12865,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 13023.6842105263,
+			"time": 13023,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 13181.5789473684,
+			"time": 13181,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 13339.4736842105,
+			"time": 13339,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 2,
-			"time": 13497.3684210526,
+			"time": 13497,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 3,
-			"time": 13655.2631578947,
+			"time": 13655,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 2,
-			"time": 13813.1578947368,
+			"time": 13813,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 3,
-			"time": 13971.0526315789,
+			"time": 13971,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 3,
-			"time": 14128.9473684211,
+			"time": 14128,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 3,
-			"time": 14286.8421052632,
+			"time": 14286,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 14444.7368421053,
+			"time": 14444,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 1,
-			"time": 14602.6315789474,
+			"time": 14602,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 4,
-			"time": 14760.5263157895,
+			"time": 14760,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 4,
-			"time": 14918.4210526316,
+			"time": 14918,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 15076.3157894737,
+			"time": 15076,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 15234.2105263158,
+			"time": 15234,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 15392.1052631579,
+			"time": 15392,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 15707.8947368421,
+			"time": 15707,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 16023.6842105263,
+			"time": 16023,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 16181.5789473684,
+			"time": 16181,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 16339.4736842105,
+			"time": 16339,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 16497.3684210526,
+			"time": 16497,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 16655.2631578947,
+			"time": 16655,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 16813.1578947368,
+			"time": 16813,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 16971.0526315789,
+			"time": 16971,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 17286.8421052632,
+			"time": 17286,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 2,
-			"time": 17444.7368421053,
+			"time": 17444,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 2,
-			"time": 17602.6315789474,
+			"time": 17602,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 2,
-			"time": 17760.5263157895,
+			"time": 17760,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 3,
-			"time": 18076.3157894737,
+			"time": 17918,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 3,
-			"time": 17918.4210526316,
+			"time": 18076,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 3,
-			"time": 18234.2105263158,
+			"time": 18234,
 			"type": 2
 		},
 		{
@@ -607,98 +593,98 @@
 			"animation": 0,
 			"dir": 2,
 			"rail": 1,
-			"time": 18865.7894736842,
+			"time": 18865,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 4,
-			"time": 19023.6842105263,
+			"time": 19023,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 19339.4736842105,
+			"time": 19339,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 19497.3684210526,
+			"time": 19497,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 19655.2631578947,
+			"time": 19655,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 19813.1578947368,
+			"time": 19813,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 19971.0526315789,
+			"time": 19971,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 20128.9473684211,
+			"time": 20128,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 20286.8421052632,
+			"time": 20286,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 20444.7368421053,
+			"time": 20444,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 20760.5263157895,
+			"time": 20760,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 21076.3157894737,
+			"time": 21076,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 21234.2105263158,
+			"time": 21234,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 21392.1052631579,
+			"time": 21392,
 			"type": 2
 		},
 		{
@@ -712,113 +698,127 @@
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 21707.8947368421,
+			"time": 21707,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 21865.7894736842,
+			"time": 21865,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 2,
-			"time": 22023.6842105263,
+			"time": 22023,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 22339.4736842105,
+			"time": 22339,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 22497.3684210526,
+			"time": 22497,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 22655.2631578947,
+			"time": 22655,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 22813.1578947368,
+			"time": 22813,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 2,
 			"rail": 2,
-			"time": 22971.0526315789,
+			"time": 22971,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 4,
 			"rail": 1,
-			"time": 23128.9473684211,
+			"time": 23128,
 			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 2,
-			"time": 23286.8421052632,
+			"time": 23286,
 			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 23602,
+			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 1,
-			"time": 23602.6315789474,
+			"time": 23918,
 			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 24234,
+			"type": 2
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 2,
-			"time": 23918.4210526316,
-			"type": 1
-		},
-		{
-			"animation": 0,
-			"dir": 0,
-			"rail": 1,
-			"time": 24234.2105263158,
-			"type": 1
-		},
-		{
-			"animation": 0,
-			"dir": 0,
-			"rail": 1,
 			"time": 24550,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
-			"rail": 1,
-			"time": 24865.7894736842,
+			"rail": 2,
+			"time": 24865,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
-			"rail": 1,
-			"time": 25181.5789473684,
+			"rail": 2,
+			"time": 25181,
 			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 865,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 1497,
+			"type": 2
 		}
 	],
 	"player": {
@@ -835,14 +835,14 @@
 	},
 	"rails": [
 		{
-			"end": 25181.5789473684,
+			"end": 26000,
 			"id": 1,
 			"move": [],
 			"position": -0.15,
 			"start": 0
 		},
 		{
-			"end": 25000.6315789474,
+			"end": 26000,
 			"id": 2,
 			"move": [],
 			"position": 0.15,

@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://scripts/b_meta.gd" id="2_f85ny"]
 [ext_resource type="Script" path="res://scripts/animation_window.gd" id="3_krufn"]
 [ext_resource type="Script" path="res://objects/editor/inspecter.gd" id="3_s286n"]
-[ext_resource type="Script" path="res://Scene/song_setup.gd" id="4_f2l3r"]
+[ext_resource type="Script" path="res://scripts/song_setup.gd" id="4_f2l3r"]
 
 [sub_resource type="InputEventKey" id="InputEventKey_6701s"]
 device = -1
@@ -263,7 +263,7 @@ size = Vector2i(1280, 720)
 visible = false
 script = ExtResource("3_krufn")
 
-[node name="TabBar" type="TabBar" parent="Animation"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Animation"]
 offset_right = 40.0
 offset_bottom = 40.0
 

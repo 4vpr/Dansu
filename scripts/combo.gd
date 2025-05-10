@@ -8,7 +8,7 @@ func _ready() -> void:
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if Game.currentTime < endTime && Game.currentTime > 0:
 		scale.y = 1 + extendSize * (endTime - Game.currentTime) / duration
 		pass
