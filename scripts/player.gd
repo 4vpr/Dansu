@@ -31,7 +31,6 @@ func _ready() -> void:
 	rails = railContainer.get_children()
 	if rails.size() > 0:
 		standRail = closest_rail()
-	scaleVel = scale
 	
 	
 	var texture_size = sprite.texture.get_size()
@@ -44,9 +43,9 @@ func _ready() -> void:
 	var tex_size = sprite.texture.get_size()
 	var world_height = tex_size.y * sprite.pixel_size
 	sprite.position.y = world_height * scale_factor.y / (target_size.y / texture_size.y) / 2
+	scaleVel = scale
 
 func _process(delta: float) -> void:
-	# 매 프레임마다 현재 존재하는 레일 갱신
 	rails = railContainer.get_children()
 	playAnimation()
 	if standRail == null or !standRail.active:
@@ -126,7 +125,7 @@ func setAnimation(id):
 func getNextDefaultDance() -> int:
 	var default_dances = beatmap.player_animation.get("defaultdance", [])
 	if default_dances.is_empty():
-		return 0  # 기본 값, 없으면 0 반환
+		return 0
 
 	if default_dance_i >= default_dances.size():
 		default_dance_i = 0

@@ -27,6 +27,9 @@ func _ready() -> void:
 			diff.beatmap = beatmap
 			$HBoxContainer.add_child(diff)
 
+		if Game.select_map and Game.select_map in beatmap_set.beatmaps:
+			$"../../../Image".texture = beatmap_set.cover_image
+
 func load_background():
 	if beatmap_set.cover_image:
 		BG.texture = beatmap_set.cover_image
@@ -54,9 +57,10 @@ func _process(delta: float) -> void:
 
 func _gui_input(event):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		Game.select_folder = beatmap_set
 		if beatmap_set.beatmaps.size() > 0:
 			Game.select_map = beatmap_set.beatmaps[0]
-			#select.update_bg(BG.texture)
+			$"../../../Image".texture = beatmap_set.cover_image
 
 func _on_mouse_entered():
 	hovered = true

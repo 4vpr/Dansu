@@ -14,18 +14,15 @@ var beatmap = Beatmap.new()
 @onready var Inspecter = $Inspecter;@onready var Song = $AudioStreamPlayer
 @onready var RailContainer = $Preview/RailContainer;@onready var B_Animation = $animation
 @onready var Win_Animation = $Animation
-var user_dir = OS.get_user_data_dir()
 var SongIsPlaying = false
 var map_data = {}
-var exe_dir = OS.get_executable_path().get_base_dir()
-var map_path = Game.select_folder.path_join(Game.select_map)
-var song_path = Game.select_folder.path_join("song.mp3")
 var rail_scene = load("res://objects/editor/rail.tscn")
 var note_scene = load("res://objects/editor/note.tscn")
 var selected = null
-var everything = {}; var undoredo = {}; var undoredo_i = 0
 var rails = []; var notes = []
 var rail_scope = null
+
+#레일 선택
 func scope_rail():
 	if selected != null:
 		if selected.get("rail") != null:
@@ -34,6 +31,8 @@ func scope_rail():
 					rail_scope = rail
 		else:
 			rail_scope = selected
+			
+#레일 스폰 확인
 func rail_check():
 	for rail in rails:
 		if not rail.get_parent() == RailContainer:
@@ -48,12 +47,12 @@ func rail_check():
 					RailContainer.remove_child(rail)
 	for rail in RailContainer.get_children():
 		rail.position.y = (Game.currentTime - rail.start) * Game.editor_velocity - rail.size.y - 100
-func save_files():
-	pass
 func undo():
 	pass
 func redo():
 	pass
+	
+#노트 드래그로 옮기는 기능
 func check_drag():
 	if selected != null:
 		var offset
@@ -66,9 +65,8 @@ func check_drag():
 			if selected.get("start") != null:
 				pass
 			selected._update()
-			#Inspecter._update(selected)
-func save_everything():
-	pass
+			
+#노트 생성
 func create_note(type,dir = 0):
 	var new_note = note_scene.instantiate()
 	var time = int(snap_to_bpm(Game.currentTime))
@@ -90,6 +88,7 @@ func create_note(type,dir = 0):
 		rail_scope.notes.add_child(new_note)
 		rail_scope._update()
 		selected = new_note
+#레일 생성
 func create_rail():
 	var new_rail = rail_scene.instantiate()
 	new_rail.start = Game.currentTime - 50
@@ -106,6 +105,7 @@ func create_rail():
 	rails.push_back(new_rail)
 	pass
 
+# BPM 보간
 func snap_to_bpm(timing: float,division: int = beatsdiv) -> float:
 	var beat_interval = 60000 / beatmap.song_bpm
 	var snap_interval = beat_interval / division
@@ -115,36 +115,10 @@ func snap_to_bpm(timing: float,division: int = beatsdiv) -> float:
 	var snapped_timing = round(relative_timing / snap_interval) * snap_interval + beatmap.song_bpmstart
 	return snapped_timing
 
-
-func load_files() -> Dictionary:
-	var song_stream = AudioStreamMP3.new()
-	var song_file = FileAccess.open(song_path, FileAccess.READ)
-	if song_file:
-		print("song loaded")
-		song_stream.data = song_file.get_buffer(song_file.get_length())
-		SongSlider.max_value = song_stream.get_length()
-		Song.stream = song_stream
-		Song.finished.connect(_on_song_finished)
-	else:
-		print("no song found")
-	if not FileAccess.file_exists(map_path):
-		print("theres no map.json:", map_path)
-		return {}
-	var map_file = FileAccess.open(map_path, FileAccess.READ)
-	var content = map_file.get_as_text()
-	var json_result = JSON.parse_string(content)
-	if json_result is Dictionary:
-		return json_result
-	else:
-		print("reading json failed")
-		return {}
-
-
 var clipboard
-func copy() -> void:
-	clipboard = selected.duplicate()
-	print(clipboard.id)
-
+#클립보드 구현부
+#func copy() -> void:
+	#clipboard = selected.duplicate()
 func paste() -> void:
 	if clipboard != null:
 		if clipboard.get("id") != null:
@@ -170,17 +144,22 @@ func paste() -> void:
 					new_note.animation = note.animation
 					notes.push_back(new_note)
 func _ready() -> void:
+	beatmap = Game.select_map
 	Game.currentTime = 0
 	Song.volume_db = linear_to_db(Game.settings.volume_song * Game.settings.volume_master)
 	add_child(sfx_pool)
+	parse_data()
 	for button in get_tree().get_nodes_in_group("ui_buttons"):
 		button.focus_mode = Control.FOCUS_NONE
-	parse_data(load_files())
+	if beatmap:
+		beatmap.load_song(Song)
 	var fields = {
 		"meta_title": TYPE_STRING,
 		"meta_artist": TYPE_STRING,
 		"song_bpm": TYPE_FLOAT,
-		"song_bpmstart": TYPE_FLOAT
+		"song_bpmstart": TYPE_FLOAT,
+		"diff_value": TYPE_FLOAT,
+		"diff_name": TYPE_STRING
 	}
 	for name in fields:
 		var field = find_child(name, true, false)
@@ -193,9 +172,7 @@ func _ready() -> void:
 							beatmap.set(field_name, new_text)
 						TYPE_FLOAT:
 							beatmap.set(field_name, new_text.to_float())
-		)
-			
-	
+		)	
 	B_Pause.pressed.connect(_on_pause_pressed)
 	B_AddNote.pressed.connect(create_note.bind(1))
 	B_AddLeft.pressed.connect(create_note.bind(2,2))
@@ -204,20 +181,22 @@ func _ready() -> void:
 	B_AddRail.pressed.connect(create_rail)
 	B_Remove.pressed.connect(_on_remove_pressed)
 	SongSlider.value_changed.connect(_on_slider_changed)
-	
+
+
 var nextHitSound = -INF
 func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("ui_cancel"):
-		save_files()
 		get_tree().change_scene_to_file("res://Scene/SongSelect.tscn")
 		print("exit")
 	rail_check()
 	check_drag()
 	scope_rail()
 	if Input.is_action_just_pressed("ui_copy"):
-		copy()
+		#copy()
+		pass
 	if Input.is_action_just_pressed("ui_paste"):
-		paste()
+		#paste()
+		pass
 	if SongIsPlaying and not is_dragging:
 		SongSlider.value = Song.get_playback_position()
 		Game.currentTime = Song.get_playback_position() * 1000
@@ -235,10 +214,15 @@ func _process(_delta: float) -> void:
 	else:
 		Game.currentTime = SongSlider.value * 1000
 		nextHitSound = -INF
+
+
+#모든노트 스냅
 func snap_notes():
 	for note in notes:
 		note.time = snap_to_bpm(note.time)
-		
+
+
+#저장
 func save_to_json():
 	var json_data = {}
 	json_data["title"] = beatmap.meta_title
@@ -247,6 +231,9 @@ func save_to_json():
 	json_data["difficulty"] = beatmap.diff_value
 	json_data["bpm"] = beatmap.song_bpm
 	json_data["bpmstart"] = beatmap.song_bpmstart
+	json_data["uuid"] = beatmap.map_uuid
+	json_data["difficulty_name"] = beatmap.diff_name
+	json_data["difficulty_value"] = beatmap.diff_value
 	json_data["player"] = {
 		"idle": player_animation["idle"],
 		"left": player_animation["left"],
@@ -282,81 +269,24 @@ func save_to_json():
 			"dir": int(note.dir),
 			"animation": note.animation
 			})
-	var file = FileAccess.open(map_path, FileAccess.WRITE)
+	var file = FileAccess.open(beatmap.json_path, FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(json_data, "\t"))  # JSON 변환 후 저장
 		file.close()
-		print("JSON 파일 저장 완료:", map_path)
+		print("JSON 파일 저장 완료:", beatmap.json_path)
 	else:
 		print("JSON 파일 저장 실패")
+		
+		
+#데이터 파싱
+func parse_data():
+	beatmap.parse_objects_editor()
+	notes = beatmap.notes
+	rails = beatmap.rails
+	player_animation = beatmap.player_animation
+	animations = beatmap.animations
 
-var texture_cache = {} # 파일명을 키로, Texture2D를 값으로 저장
-func get_texture(file_name):
-	if file_name in texture_cache:
-		return texture_cache[file_name] # 캐싱된 텍스처 반환
-	var texture_path = Game.select_folder.path_join("/sprite/" + file_name)
-	var image = Image.new()
-	if image.load(texture_path) == OK:
-		var texture = ImageTexture.create_from_image(image)
-		texture_cache[file_name] = texture
-		return texture
-func parse_data(json_data):
-	beatmap.meta_title = json_data.get("title", "?")
-	beatmap.meta_artist = json_data.get("artist", "?")
-	beatmap.meta_creator = json_data.get("creator", "test")
-	beatmap.diff_value = json_data.get("difficulty", 5)
-	if "animations" in json_data:
-		for animation in json_data["animations"]:
-			var frames = animation.get("frames", [])
-			var texture_frames = []
-			var texture_filenames = []
-			# 캐싱된 Texture2D 가져오기
-			for frame in frames:
-				var texture = get_texture(frame)
-				if texture:
-					texture_filenames.append(frame)
-					texture_frames.append(texture)
-			animations.append({
-				"id": animation.get("id", -1),
-				"frames": texture_frames,
-				"fps": animation.get("fps", 1),
-				"effect": animation.get("effect", "none"),
-				"name": animation.get("name","none"),
-				"frame_filenames": texture_filenames
-				})
-	if "player" in json_data:
-		var animation = json_data["player"]
-		player_animation = {
-			"idle": animation.get("idle", 0),
-			"left": animation.get("left", 0),
-			"right": animation.get("right", 0),
-			"jump": animation.get("jump", 0),
-			"land": animation.get("land", 0),
-			"defaultdance": animation.get("defaultdance", [])
-		}
-	beatmap.song_bpm = json_data.get("bpm", 100)
-	beatmap.song_bpmstart = json_data.get("bpmstart", 100)
-	if "rails" in json_data:
-		for rail in json_data["rails"]:
-			var new_rail = rail_scene.instantiate()
-			new_rail.id = rail.get("id", -1)
-			new_rail.start = rail.get("start", -1)
-			new_rail.end = rail.get("end",-1)
-			new_rail.moves = rail.get("move", [])
-			new_rail.pos = rail.get("position", 0.0)
-			rails.push_back(new_rail)
-	rails.sort_custom(func(a, b): return a.start < b.start)
-	if "notes" in json_data:
-		for note in json_data["notes"]:
-			var new_note = note_scene.instantiate()
-			new_note.type = note.get("type", 0)
-			new_note.time = note.get("time", 0)
-			new_note.rail = note.get("rail", 0)
-			new_note.dir = note.get("dir", 0)
-			new_note.animation = note.get("animation",0)
-			notes.push_back(new_note)
-	notes.sort_custom(func(a, b): return a.time < b.time)
-
+#입력처리
 func _input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:

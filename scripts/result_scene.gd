@@ -1,41 +1,40 @@
 extends Node
+
 var score = Score.new()
 var beatmap = Game.select_map
 
+@onready var ButtonExit = $Panel/Button
+@onready var ScoreLabel = $Panel/Score
+@onready var RankLabel = $Rank
+@onready var JudgeLabel = $Panel/Jvalue
+@onready var BGTexture = $TextureRect
+
 func _ready() -> void:
-	$Panel/Button.pressed.connect(_exit)
-	var image_extensions = [".jpg", ".jpeg", ".png"]
-	var dir = DirAccess.open(Game.select_folder)
-	var image_path := ""
-	if dir:
-		dir.list_dir_begin()
-		var file_name = dir.get_next()
-		while file_name != "":
-			for ext in image_extensions:
-				if file_name.to_lower().ends_with(ext):
-					image_path = Game.select_folder.path_join(file_name)
-					break
-			if image_path != "":
-				break
-			file_name = dir.get_next()
-		dir.list_dir_end()
-	if image_path != "":
-		var image = Image.new()
-		var err = image.load(image_path)
-		if err == OK:
-			var tex = ImageTexture.create_from_image(image)
-			$TextureRect.texture = tex
-			pass
+	# 버튼 연결
+	ButtonExit.pressed.connect(_exit)
+
+	# 배경 이미지 로드
+	_load_background_image()
+
+	# 점수 및 랭크 표시
 	score = Game.score
-	$Panel/Score.text = str(int(score.getScore() * 10000))
-	$Rank.text = score.getRank()
-	$Panel/Jvalue.text = str(score.c_perfect_plus) + "\n" + str(score.c_perfect) + "\n" + str(score.c_good) + "\n" + str(score.c_ok) + "\n" + str(score.c_bad) + "\n" + str(score.c_miss) + "\n"
-	pass
+	ScoreLabel.text = str(int(score.getScore() * 10000))
+	RankLabel.text = score.getRank()
+	JudgeLabel.text = "%d\n%d\n%d\n%d\n%d\n%d\n" % [
+		score.c_perfect_plus,
+		score.c_perfect,
+		score.c_good,
+		score.c_ok,
+		score.c_bad,
+		score.c_miss
+	]
+
+func _load_background_image():
+	$TextureRect.texture = Game.select_folder.cover_image
 
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("ui_cancel"):
-			_exit()
-	pass
+		_exit()
 
 func _exit() -> void:
 	get_tree().change_scene_to_file("res://Scene/SongSelect.tscn")

@@ -6,12 +6,11 @@ var rails = []
 var animations = []
 var player_animation = {}
 
+var map_uuid
 var meta_title: String = "?"
 var meta_artist: String = "unknown"
 var meta_creator: String = "unknown"
-
 var file_song: String = "song.mp3"
-var file_bg: String = "bg.jpg"
 
 var diff_name: String = "?"
 var diff_value: float = 0
@@ -28,21 +27,34 @@ var note_scene = load("res://objects/note.tscn")
 var rail_scene_editor = load("res://objects/editor/rail.tscn")
 var note_scene_editor = load("res://objects/editor/note.tscn")
 
-
 func load_from_json(path: String) -> bool:
 	var file = FileAccess.open(path, FileAccess.READ)
-	if file:
-		var json = JSON.parse_string(file.get_as_text())
-		if typeof(json) == TYPE_DICTIONARY:
-			meta_title = json.get("title", "?")
-			meta_artist = json.get("artist", "unknown")
-			meta_creator = json.get("creator", "unknown")
-			song_bpm = json.get("bpm", 100)
-			diff_name = json.get("difficulty_name", "?")
-			diff_value = json.get("difficulty_value", 0)
-			json_path = path
-			return true
-	return false
+	if not file:
+		return false
+
+	var json = JSON.parse_string(file.get_as_text())
+	if typeof(json) != TYPE_DICTIONARY:
+		return false
+	var fields = {
+		"map_uuid": ["uuid", 0],
+		"meta_title": ["title", "?"], 
+		"meta_artist": ["artist", "unknown"], 
+		"meta_creator": ["creator", "unknown"],
+		"song_bpm": ["bpm", 100], 
+		"song_bpmstart": ["bpmstart", 0], 
+		"diff_name": ["difficulty_name", "?"],
+		"diff_value": ["difficulty_value", 0]
+	}
+	if map_uuid == 0:
+		var rng = RandomNumberGenerator.new()
+		rng.randomize()
+		map_uuid = rng.randi64()
+	for var_name in fields:
+		var json_key = fields[var_name][0]
+		var default_value = fields[var_name][1]
+		set(var_name, json.get(json_key, default_value))
+	json_path = path
+	return true
 
 func parse_objects():
 	var file = FileAccess.open(json_path, FileAccess.READ)

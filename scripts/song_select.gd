@@ -10,13 +10,16 @@ func _load() -> void:
 	var folders = get_folders_in_path(OS.get_user_data_dir().path_join("Songs"))
 	folders += get_folders_in_path("res://song/")
 	for folder in folders:
-		var set = BeatmapSet.new()
-		set.load_from_folder(folder)
-		if set.beatmaps.size() > 0:
+		var _set = BeatmapSet.new()
+		_set.load_from_folder(folder)
+		if _set.beatmaps.size() > 0:
 			var new_map = map_scene.instantiate()
-			new_map.beatmap_set = set
+			if Game.select_folder == null:
+				Game.select_folder = new_map
+				Game.select_map = _set.beatmaps[0]
+			new_map.beatmap_set = _set
 			map_panel.add_child(new_map)
-
+			
 func get_folders_in_path(path: String) -> Array:
 	var dir = DirAccess.open(path)
 	var folders = []
@@ -34,5 +37,3 @@ func get_folders_in_path(path: String) -> Array:
 	else:
 		print("something wrong: ", path)
 	return folders
-
-	

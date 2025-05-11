@@ -18,8 +18,24 @@ func load_from_folder(path: String):
 		meta_title = beatmaps[0].meta_title
 		_load_cover_image()
 
+
+func _get_bg_path():
+	var image_extensions = [".jpg", ".jpeg", ".png"]
+	var dir = DirAccess.open(folder_path)
+	if dir:
+		dir.list_dir_begin()
+		var file_name = dir.get_next()
+		while file_name != "":
+			for ext in image_extensions:
+				if file_name.to_lower().ends_with(ext):
+					dir.list_dir_end()
+					return file_name
+			file_name = dir.get_next()
+		dir.list_dir_end() 
+	return ""
+
 func _load_cover_image():
-	var image_path = folder_path.path_join("bg.jpg")
+	var image_path = folder_path.path_join(_get_bg_path())
 	if FileAccess.file_exists(image_path):
 		var image = Image.new()
 		if image.load(image_path) == OK:

@@ -1,9 +1,8 @@
-[gd_scene load_steps=8 format=3 uid="uid://dqyrp3v4bjcuj"]
+[gd_scene load_steps=7 format=3 uid="uid://dqyrp3v4bjcuj"]
 
 [ext_resource type="Script" path="res://scripts/song_select.gd" id="1_mrfqk"]
 [ext_resource type="Material" uid="uid://c6pv45raq5p8j" path="res://Resources/blur.tres" id="2_wrjm4"]
 [ext_resource type="Script" path="res://scripts/edit.gd" id="3_keo4n"]
-[ext_resource type="Script" path="res://scripts/bg.gd" id="4_1ronj"]
 [ext_resource type="Script" path="res://scripts/h_slider.gd" id="5_pbdis"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yuyws"]
@@ -26,7 +25,6 @@ offset_right = 1920.0
 offset_bottom = 1080.0
 expand_mode = 1
 stretch_mode = 6
-script = ExtResource("4_1ronj")
 
 [node name="MapPanel" type="Panel" parent="."]
 layout_mode = 0

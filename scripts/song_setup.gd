@@ -1,6 +1,6 @@
-extends Node
-class_name MapLoader
-
+extends Window
 
 func _ready():
-	pass
+	close_requested.connect(_on_close_requested)
+func _on_close_requested():
+	visible = false
