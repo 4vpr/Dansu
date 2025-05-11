@@ -72,6 +72,7 @@ offset_bottom = 1314.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_00xim")
 
 [node name="Jvalue" type="Label" parent="Panel"]
+layout_mode = 0
 offset_left = 207.0
 offset_top = 115.0
 offset_right = 469.0
@@ -85,6 +86,7 @@ text = "0
 label_settings = SubResource("LabelSettings_rg1hf")
 
 [node name="Jlabel" type="Label" parent="Panel"]
+layout_mode = 0
 offset_left = -12.0
 offset_top = 115.0
 offset_right = 179.0

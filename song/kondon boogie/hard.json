@@ -52,10 +52,24 @@
 		},
 		{
 			"animation": 0,
+			"dir": 4,
+			"rail": 1,
+			"time": 865,
+			"type": 2
+		},
+		{
+			"animation": 0,
 			"dir": 0,
 			"rail": 2,
 			"time": 1181,
 			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 2,
+			"rail": 2,
+			"time": 1497,
+			"type": 2
 		},
 		{
 			"animation": 0,
@@ -805,20 +819,6 @@
 			"rail": 2,
 			"time": 25181,
 			"type": 1
-		},
-		{
-			"animation": 0,
-			"dir": 4,
-			"rail": 1,
-			"time": 865,
-			"type": 2
-		},
-		{
-			"animation": 0,
-			"dir": 2,
-			"rail": 2,
-			"time": 1497,
-			"type": 2
 		}
 	],
 	"player": {

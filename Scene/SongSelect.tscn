@@ -63,6 +63,7 @@ text = "Edit
 script = ExtResource("3_keo4n")
 
 [node name="velocity" type="HSlider" parent="."]
+layout_mode = 0
 offset_left = 1140.0
 offset_top = 1032.0
 offset_right = 1765.0

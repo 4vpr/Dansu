@@ -1221,6 +1221,13 @@
 		},
 		{
 			"animation": 0,
+			"dir": 2,
+			"rail": 7,
+			"time": 49600,
+			"type": 2
+		},
+		{
+			"animation": 0,
 			"dir": 4,
 			"rail": 7,
 			"time": 49924,
@@ -1347,13 +1354,6 @@
 		},
 		{
 			"animation": 0,
-			"dir": 2,
-			"rail": 7,
-			"time": 49600,
-			"type": 2
-		},
-		{
-			"animation": 0,
 			"dir": 0,
 			"rail": 8,
 			"time": 55762,
@@ -1431,10 +1431,38 @@
 		},
 		{
 			"animation": 0,
+			"dir": 0,
+			"rail": 8,
+			"time": 59330,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 8,
+			"time": 59654,
+			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 4,
+			"rail": 8,
+			"time": 59978,
+			"type": 2
+		},
+		{
+			"animation": 0,
 			"dir": 4,
 			"rail": 8,
 			"time": 60303,
 			"type": 2
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 8,
+			"time": 60627,
+			"type": 1
 		},
 		{
 			"animation": 0,
@@ -1462,34 +1490,6 @@
 			"dir": 0,
 			"rail": 8,
 			"time": 61924,
-			"type": 1
-		},
-		{
-			"animation": 0,
-			"dir": 0,
-			"rail": 8,
-			"time": 59330,
-			"type": 1
-		},
-		{
-			"animation": 0,
-			"dir": 4,
-			"rail": 8,
-			"time": 59654,
-			"type": 2
-		},
-		{
-			"animation": 0,
-			"dir": 4,
-			"rail": 8,
-			"time": 59978,
-			"type": 2
-		},
-		{
-			"animation": 0,
-			"dir": 0,
-			"rail": 8,
-			"time": 60627,
 			"type": 1
 		},
 		{
@@ -1972,14 +1972,14 @@
 			"animation": 0,
 			"dir": 0,
 			"rail": 12,
-			"time": 84221,
+			"time": 84140,
 			"type": 1
 		},
 		{
 			"animation": 0,
 			"dir": 0,
 			"rail": 12,
-			"time": 84140,
+			"time": 84221,
 			"type": 1
 		},
 		{
@@ -2264,6 +2264,13 @@
 		},
 		{
 			"end": 100000,
+			"id": 12,
+			"move": [],
+			"position": -0.25,
+			"start": 79064
+		},
+		{
+			"end": 100000,
 			"id": 10,
 			"move": [],
 			"position": 0,
@@ -2273,15 +2280,8 @@
 			"end": 100000,
 			"id": 11,
 			"move": [],
-			"position": 0.5,
+			"position": 0.25,
 			"start": 79142
-		},
-		{
-			"end": 100000,
-			"id": 12,
-			"move": [],
-			"position": -0.5,
-			"start": 79064
 		}
 	],
 	"title": "mesmerizer"

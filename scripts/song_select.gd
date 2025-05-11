@@ -81,7 +81,6 @@ func get_folders_in_path(path: String) -> Array:
 	else:
 		print("something wrong: ", path)
 	return folders
-
 func get_json_files_in_path(path: String) -> Array:
 	var result = []
 	var dir = DirAccess.open(path)
@@ -96,3 +95,4 @@ func get_json_files_in_path(path: String) -> Array:
 			file_name = dir.get_next()
 		dir.list_dir_end()
 	return result
+	

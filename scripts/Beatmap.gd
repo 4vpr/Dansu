@@ -1,4 +1,4 @@
-extends Node
+extends RefCounted
 class_name Beatmap
 
 var notes = []
@@ -18,3 +18,4 @@ var diff_value:float = 0
 var song_bpmstart:float = 0
 var song_lerp:float = 0
 var song_bpm:float = 100
+var is_built_in = false
