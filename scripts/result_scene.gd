@@ -1,5 +1,6 @@
 extends Node
 var score = Score.new()
+var beatmap = Game.select_map
 
 func _ready() -> void:
 	$Panel/Button.pressed.connect(_exit)

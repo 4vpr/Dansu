@@ -1,9 +1,13 @@
 extends Button
-var map
-var difficulty = "?"
+
+var beatmap: Beatmap
+
 func _ready() -> void:
 	pressed.connect(_button_press)
-	text = map.substr(0, map.length() - 5)
+	if beatmap:
+		text = beatmap.diff_name
+		#text = difficulty + " (" + str(beatmap.diff_value) + ")"
+
 func _button_press() -> void:
-	Game.select_map = map
+	Game.select_map = beatmap
 	pass

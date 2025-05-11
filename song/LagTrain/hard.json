@@ -21,9 +21,9 @@
 	],
 	"artist": "inabakumori",
 	"bpm": 147,
-	"bpmstart": 68,
+	"bpmstart": 0,
 	"creator": "test",
-	"difficulty": 5,
+	"difficulty": 0,
 	"notes": [
 		{
 			"animation": 0,
@@ -232,6 +232,13 @@
 			"animation": 0,
 			"dir": 0,
 			"rail": 2,
+			"time": 12312,
+			"type": 1
+		},
+		{
+			"animation": 0,
+			"dir": 0,
+			"rail": 2,
 			"time": 12721,
 			"type": 1
 		},
@@ -240,13 +247,6 @@
 			"dir": 0,
 			"rail": 2,
 			"time": 12925,
-			"type": 1
-		},
-		{
-			"animation": 0,
-			"dir": 0,
-			"rail": 2,
-			"time": 12312,
 			"type": 1
 		},
 		{

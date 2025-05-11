@@ -44,7 +44,6 @@ var offset_recom = AudioServer.get_output_latency()
 
 var currentTime: float = 0.0
 
-
 var select_map
 var select_folder
 var travelTime
