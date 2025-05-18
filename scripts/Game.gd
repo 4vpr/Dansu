@@ -3,8 +3,11 @@ var config_file_path = "user://settings.cfg"
 var settings = {}
 const panelSize = 11.3
 var score = Score.new()
-
-
+var isTouchScreen = false
+var loaded_beatmaps = []
+func _input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch:
+		isTouchScreen = true
 func _init():
 	load_settings()
 

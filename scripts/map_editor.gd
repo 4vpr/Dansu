@@ -4,6 +4,7 @@ var is_dragging = false
 var was_playing = false
 var player_animation = {}
 var animations = []
+var sprites = []
 var beatsdiv = 2
 var sfx_pool = SfxPool.new()
 var beatmap = Beatmap.new()
@@ -14,13 +15,17 @@ var beatmap = Beatmap.new()
 @onready var Inspecter = $Inspecter;@onready var Song = $AudioStreamPlayer
 @onready var RailContainer = $Preview/RailContainer;@onready var B_Animation = $animation
 @onready var Win_Animation = $Animation
+@onready var option_button = $Animation/Panel/OptionButton
 var SongIsPlaying = false
 var map_data = {}
 var rail_scene = load("res://objects/editor/rail.tscn")
 var note_scene = load("res://objects/editor/note.tscn")
+var animation_scene = load("res://objects/editor/animation.tscn")
 var selected = null
 var rails = []; var notes = []
 var rail_scope = null
+var selected_animation
+var selected_frame
 
 #레일 선택
 func scope_rail():
@@ -104,7 +109,29 @@ func create_rail():
 	selected = new_rail
 	rails.push_back(new_rail)
 	pass
-
+func load_pngs() -> void:
+	var dir = DirAccess.open(beatmap.folder_path + "/sprite")
+	if dir == null:
+		print("폴더가 없습니다 : ", beatmap.folder_path)
+		return
+	dir.list_dir_begin()
+	var file_name = dir.get_next()
+	sprites.clear()
+	option_button.clear()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.ends_with(".png"):
+			var new_sprite = {
+			"texture" : beatmap._load_texture(file_name),
+			"filename" : file_name
+			}
+			sprites.append(new_sprite)
+			print(file_name)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+	var i = 0
+	for sprite in sprites:
+		option_button.add_item(sprite["filename"], i)
+		i += 1
 # BPM 보간
 func snap_to_bpm(timing: float,division: int = beatsdiv) -> float:
 	var beat_interval = 60000 / beatmap.song_bpm
@@ -143,12 +170,42 @@ func paste() -> void:
 					new_note.id = i
 					new_note.animation = note.animation
 					notes.push_back(new_note)
+					
+var last_hash := ""
+func _on_check_folder():
+	var current_hash = calculate_folder_hash(beatmap.folder_path.path_join("sprite"))
+	print(beatmap.folder_path.path_join("sprite"))
+	if current_hash != last_hash:
+		last_hash = current_hash
+		load_pngs()
+func calculate_folder_hash(path: String) -> String:
+	var dir = DirAccess.open(path)
+	if dir == null:
+		return ""
+	dir.list_dir_begin()
+	var hash_input := ""
+	var file_name = dir.get_next()
+	while file_name != "":
+		if !dir.current_is_dir():
+			hash_input += file_name
+		file_name = dir.get_next()
+	dir.list_dir_end()
+	return hash_input.md5_text()
 func _ready() -> void:
 	beatmap = Game.select_map
 	Game.currentTime = 0
 	Song.volume_db = linear_to_db(Game.settings.volume_song * Game.settings.volume_master)
 	add_child(sfx_pool)
 	parse_data()
+	load_pngs()
+
+	last_hash = calculate_folder_hash(beatmap.folder_path.path_join("sprite"))
+	var timer = Timer.new()
+	timer.wait_time = 1.0
+	timer.autostart = true
+	timer.timeout.connect(_on_check_folder)
+	add_child(timer)
+
 	for button in get_tree().get_nodes_in_group("ui_buttons"):
 		button.focus_mode = Control.FOCUS_NONE
 	if beatmap:
@@ -181,6 +238,7 @@ func _ready() -> void:
 	B_AddRail.pressed.connect(create_rail)
 	B_Remove.pressed.connect(_on_remove_pressed)
 	SongSlider.value_changed.connect(_on_slider_changed)
+	SongSlider.max_value = Song.stream.get_length()
 
 
 var nextHitSound = -INF
@@ -234,14 +292,18 @@ func save_to_json():
 	json_data["uuid"] = beatmap.map_uuid
 	json_data["difficulty_name"] = beatmap.diff_name
 	json_data["difficulty_value"] = beatmap.diff_value
-	json_data["player"] = {
-		"idle": player_animation["idle"],
-		"left": player_animation["left"],
-		"right": player_animation["right"],
-		"jump": player_animation["jump"],
-		"land": player_animation["land"],
-		"defaultdance": player_animation["defaultdance"]
-		}
+	if !player_animation.is_empty():
+		json_data["player"] = {
+			"idle": player_animation["idle"],
+			"left": player_animation["left"],
+			"right": player_animation["right"],
+			"jump": player_animation["jump"],
+			"land": player_animation["land"],
+			"defaultdance": player_animation["defaultdance"]
+			}
+		json_data["use_default_skin"] = false
+	else:
+		json_data["use_default_skin"] = true
 	json_data["animations"] = []
 	for animation in animations:
 		json_data["animations"].append({
@@ -280,13 +342,16 @@ func save_to_json():
 		
 #데이터 파싱
 func parse_data():
-	beatmap.parse_objects_editor()
+	beatmap.parse_objects(true)
 	notes = beatmap.notes
 	rails = beatmap.rails
 	player_animation = beatmap.player_animation
 	animations = beatmap.animations
+	for animation in animations:
+		var new_anim = animation_scene.instantiate()
+		new_anim.animation = animation
+		$Animation/VBoxContainer.add_child(new_anim)
 
-#입력처리
 func _input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
@@ -300,11 +365,11 @@ func _on_pause_pressed() -> void:
 		paused_position = Song.get_playback_position()
 		Song.stop()
 		SongIsPlaying = false
-	elif Song.stream:
+	elif Song:
 		Song.play(paused_position)
 		SongIsPlaying = true
 func _on_slider_changed(value: float) -> void:
-	if Song.stream:
+	if Song:
 		if !SongIsPlaying:
 			paused_position = value
 func _on_song_finished() -> void:

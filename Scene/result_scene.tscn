@@ -1,8 +1,7 @@
-[gd_scene load_steps=9 format=3 uid="uid://cxjwar8qokms3"]
+[gd_scene load_steps=8 format=3 uid="uid://cxjwar8qokms3"]
 
 [ext_resource type="Script" path="res://scripts/result_scene.gd" id="1_q00yg"]
-[ext_resource type="FontFile" uid="uid://dyqkpg5wawdxu" path="res://Resources/Next Bravo.ttf" id="2_h8j4k"]
-[ext_resource type="Material" uid="uid://c6pv45raq5p8j" path="res://Resources/blur.tres" id="2_kpx3c"]
+[ext_resource type="FontFile" uid="uid://dyqkpg5wawdxu" path="res://Resources/font/Next Bravo.ttf" id="2_h8j4k"]
 
 [sub_resource type="FontFile" id="FontFile_mrl38"]
 cache/0/300/0/ascent = 0.0
@@ -42,14 +41,21 @@ outline_color = Color(0, 0, 0, 0.498039)
 
 [node name="ResultScene" type="Control"]
 layout_mode = 3
-anchors_preset = 0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_q00yg")
 
 [node name="TextureRect" type="TextureRect" parent="."]
-material = ExtResource("2_kpx3c")
-layout_mode = 0
-offset_right = 1920.0
-offset_bottom = 1080.0
+modulate = Color(0.266667, 0.266667, 0.266667, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 expand_mode = 1
 stretch_mode = 6
 

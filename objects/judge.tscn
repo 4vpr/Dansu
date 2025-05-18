@@ -5,5 +5,6 @@
 
 [node name="judge" type="Sprite3D"]
 pixel_size = 0.0013
+render_priority = 2
 texture = ExtResource("1_v3b1q")
 script = ExtResource("2_x2ji4")

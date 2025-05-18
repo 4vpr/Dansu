@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="Dansu"
+config/description="Dansu"
 config/version="dev"
 run/main_scene="res://Scene/SongSelect.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
@@ -28,7 +29,12 @@ window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/size/mode=2
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 window/vsync/vsync_mode=0
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/map_list_generator/plugin.cfg")
 
 [input]
 
@@ -71,6 +77,6 @@ action_2={
 
 [rendering]
 
-renderer/rendering_method="mobile"
+textures/canvas_textures/default_texture_filter=2
 textures/vram_compression/import_etc2_astc=true
 anti_aliasing/quality/msaa_3d=1

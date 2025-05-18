@@ -37,6 +37,8 @@ func _update(object) -> void:
 		_addItem("end",object.end)
 	if object.get("pos") != null:
 		_addItem("pos",object.pos)
+	if object.get("animation") != null:
+		_addItem("animation",object.animation)
 	pass
 func _on_divis_changed(text):
 	if text.is_valid_int():
@@ -53,6 +55,8 @@ func _on_text_changed(text,edit):
 			selected.time = float(text)
 		if meta == "pos":
 			selected.pos = float(text)
+		if meta == "animation":
+			selected.animation = float(text)
 		selected._update()
 		edit.release_focus()
 	else:

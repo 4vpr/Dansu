@@ -3,40 +3,55 @@
 [ext_resource type="Script" path="res://objects/editor/animation_ui.gd" id="1_ginc0"]
 
 [node name="animation" type="Control"]
+custom_minimum_size = Vector2(0, 45)
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_bottom = -1035.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_ginc0")
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 0
+offset_top = 2.5
 offset_right = 380.0
-offset_bottom = 107.0
+offset_bottom = 42.5
 
-[node name="Button" type="Button" parent="."]
+[node name="Label" type="Label" parent="Panel"]
 layout_mode = 0
-offset_left = 337.0
-offset_top = 77.0
-offset_right = 375.0
-offset_bottom = 108.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 248.0
+offset_bottom = 33.0
+text = "Animation Name"
+
+[node name="Edit" type="Button" parent="Panel"]
+modulate = Color(0.649457, 0.998266, 0.666384, 1)
+layout_mode = 0
+offset_left = 251.0
+offset_top = 5.0
+offset_right = 330.0
+offset_bottom = 36.0
 text = "Edit
 "
 
-[node name="Label" type="Label" parent="."]
+[node name="Del" type="Button" parent="Panel"]
+modulate = Color(0.890257, 0.496206, 0.429905, 1)
 layout_mode = 0
-offset_left = 10.0
-offset_top = 3.0
-offset_right = 290.0
-offset_bottom = 26.0
-text = "Animation Name"
+offset_left = 333.0
+offset_top = 5.0
+offset_right = 371.0
+offset_bottom = 36.0
+text = "Del
+"
 
-[node name="TextureRect" type="TextureRect" parent="."]
+[node name="Label2" type="Label" parent="Panel"]
 layout_mode = 0
-offset_left = 13.0
-offset_top = 28.0
-offset_right = 76.0
-offset_bottom = 91.0
-expand_mode = 4
+offset_left = 3.0
+offset_right = 43.0
+offset_bottom = 14.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.458824)
+theme_override_font_sizes/font_size = 10
+text = "id:"

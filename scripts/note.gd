@@ -10,17 +10,21 @@ var animation
 var NoteTex = preload("res://Resources/note.png")
 var MoveTex = preload("res://Resources/note2.png")
 func _ready() -> void:
-	var mesh = $Mesh
-	var material = mesh.get_surface_override_material(0)
 	if type == 1:
-		material.set_shader_parameter("glow_color", Color(0.05, 0.05, 1.5, 1))
 		NoteSprite.texture = NoteTex
 		ArrowSprite.visible = false
 		pass
 	if type == 2:
-		material.set_shader_parameter("glow_color", Color(1.5, 0.05, 0.05, 1))
 		NoteSprite.texture = MoveTex
 		ArrowSprite.visible = true
 		pass
-func _process(_delta: float) -> void:
+	NoteSprite.modulate.a = 0
+	ArrowSprite.modulate.a = 0
+func _process(delta: float) -> void:
+	if NoteSprite.modulate.a < 1:
+		NoteSprite.modulate.a += delta * Game.settings.velocity / 2
+		ArrowSprite.modulate.a += delta * Game.settings.velocity / 2
+		if NoteSprite.modulate.a > 1:
+			NoteSprite.modulate.a = 1
+			ArrowSprite.modulate.a = 1
 	position.z = Game.panelSize -((time - Game.currentTime) * Game.settings.velocity / 1000)

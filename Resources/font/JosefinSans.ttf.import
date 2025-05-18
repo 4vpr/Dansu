@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://dyqkpg5wawdxu"
-path="res://.godot/imported/Next Bravo.ttf-8a89daba9aba031f80f06ded1fa6028f.fontdata"
+uid="uid://cmcleccmggvjl"
+path="res://.godot/imported/JosefinSans.ttf-65ab091c2f0dccecc1af225a3c429791.fontdata"
 
 [deps]
 
-source_file="res://Resources/Next Bravo.ttf"
-dest_files=["res://.godot/imported/Next Bravo.ttf-8a89daba9aba031f80f06ded1fa6028f.fontdata"]
+source_file="res://Resources/font/JosefinSans.ttf"
+dest_files=["res://.godot/imported/JosefinSans.ttf-65ab091c2f0dccecc1af225a3c429791.fontdata"]
 
 [params]
 

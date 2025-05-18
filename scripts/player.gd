@@ -2,7 +2,8 @@ extends Node3D
 
 @onready var railContainer: Node3D = $"../Ground/RailContainor"
 @onready var sprite = $Sprite
-
+@onready var tc_leftbutton = $"../UI/TouchScreen/Left"
+@onready var tc_rightbutton = $"../UI/TouchScreen/Right"
 var beatmap: Beatmap
 var standRail: Node3D
 var isJumping: bool = false
@@ -31,8 +32,6 @@ func _ready() -> void:
 	rails = railContainer.get_children()
 	if rails.size() > 0:
 		standRail = closest_rail()
-	
-	
 	var texture_size = sprite.texture.get_size()
 	var target_size = Vector2(200,Game.settings.playerheight)
 	var scale_factor = Vector2(
@@ -44,7 +43,6 @@ func _ready() -> void:
 	var world_height = tex_size.y * sprite.pixel_size
 	sprite.position.y = world_height * scale_factor.y / (target_size.y / texture_size.y) / 2
 	scaleVel = scale
-
 func _process(delta: float) -> void:
 	rails = railContainer.get_children()
 	playAnimation()
@@ -56,6 +54,7 @@ func _process(delta: float) -> void:
 		groove += delta
 	else:
 		scale = scaleVel
+		pass
 
 	if isJumping:
 		jumpDurationCurrent -= delta
@@ -71,18 +70,24 @@ func _process(delta: float) -> void:
 		if Input.is_action_just_pressed("move_left"):
 			scene.playerMove(2, standRail)
 			standRail = move_rail(-1)
-
 		if Input.is_action_just_pressed("move_right"):
 			scene.playerMove(4, standRail)
 			standRail = move_rail(1)
-
 		if Input.is_action_just_pressed("move_up") and !isJumping:
 			isJumping = true
 			jumpDurationCurrent = jumpDuration
-
 		if Input.is_action_just_pressed("action_1") or Input.is_action_just_pressed("action_2"):
 			scene.playerAction()
 
+func _input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch && standRail != null && event.pressed:
+		if event.position.x > 1920 / 2:
+			if event.position.x < 1550:
+				scene.playerMove(2, standRail)
+				standRail = move_rail(-1)
+			else:
+				scene.playerMove(4, standRail)
+				standRail = move_rail(1)
 func closest_rail() -> Node3D:
 	if rails.is_empty():
 		return standRail
@@ -100,6 +105,7 @@ func closest_rail() -> Node3D:
 func move_rail(direction: int) -> Node3D:
 	if rails.is_empty():
 		return standRail
+	
 	var current_x = standRail.position.x
 	var c_rail = standRail
 	var min_distance = INF

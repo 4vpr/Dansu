@@ -13,7 +13,6 @@ var sfx_pool = SfxPool.new()
 var score = Score.new()
 var combo = 0
 var judgeDisplayDuration = 1
-var canplay = false
 var song_end = 0
 
 @onready var player = $Player
@@ -22,11 +21,21 @@ var song_end = 0
 @onready var comboDisplayer = $UI/Combo/Combo
 @onready var comboVbox = $UI/Combo
 @onready var accDisplayer = $UI/Acc/Acc
+@onready var tc_leftbutton = $UI/TouchScreen/Left
+@onready var tc_rightbutton = $UI/TouchScreen/Right
+@onready var tc_action = $UI/TouchScreen/Touch
 
 var beatmap: Beatmap
 
-func _ready() -> void:
+func _input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			if event.position.x < DisplayServer.window_get_size().x / 2:
+				playerAction()
 
+func _ready() -> void:
+	$UI/TouchScreen.visible = Game.isTouchScreen
+	load_background()
 	add_child(sfx_pool)
 	Game.currentTime = 0
 	beatmap = Game.select_map
@@ -37,7 +46,6 @@ func _ready() -> void:
 		if beatmap.load_song(songplayer):
 			parse_objects(beatmap)
 			#player.parse_data(beatmap)
-			canplay = true
 			current_time_msec = Time.get_ticks_msec()
 			thread.start(self._update)
 			#load_background(beatmap)
@@ -60,17 +68,17 @@ func _process(delta: float) -> void:
 		if Game.currentTime > song_end + 2000:
 			Game.score = score
 			get_tree().change_scene_to_file("res://Scene/result_scene.tscn")
-
-	if canplay:
-		check_objects()
-		comboDisplayer.text = str(combo)
-
-		if not started and songplayer.playing:
-			start_time = Time.get_ticks_msec() - songplayer.get_playback_position() * 1000
-			started = true
-
-		if Input.is_action_just_pressed("ui_cancel"):
-			get_tree().change_scene_to_file("res://Scene/SongSelect.tscn")
+	
+	check_objects()
+	comboDisplayer.text = str(combo)
+	if not started and songplayer.playing:
+		start_time = Time.get_ticks_msec() - songplayer.get_playback_position() * 1000
+		started = true
+	if Input.is_action_just_pressed("ui_cancel"):
+		get_tree().change_scene_to_file("res://Scene/SongSelect.tscn")
+	if OS.get_name() == "Web" && started:
+		Game.currentTime = Time.get_ticks_msec() - start_time - Game.offset_recom
+		check_judge()
 
 func parse_objects(beatmap: Beatmap):
 	rails = beatmap.rails
@@ -79,12 +87,9 @@ func parse_objects(beatmap: Beatmap):
 	notes.sort_custom(func(a, b): return a.time < b.time)
 	song_end = notes[-1].time + 1000 if notes.size() > 0 else 0
 
-#func load_background(beatmap: Beatmap):
-#	var image_path = beatmap.get_background_path()
-#	if image_path != "":
-#		var image = Image.new()
-#		if image.load(image_path) == OK:
-#			$Background.texture = ImageTexture.create_from_image(image)
+func load_background():
+	var material = $Background.mesh.surface_get_material(0)
+	material.albedo_texture = Game.select_folder.cover_image
 
 func check_objects():
 	# 레일 스폰
@@ -178,5 +183,3 @@ func setNextNote():
 	if nextnote_i < notes.size():
 		notes[nextnote_i].queue_free()
 		nextnote_i += 1
-		if nextnote_i >= notes.size():
-			canplay = false

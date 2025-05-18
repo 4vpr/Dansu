@@ -29,11 +29,11 @@ var high_combo = 0
 func getRank():
 	var a = getScore()
 	if a >= 101:
-		return "AP"
-	elif a >= 100.9:
-		return "X+"
-	elif a >= 100:
 		return "X"
+	elif a >= 100.9:
+		return "SS+"
+	elif a >= 100:
+		return "SS"
 	elif a >= 99:
 		return "S+"
 	elif a >= 95:

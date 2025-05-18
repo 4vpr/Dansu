@@ -16,7 +16,7 @@ var initial_position = Vector3.ZERO
 func _ready() -> void:
 	initial_position = position
 	mesh.scale.z = (end - start) * size / Game.travelTime
-	mesh.position.z = 200
+	mesh.position.z = Game.panelSize -((start - Game.currentTime) * Game.settings.velocity / 1000) - mesh.scale.z / 2
 
 func _process(_delta: float) -> void:
 	if moves.size() > 0:

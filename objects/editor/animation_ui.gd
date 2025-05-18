@@ -1,16 +1,22 @@
 extends Control
-var _name:String
-var _fps:float
-var frames = []
-var effect:String
-var id:int
+var animation
+@onready var root = $"../../.."
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	Label.text = _name
-	pass
+	$Panel/Label.text = animation["name"]
+	$Panel/Label2.text = "id: " + str(animation["id"])
+	$Panel/Edit.pressed.connect(_on_edit_pressed)
+	$Panel/Del.pressed.connect(_on_del_pressed)
 
+func _on_edit_pressed():
+	root.selected_animation = animation
+	$"../../Panel"._update()
+	
+func _on_del_pressed():
+	root.animations.erase(animation)
+	$"../../Panel"._update()
+	self.queue_free()
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func _update() -> void:
+	$Panel/Label.text = animation["name"]

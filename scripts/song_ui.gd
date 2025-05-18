@@ -8,9 +8,12 @@ var diff_scene = load("res://objects/diff.tscn")
 var beatmap_set: BeatmapSet
 var hovered = false
 var sizeY: float
+var lerpY:float
 
 func _ready() -> void:
 	if beatmap_set:
+		sizeY = 0
+		lerpY = 75
 		Title.text = beatmap_set.meta_title
 		load_background()
 		set_mouse_filter(MOUSE_FILTER_STOP)
@@ -40,7 +43,7 @@ func _process(delta: float) -> void:
 	if Game.select_map and Game.select_map in beatmap_set.beatmaps:
 		$HBoxContainer.visible = true
 		$Buttons/Button.mouse_filter = Control.MOUSE_FILTER_STOP
-		$Buttons/Button.text = "▶"
+		$Buttons/Button.text = "Play"
 		sizeY = 150
 		modulate = Color(1, 1, 1)
 	elif hovered:
@@ -51,10 +54,9 @@ func _process(delta: float) -> void:
 		$HBoxContainer.visible = false
 		sizeY = 75
 		modulate = Color(0.7, 0.7, 0.7)
-
-	size.y = lerp(size.y, sizeY, delta * 10)
-	custom_minimum_size.y = lerp(custom_minimum_size.y, sizeY, delta * 15)
-
+	lerpY = lerp(lerpY, sizeY, delta * 15)
+	custom_minimum_size.y = int(lerpY)
+	
 func _gui_input(event):
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		Game.select_folder = beatmap_set
