@@ -1,6 +1,32 @@
-[gd_scene load_steps=2 format=3 uid="uid://dxfmwdq83fxan"]
+[gd_scene load_steps=16 format=3 uid="uid://dxfmwdq83fxan"]
 
 [ext_resource type="Texture2D" uid="uid://bbtnd1giiabmu" path="res://Resources/font/dansu.png" id="1_efvlb"]
+[ext_resource type="Texture2D" uid="uid://bxw5e3lxbnw8f" path="res://Resources/mainmenu-wall.png" id="1_ytn2u"]
+[ext_resource type="FontFile" uid="uid://dyqkpg5wawdxu" path="res://Resources/font/Next Bravo.ttf" id="3_3fvc3"]
+
+[sub_resource type="Theme" id="Theme_p4n3d"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_knxge"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_o15t8"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7fxx7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fgeov"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dac06"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1rj05"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_faxk7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_e0a5y"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_osae6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7pttm"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_44qxo"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -10,10 +36,21 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = -1797.0
+offset_top = -266.0
+offset_right = 3605.0
+offset_bottom = 1098.0
+texture = ExtResource("1_ytn2u")
+
 [node name="Menu" type="Control" parent="."]
-anchors_preset = 0
-offset_right = 1920.0
-offset_bottom = 1080.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="TextureRect" type="TextureRect" parent="Menu"]
 layout_mode = 1
@@ -27,6 +64,39 @@ offset_bottom = 279.0
 grow_horizontal = 2
 texture = ExtResource("1_efvlb")
 stretch_mode = 2
+
+[node name="Play" type="Button" parent="Menu"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -120.0
+offset_top = 600.0
+offset_right = 120.0
+offset_bottom = 705.0
+grow_horizontal = 2
+theme = SubResource("Theme_p4n3d")
+theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(0.762404, 0.762404, 0.762404, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 20
+theme_override_fonts/font = ExtResource("3_3fvc3")
+theme_override_font_sizes/font_size = 100
+theme_override_styles/focus = SubResource("StyleBoxEmpty_knxge")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_o15t8")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_7fxx7")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_fgeov")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_dac06")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_1rj05")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_faxk7")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_e0a5y")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_osae6")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_7pttm")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_44qxo")
+text = "Play"
 
 [node name="Song" type="Control" parent="."]
 anchors_preset = 0

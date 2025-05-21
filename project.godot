@@ -21,7 +21,7 @@ config/icon="res://Resources/icon.svg"
 
 [autoload]
 
-Game="*res://scripts/Game.gd"
+Game="*res://scripts/Class/Game.gd"
 
 [display]
 
@@ -75,8 +75,15 @@ action_2={
 ]
 }
 
+[physics]
+
+common/physics_ticks_per_second=1000
+common/max_physics_steps_per_frame=32
+common/physics_jitter_fix=0.0
+
 [rendering]
 
 textures/canvas_textures/default_texture_filter=2
+renderer/rendering_method="mobile"
 textures/vram_compression/import_etc2_astc=true
 anti_aliasing/quality/msaa_3d=1

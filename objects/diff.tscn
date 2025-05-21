@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://7l0jd2n6p3vw"]
 
-[ext_resource type="Script" path="res://scripts/diff.gd" id="1_73yte"]
+[ext_resource type="Script" path="res://scripts/SongSelect/difficulty button.gd" id="1_73yte"]
 
 [node name="Diff" type="Button"]
 offset_right = 8.0

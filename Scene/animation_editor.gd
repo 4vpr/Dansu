@@ -1,5 +1,4 @@
 extends Node
-@onready var vbox = $VBoxContainer
 @onready var root = $"../.."
 @onready var option = $OptionButton
 @onready var box = $"../VBoxContainer"
@@ -24,8 +23,9 @@ func _name_change(value:String) -> void:
 func _add_frame() -> void:
 	root.selected_animation["frames"].insert(root.selected_frame + 1, root.selected_animation["frames"][root.selected_frame])
 	root.selected_animation["frame_filenames"].insert(root.selected_frame + 1, root.selected_animation["frame_filenames"][root.selected_frame])
-	root.selected_frame += 1
+	
 	_update()
+	root.selected_frame += 1
 	pass
 func _remove_frame() -> void:
 	if root.selected_animation["frames"].size() > 1:

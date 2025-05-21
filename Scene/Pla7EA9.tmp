@@ -1,13 +1,14 @@
-[gd_scene load_steps=24 format=3 uid="uid://b8in7w7bfex2h"]
+[gd_scene load_steps=25 format=3 uid="uid://b8in7w7bfex2h"]
 
-[ext_resource type="Script" path="res://scripts/PlayScene/_play_scene.gd" id="1_rq5yt"]
-[ext_resource type="Script" path="res://scripts/PlayScene/player.gd" id="2_pb52u"]
-[ext_resource type="Script" path="res://scripts/PlayScene/camera_3d.gd" id="4_6a102"]
+[ext_resource type="Script" path="res://scripts/playScene.gd" id="1_rq5yt"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="2_pb52u"]
+[ext_resource type="Texture2D" uid="uid://saw1u54ecwcu" path="res://Textures/jako4.png" id="3_j8wgp"]
+[ext_resource type="Script" path="res://scripts/camera_3d.gd" id="4_6a102"]
 [ext_resource type="Texture2D" uid="uid://cutwk4vtb2r6w" path="res://Textures/panel.png" id="5_5nxeb"]
+[ext_resource type="Script" path="res://scripts/combo.gd" id="5_8ajhp"]
 [ext_resource type="FontFile" uid="uid://dyqkpg5wawdxu" path="res://Resources/font/Next Bravo.ttf" id="6_qkpip"]
-[ext_resource type="Script" path="res://scripts/PlayScene/UI/combo.gd" id="6_ws3s7"]
 [ext_resource type="Shader" path="res://Resources/wave.gdshader" id="7_3ly4l"]
-[ext_resource type="Script" path="res://scripts/PlayScene/UI/fps.gd" id="8_urvqm"]
+[ext_resource type="Script" path="res://scripts/fps.gd" id="8_urvqm"]
 [ext_resource type="Texture2D" uid="uid://q3km5q6weir7" path="res://Textures/button.png" id="10_vkoos"]
 [ext_resource type="Texture2D" uid="uid://djkfue30pv52n" path="res://Textures/Buttons/pause.png" id="11_q1tko"]
 
@@ -87,6 +88,7 @@ gi_mode = 0
 pixel_size = 0.001
 texture_filter = 0
 render_priority = 1
+texture = ExtResource("3_j8wgp")
 region_rect = Rect2(0, 0, 214.879, 510.717)
 
 [node name="Camera3D" type="Camera3D" parent="."]
@@ -127,7 +129,7 @@ offset_top = 150.0
 offset_right = 44.5
 offset_bottom = 254.0
 grow_horizontal = 2
-script = ExtResource("6_ws3s7")
+script = ExtResource("5_8ajhp")
 
 [node name="Combo" type="Label" parent="UI/Combo"]
 material = SubResource("ShaderMaterial_lanr2")

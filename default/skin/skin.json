@@ -1,0 +1,34 @@
+{
+	"animations": [
+		{
+			"effect": "none",
+			"fps": 2,
+			"frames": [
+				"sprite1.png"
+			],
+			"id": 1,
+			"name": "none"
+		},
+		{
+			"effect": "shake",
+			"fps": 2,
+			"frames": [
+				"sprite2.png"
+			],
+			"id": 2,
+			"name": "none"
+		}
+	],
+	"player": {
+		"defaultdance": [
+			1,
+			2
+		],
+		"idle": 1,
+		"jump": 1,
+		"land": 1,
+		"left": 0,
+		"right": 0
+	},
+	"name": "Skin"
+}
