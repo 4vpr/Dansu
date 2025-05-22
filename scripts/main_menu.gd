@@ -36,10 +36,12 @@ func _process(delta: float) -> void:
 func play():
 	if Game.scene == Game.Scene.Main:
 		Game.scene = Game.Scene.Play
+		$SongSelect/Edit.visible = false
 		option_window = false
 func edit():
 	if Game.scene == Game.Scene.Main:
 		Game.scene = Game.Scene.Edit
+		$SongSelect/Edit.visible = true
 		option_window = false
 func options():
 	option_window = !option_window

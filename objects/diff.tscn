@@ -3,7 +3,12 @@
 [ext_resource type="Script" path="res://scripts/SongSelect/difficulty button.gd" id="1_73yte"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dlnpd"]
-bg_color = Color(0, 0, 0, 0.498039)
+bg_color = Color(0.305882, 0.305882, 0.305882, 0.87451)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_color = Color(1, 1, 1, 1)
+border_blend = true
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 expand_margin_left = 10.0
@@ -11,15 +16,19 @@ expand_margin_right = 10.0
 expand_margin_bottom = 30.0
 
 [node name="Diff" type="Button"]
-custom_minimum_size = Vector2(0, 35)
+custom_minimum_size = Vector2(35, 35)
 offset_right = 54.0
-offset_bottom = 35.0
+offset_bottom = 52.0
 size_flags_vertical = 8
 focus_mode = 0
-theme_override_font_sizes/font_size = 18
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 0.313726)
+theme_override_constants/outline_size = 0
+theme_override_font_sizes/font_size = 20
 theme_override_styles/focus = SubResource("StyleBoxFlat_dlnpd")
 theme_override_styles/hover = SubResource("StyleBoxFlat_dlnpd")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_dlnpd")
 theme_override_styles/normal = SubResource("StyleBoxFlat_dlnpd")
-text = "easy"
+text = "10"
+icon_alignment = 1
+expand_icon = true
 script = ExtResource("1_73yte")

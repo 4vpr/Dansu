@@ -531,10 +531,11 @@ offset_left = 1031.0
 offset_top = 127.0
 offset_right = 1364.0
 offset_bottom = 202.0
-text = "CAN'T SAVE MAP ON WEB!!!!!!!
-CAN'T SAVE MAP ON WEB!!!!!!!
-CAN'T SAVE MAP ON WEB!!!!!!!
+text = "This Is Editor Preview
+CAN'T SAVE MAP ON WEB
 "
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Label2" type="Label" parent="."]
 layout_mode = 0

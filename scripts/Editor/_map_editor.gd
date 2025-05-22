@@ -288,7 +288,6 @@ func save_to_json():
 	json_data["title"] = beatmap.meta_title
 	json_data["artist"] = beatmap.meta_artist
 	json_data["creator"] = beatmap.meta_creator
-	json_data["difficulty"] = beatmap.diff_value
 	json_data["bpm"] = beatmap.song_bpm
 	json_data["bpmstart"] = beatmap.song_bpmstart
 	json_data["uuid"] = beatmap.map_uuid

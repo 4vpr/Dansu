@@ -46,7 +46,7 @@ func _ready() -> void:
 	var world_height = tex_size.y * sprite.pixel_size
 	sprite.position.y = world_height * scale_factor.y / (target_size.y / texture_size.y) / 2
 	scaleVel = scale
-
+	print(scaleVel)
 func _process(delta: float) -> void:
 	rails = railContainer.get_children()
 	playAnimation()
@@ -54,7 +54,7 @@ func _process(delta: float) -> void:
 		standRail = closest_rail()
 
 	if groove < groove_rst:
-		scale.y = scaleVel.y + (groove_rst - groove) / groove_rst / 6
+		scale.y = scaleVel.y + (groove_rst - groove) / groove_rst / 6 * scaleVel.y
 		groove += delta
 	else:
 		scale = scaleVel

@@ -10,7 +10,9 @@ func _ready() -> void:
 	_refresh()
 	await get_tree().process_frame
 	DisplayServer.window_set_drop_files_callback(Callable(self, "_on_files_dropped"))
-	$AddDifficulty.connect("pressed",_add_new_difficulty)
+	$Edit/AddDifficulty.connect("pressed",_add_new_difficulty)
+	if Game.scene == Game.Scene.Edit:
+		$Edit.visible = true
 func _load() -> void:
 	# 외부 맵 로드
 	var folders = get_folders_in_path(OS.get_user_data_dir().path_join("Songs"))
