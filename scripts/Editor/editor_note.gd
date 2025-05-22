@@ -6,7 +6,7 @@ var rail
 var animation
 var dragging = false
 var offset
-var note_texture = load("res://objects/editor/note.tres")
+var note_texture = load("res://Resources/note.tres")
 var left_texture = load("res://Textures/left.png")
 var right_texture = load("res://Textures/right.png")
 var spike_texture = load("res://Textures/editor_spike.png")

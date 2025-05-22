@@ -246,7 +246,7 @@ func _ready() -> void:
 var nextHitSound = -INF
 func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("ui_cancel"):
-		get_tree().change_scene_to_file("res://Scene/SongSelect.tscn")
+		get_tree().change_scene_to_file("res://Scene/main_menu.tscn")
 		print("exit")
 	rail_check()
 	check_drag()

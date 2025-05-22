@@ -3,11 +3,18 @@ extends Button
 var beatmap: Beatmap
 
 func _ready() -> void:
-	pressed.connect(_button_press)
+	pressed.connect(_press)
+	mouse_entered.connect(_enter)
 	if beatmap:
 		text = beatmap.diff_name
-		#text = difficulty + " (" + str(beatmap.diff_value) + ")"
-
-func _button_press() -> void:
+func _process(delta: float) -> void:
+	if is_hovered:
+		if Game.select_map == beatmap:
+			custom_minimum_size.y = 45
+		else:
+			custom_minimum_size.y = 35
+func _press() -> void:
 	Game.select_map = beatmap
-	pass
+
+func _enter() -> void:
+	custom_minimum_size.y = 50

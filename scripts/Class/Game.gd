@@ -5,12 +5,18 @@ const panelSize = 11.3
 var score = Score.new()
 var isTouchScreen = false
 var loaded_beatmaps = []
+enum Scene {
+	Play,
+	Edit,
+	Result,
+	Main
+}
+var scene = Scene.Main
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		isTouchScreen = true
 func _init():
 	load_settings()
-
 func load_settings():
 	var config = ConfigFile.new()
 	if config.load(config_file_path) == OK:
@@ -36,6 +42,18 @@ func save_setting(section: String, key: String, value):
 	config.load(config_file_path)  # 기존 값 유지
 	config.set_value(section, key, value)
 	config.save(config_file_path)
+func apply_settings():
+	# 해상도 적용
+	var res_parts = settings.resolution.split("x")
+	if res_parts.size() == 2:
+		var width = int(res_parts[0])
+		var height = int(res_parts[1])
+		DisplayServer.window_set_size(Vector2i(width, height))
+
+	# 전체화면 적용
+	DisplayServer.window_set_mode(
+	DisplayServer.WINDOW_MODE_FULLSCREEN if settings.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
+)
 func save_settings():
 	var config = ConfigFile.new()
 func _use_default_skin() -> PlayerSkin:

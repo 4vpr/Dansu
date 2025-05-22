@@ -1,14 +1,10 @@
-[gd_scene load_steps=8 format=3 uid="uid://dqyrp3v4bjcuj"]
+[gd_scene load_steps=5 format=3 uid="uid://dqyrp3v4bjcuj"]
 
 [ext_resource type="Script" path="res://scripts/SongSelect/_song_select.gd" id="1_mrfqk"]
 [ext_resource type="Script" path="res://Scene/map_panel.gd" id="3_fcmbx"]
-[ext_resource type="Script" path="res://scripts/SongSelect/b_edit.gd" id="3_keo4n"]
 [ext_resource type="Script" path="res://scripts/SongSelect/h_slider.gd" id="5_pbdis"]
-[ext_resource type="Script" path="res://scripts/PlayScene/UI/fps.gd" id="6_4rwte"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_7c3fw"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_qmr6g"]
 
 [node name="SongSelect" type="Control"]
 layout_mode = 3
@@ -18,17 +14,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_mrfqk")
-
-[node name="Image" type="TextureRect" parent="."]
-modulate = Color(0.266667, 0.266667, 0.266667, 1)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-expand_mode = 1
-stretch_mode = 6
 
 [node name="MapPanel" type="ScrollContainer" parent="."]
 layout_direction = 2
@@ -49,22 +34,12 @@ script = ExtResource("3_fcmbx")
 custom_minimum_size = Vector2(900, 0)
 layout_mode = 2
 
-[node name="Edit" type="Button" parent="."]
-layout_mode = 0
-offset_left = 24.0
-offset_top = 972.0
-offset_right = 119.0
-offset_bottom = 1044.0
-text = "Edit
-Beatmap"
-script = ExtResource("3_keo4n")
-
 [node name="AddDifficulty" type="Button" parent="."]
 layout_mode = 0
-offset_left = 26.0
-offset_top = 885.0
-offset_right = 121.0
-offset_bottom = 957.0
+offset_left = 25.0
+offset_top = 961.0
+offset_right = 120.0
+offset_bottom = 1033.0
 text = "Add New
 Difficulty"
 
@@ -93,11 +68,3 @@ offset_bottom = 22.936
 text = "notespeed
 "
 label_settings = SubResource("LabelSettings_7c3fw")
-
-[node name="Fps" type="Label" parent="."]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
-text = "123123"
-label_settings = SubResource("LabelSettings_qmr6g")
-script = ExtResource("6_4rwte")

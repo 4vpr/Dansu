@@ -1,29 +1,14 @@
-[gd_scene load_steps=8 format=3 uid="uid://cxjwar8qokms3"]
+[gd_scene load_steps=7 format=3 uid="uid://cxjwar8qokms3"]
 
 [ext_resource type="Script" path="res://scripts/result_scene.gd" id="1_q00yg"]
 [ext_resource type="FontFile" uid="uid://dyqkpg5wawdxu" path="res://Resources/font/Next Bravo.ttf" id="2_h8j4k"]
 
-[sub_resource type="FontFile" id="FontFile_mrl38"]
-cache/0/300/0/ascent = 0.0
-cache/0/300/0/descent = 0.0
-cache/0/300/0/underline_position = 0.0
-cache/0/300/0/underline_thickness = 0.0
-cache/0/300/0/scale = 1.0
-cache/0/16/0/ascent = 0.0
-cache/0/16/0/descent = 0.0
-cache/0/16/0/underline_position = 0.0
-cache/0/16/0/underline_thickness = 0.0
-cache/0/16/0/scale = 1.0
-
 [sub_resource type="LabelSettings" id="LabelSettings_wr7xd"]
-font = SubResource("FontFile_mrl38")
 font_size = 300
 font_color = Color(0.96292, 0.971312, 1, 1)
-outline_size = 15
-outline_color = Color(0, 0, 0, 1)
 shadow_size = 30
-shadow_color = Color(0, 0, 0, 1)
-shadow_offset = Vector2(1, 20)
+shadow_color = Color(0, 0, 0, 0.443137)
+shadow_offset = Vector2(20, 20)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_00xim"]
 bg_color = Color(0, 0, 0, 0.235294)
@@ -61,10 +46,10 @@ stretch_mode = 6
 
 [node name="Rank" type="Label" parent="."]
 layout_mode = 0
-offset_left = 1290.0
-offset_top = 55.0
-offset_right = 1563.0
-offset_bottom = 455.0
+offset_left = 1286.0
+offset_top = 112.0
+offset_right = 1559.0
+offset_bottom = 521.0
 text = "S"
 label_settings = SubResource("LabelSettings_wr7xd")
 horizontal_alignment = 1

@@ -13,10 +13,8 @@ config_version=5
 config/name="Dansu"
 config/description="Dansu"
 config/version="dev"
-run/main_scene="res://Scene/SongSelect.tscn"
+run/main_scene="res://Scene/main_menu.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
-boot_splash/bg_color=Color(0, 0, 0, 1)
-boot_splash/show_image=false
 config/icon="res://Resources/icon.svg"
 
 [autoload]
@@ -27,14 +25,19 @@ Game="*res://scripts/Class/Game.gd"
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
-window/size/mode=2
+window/size/mode=3
+window/size/resizable=false
 window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
+window/stretch/aspect="keep_width"
 window/vsync/vsync_mode=0
 
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/map_list_generator/plugin.cfg")
+
+[gui]
+
+common/snap_controls_to_pixels=false
 
 [input]
 

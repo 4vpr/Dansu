@@ -21,16 +21,16 @@ func _ready() -> void:
 		connect("mouse_exited", Callable(self, "_on_mouse_exited"))
 		reload_diff()
 		if Game.select_map and Game.select_map in beatmap_set.beatmaps:
-			$"../../../Image".texture = beatmap_set.cover_image
+			pass
 func reload_diff():
 	beatmap_set.beatmaps.sort_custom(func(a, b):
 		return a.diff_value < b.diff_value
 		)
 	$HBoxContainer.get_children().map(func(c): c.queue_free())
 	for beatmap in beatmap_set.beatmaps:
-			var diff = diff_scene.instantiate()
-			diff.beatmap = beatmap
-			$HBoxContainer.add_child(diff)
+		var diff = diff_scene.instantiate()
+		diff.beatmap = beatmap
+		$HBoxContainer.add_child(diff)
 func load_background():
 	if beatmap_set.cover_image:
 		BG.texture = beatmap_set.cover_image
@@ -41,7 +41,10 @@ func _process(delta: float) -> void:
 	if Game.select_map and Game.select_map in beatmap_set.beatmaps:
 		$HBoxContainer.visible = true
 		$Buttons/Button.mouse_filter = Control.MOUSE_FILTER_STOP
-		$Buttons/Button.text = "Play"
+		if Game.scene == Game.Scene.Play:
+			$Buttons/Button.text = "Play"
+		else:
+			$Buttons/Button.text = "Edit"
 		sizeY = 200
 		modulate = Color(1, 1, 1)
 	elif hovered:
@@ -56,11 +59,12 @@ func _process(delta: float) -> void:
 	custom_minimum_size.y = int(lerpY)
 	
 func _gui_input(event):
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		Game.select_folder = beatmap_set
-		if beatmap_set.beatmaps.size() > 0:
-			Game.select_map = beatmap_set.beatmaps[0]
-			$"../../../Image".texture = beatmap_set.cover_image
+	if Game.select_folder != beatmap_set:
+		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			Game.select_folder = beatmap_set
+			if beatmap_set.beatmaps.size() > 0:
+				Game.select_map = beatmap_set.beatmaps[0]
+
 
 func _on_mouse_entered():
 	hovered = true

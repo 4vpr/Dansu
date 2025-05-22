@@ -74,7 +74,7 @@ func _process(delta: float) -> void:
 		song_playing = true
 		print("play")
 	if Input.is_action_just_pressed("ui_cancel"):
-		get_tree().change_scene_to_file("res://Scene/SongSelect.tscn")
+		get_tree().change_scene_to_file("res://Scene/main_menu.tscn")
 
 func parse_objects(beatmap: Beatmap):
 	rails = beatmap.rails
@@ -115,18 +115,18 @@ var current_time_msec = 0
 func _physics_process(delta:float) -> void:
 	if song_playing:
 		Game.currentTime = Time.get_ticks_msec() - start_time - Game.offset_recom
-		check_judge()
-		if Input.is_action_just_pressed("move_left"):
-			playerMove(2, Game.currentTime)
-			player.move(-1)
-		if Input.is_action_just_pressed("move_right"):
-			playerMove(4, Game.currentTime)
-			player.move(1)
-		#if Input.is_action_just_pressed("move_up") and !isJumping:
-		#	isJumping = true
-		#	jumpDurationCurrent = jumpDuration
-		if Input.is_action_just_pressed("action_1") or Input.is_action_just_pressed("action_2"):
-			playerAction(Game.currentTime)
+	check_judge()
+	if Input.is_action_just_pressed("move_left"):
+		playerMove(2, Game.currentTime)
+		player.move(-1)
+	if Input.is_action_just_pressed("move_right"):
+		playerMove(4, Game.currentTime)
+		player.move(1)
+	#if Input.is_action_just_pressed("move_up") and !isJumping:
+	#	isJumping = true
+	#	jumpDurationCurrent = jumpDuration
+	if Input.is_action_just_pressed("action_1") or Input.is_action_just_pressed("action_2"):
+		playerAction(Game.currentTime)
 func check_judge():
 	if nextnote_i < notes.size():
 		if notes[nextnote_i].time + score.t_ok < Game.currentTime:
@@ -156,11 +156,12 @@ func playerAction(time):
 	if nextnote_i < notes.size():
 		var note = notes[nextnote_i]
 		var acc = note.time - time
-		if player.standRail.id == note.rail and note.type == 1:
-			var j = score.getJudge(acc)
-			if j != -1:
-				write_judge(j, notes[nextnote_i])
-				setNextNote()
+		if player.standRail != null:
+			if player.standRail.id == note.rail and note.type == 1:
+				var j = score.getJudge(acc)
+				if j != -1:
+					write_judge(j, notes[nextnote_i])
+					setNextNote()
 func playerMove(dir: int, time):
 	if nextnote_i < notes.size():
 		var note = notes[nextnote_i]
