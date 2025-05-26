@@ -2,17 +2,12 @@ extends Panel
 
 @onready var vbox = $Vbox
 @onready var root = get_tree().current_scene
-@onready var B_Adjust = $Defaults/Adjust
 @onready var divis = $Defaults/Divis
 var selected
 
 func _ready() -> void:
-	B_Adjust.pressed.connect(_adjust_pressed)
 	divis.text_submitted.connect(_on_divis_changed)
 	divis.text = str(root.beatsdiv)
-func _adjust_pressed():
-	root.selected.sizeToNotes()
-	pass
 func _addItem(_name,_value):
 	var label = Label.new()
 	var edit = LineEdit.new()
@@ -25,13 +20,11 @@ func _addItem(_name,_value):
 	vbox.add_child(edit)
 	pass
 func _update(object) -> void:
-	B_Adjust.visible = false
 	for item in vbox.get_children():
 		item.queue_free()
 	if object.get("time") != null:
 		_addItem("time",object.time)
 	if object.get("start") != null:
-		B_Adjust.visible = true
 		_addItem("start",object.start)
 	if object.get("end") != null:
 		_addItem("end",object.end)

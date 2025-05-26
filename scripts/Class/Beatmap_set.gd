@@ -6,6 +6,9 @@ var meta_title: String = "?"
 var cover_image: Texture2D = null
 var beatmaps: Array[Beatmap] = []
 
+func _clear():
+	for beatmap in beatmaps:
+		beatmap._clear()
 func load_from_folder(path: String):
 	folder_path = path
 	var json_files = get_json_files_in_path(path)
@@ -14,7 +17,6 @@ func load_from_folder(path: String):
 		beatmap.folder_path = path
 		if beatmap.load_from_json(path.path_join(json_file)):
 			beatmaps.append(beatmap)
-			print("beatmaps.append(beatmap)")
 	if beatmaps.size() > 0:
 		meta_title = beatmaps[0].meta_title
 		_load_cover_image()
@@ -22,7 +24,6 @@ func load_from_folder(path: String):
 func _load_cover_image():
 	var bg_candidates = ["bg.jpg", "bg.jpeg", "bg.png"]
 	var image_path = ""
-
 	if folder_path.begins_with("res://"):
 		for bg_file in bg_candidates:
 			var try_path = folder_path.path_join(bg_file)
@@ -31,10 +32,8 @@ func _load_cover_image():
 				break
 	else:
 		image_path = _get_bg_path()
-
 	if image_path == "":
 		return
-
 	if image_path.begins_with("res://"):
 		var texture = load(image_path)
 		if texture:

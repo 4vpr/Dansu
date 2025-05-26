@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://dxfmwdq83fxan"]
+[gd_scene load_steps=25 format=3 uid="uid://dxfmwdq83fxan"]
 
 [ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_8jwjo"]
 [ext_resource type="Texture2D" uid="uid://bbtnd1giiabmu" path="res://Resources/font/dansu.png" id="1_efvlb"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://cyq6xhns0hq77" path="res://Textures/no texture.png" id="3_hcvje"]
 [ext_resource type="PackedScene" uid="uid://dqyrp3v4bjcuj" path="res://Scene/SongSelect.tscn" id="4_6vgtf"]
 [ext_resource type="Script" path="res://scripts/button_animation.gd" id="4_25ley"]
+[ext_resource type="Script" path="res://Scene/score_board.gd" id="10_hp6ec"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_knxge"]
 
@@ -31,6 +32,16 @@
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7pttm"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_44qxo"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_v5wdu"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_8e7rh"]
+font = ExtResource("3_3fvc3")
+font_size = 50
+
+[sub_resource type="LabelSettings" id="LabelSettings_tbysm"]
+font = ExtResource("3_3fvc3")
+font_size = 20
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -235,7 +246,7 @@ text = "Made with Godot 4.3
 h4yamori :3"
 horizontal_alignment = 1
 
-[node name="Setting" type="Control" parent="."]
+[node name="Options" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 11
 anchor_left = 1.0
@@ -245,17 +256,199 @@ offset_right = 1000.0
 grow_horizontal = 0
 grow_vertical = 2
 
-[node name="Panel" type="Panel" parent="Setting"]
+[node name="Panel" type="Panel" parent="Options"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 4000.0
-offset_right = 3500.0
+offset_left = 806.0
+offset_top = 1.0
+offset_right = 612.0
+offset_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="Label" type="Label" parent="Options/Panel"]
+layout_mode = 0
+offset_left = 379.0
+offset_top = 9.0
+offset_right = 441.0
+offset_bottom = 32.0
+text = "Options"
+
+[node name="FullScreen" type="CheckButton" parent="Options/Panel"]
+layout_mode = 0
+offset_left = 555.0
+offset_top = 75.0
+offset_right = 687.0
+offset_bottom = 106.0
+rotation = 0.802851
+text = "Full Screen"
+
+[node name="HSlider" type="HSlider" parent="Options/Panel"]
+layout_mode = 0
+offset_left = 29.0
+offset_top = 203.0
+offset_right = 508.0
+offset_bottom = 219.0
+
+[node name="HSlider2" type="HSlider" parent="Options/Panel"]
+layout_mode = 0
+offset_left = 323.0
+offset_top = 276.0
+offset_right = 663.0
+offset_bottom = 292.0
+rotation = 0.47473
+
+[node name="HSlider3" type="HSlider" parent="Options/Panel"]
+layout_mode = 0
+offset_left = 49.0
+offset_top = 405.0
+offset_right = 426.0
+offset_bottom = 444.0
+
+[node name="Button" type="Button" parent="Options/Panel"]
+layout_mode = 0
+offset_left = 157.0
+offset_top = 504.0
+offset_right = 201.0
+offset_bottom = 535.0
+text = "LEFT"
+
+[node name="Button2" type="Button" parent="Options/Panel"]
+layout_mode = 0
+offset_left = 284.0
+offset_top = 511.0
+offset_right = 340.0
+offset_bottom = 542.0
+text = "RIGHT"
+
+[node name="Button3" type="Button" parent="Options/Panel"]
+layout_mode = 0
+offset_left = 378.0
+offset_top = 476.0
+offset_right = 422.0
+offset_bottom = 507.0
+text = "Z"
+
+[node name="Button4" type="Button" parent="Options/Panel"]
+layout_mode = 0
+offset_left = 484.0
+offset_top = 538.0
+offset_right = 528.0
+offset_bottom = 569.0
+text = "X"
+
+[node name="OptionButton" type="OptionButton" parent="Options/Panel"]
+layout_mode = 0
+offset_left = 36.0
+offset_top = 571.0
+offset_right = 329.0
+offset_bottom = 602.0
+item_count = 2
+popup/item_0/text = "1280x720"
+popup/item_1/text = "1920x1080"
+popup/item_1/id = 1
 
 [node name="SongSelect" parent="." instance=ExtResource("4_6vgtf")]
 layout_mode = 1
 offset_left = 3000.0
 offset_right = 3000.0
+
+[node name="ScoreBoard" type="Panel" parent="."]
+layout_mode = 0
+offset_left = -1007.0
+offset_top = 24.0
+offset_right = -490.0
+offset_bottom = 517.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_v5wdu")
+script = ExtResource("10_hp6ec")
+
+[node name="Rank" type="Label" parent="ScoreBoard"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -341.5
+offset_top = 306.0
+offset_right = 224.5
+offset_bottom = 356.0
+text = "X"
+label_settings = SubResource("LabelSettings_8e7rh")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Title" type="Label" parent="ScoreBoard"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.073
+anchor_bottom = 0.073
+offset_left = 11.0
+offset_top = -24.989
+offset_right = 495.0
+offset_bottom = 25.011
+text = "title"
+label_settings = SubResource("LabelSettings_8e7rh")
+vertical_alignment = 1
+
+[node name="Artist" type="Label" parent="ScoreBoard"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.149
+anchor_bottom = 0.149
+offset_left = 16.0
+offset_top = -15.457
+offset_right = 483.0
+offset_bottom = 5.543
+text = "difficulty"
+label_settings = SubResource("LabelSettings_tbysm")
+vertical_alignment = 1
+
+[node name="Difficulty" type="Label" parent="ScoreBoard"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.149
+anchor_bottom = 0.149
+offset_left = 16.0
+offset_top = 5.543
+offset_right = 483.0
+offset_bottom = 26.543
+text = "artist"
+label_settings = SubResource("LabelSettings_tbysm")
+vertical_alignment = 1
+
+[node name="BPM" type="Label" parent="ScoreBoard"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.149
+anchor_bottom = 0.149
+offset_left = 18.0
+offset_top = 26.543
+offset_right = 124.0
+offset_bottom = 47.543
+text = "bpm 200"
+label_settings = SubResource("LabelSettings_tbysm")
+vertical_alignment = 1
+
+[node name="Score" type="Label" parent="ScoreBoard"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.487
+anchor_right = 0.487
+offset_left = -335.779
+offset_top = 369.0
+offset_right = 230.221
+offset_bottom = 419.0
+text = "999000"
+label_settings = SubResource("LabelSettings_8e7rh")
+horizontal_alignment = 1
+
+[node name="Button" type="Button" parent="ScoreBoard"]
+visible = false
+layout_mode = 0
+offset_left = 195.0
+offset_top = 139.0
+offset_right = 365.0
+offset_bottom = 176.0
+focus_mode = 0
+text = "..."

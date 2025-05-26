@@ -9,7 +9,12 @@ var offset
 var time_offset
 var can_drag = false
 @onready var notes = $NoteContainer
-
+func _select() -> void:
+	modulate = Color(0.8,0.8,0.8)
+	pass
+func _unselect() -> void:
+	modulate = Color(1,1,1)
+	pass
 func sizeToNotes() -> void:
 	var _min = INF
 	var _max = 0
@@ -28,11 +33,13 @@ func _ready() -> void:
 	pass
 func _update() -> void:
 	for note in notes.get_children():
+		if note.visible == true:
+			if note.time < start:
+				start = note.time - 85
+			if note.time > end:
+				end = note.time + 85
+	for note in notes.get_children():
 		note.position.y = (end - note.time) * Game.editor_velocity
-		if note.time < start:
-			start = note.time
-		if note.time > end:
-			end = note.time
 	size.y = (end - start) * Game.editor_velocity
 	position.x = pos * 250 / 0.9
 func _on_mouse_entered():
@@ -48,5 +55,5 @@ func _input(event):
 		elif not event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			dragging = false
 func _on_pressed():
-	get_tree().current_scene.selected = self
+	get_tree().current_scene.select_object(self)
 	pass

@@ -23,10 +23,8 @@ func _name_change(value:String) -> void:
 func _add_frame() -> void:
 	root.selected_animation["frames"].insert(root.selected_frame + 1, root.selected_animation["frames"][root.selected_frame])
 	root.selected_animation["frame_filenames"].insert(root.selected_frame + 1, root.selected_animation["frame_filenames"][root.selected_frame])
-	
-	_update()
 	root.selected_frame += 1
-	pass
+	_refresh_frames()
 func _remove_frame() -> void:
 	if root.selected_animation["frames"].size() > 1:
 		root.selected_animation["frames"].remove_at(root.selected_frame)
@@ -45,7 +43,6 @@ func _new_animation() -> void:
 	new_frame_filename.append(root.sprites[0]["filename"])
 	while id in used_ids:
 		id += 1
-	print(id)
 	var new_animation = {
 		"id" = id,
 		"name" = "new animation",
@@ -59,7 +56,6 @@ func _new_animation() -> void:
 	new_anim_scene.animation = new_animation
 	box.add_child(new_anim_scene)
 func _update_item_button() -> void:
-	var s = root.selected_animation
 	option.select(-1)
 	for i in option.get_item_count():
 		if root.selected_animation["frame_filenames"][root.selected_frame] == $OptionButton.get_item_text(i):
@@ -70,18 +66,24 @@ func _update() -> void:
 		$fps.text = str(root.selected_animation["fps"])
 		$name.text = root.selected_animation["name"]
 		$FramesContainer.get_children().map(func(c): c.queue_free())
-		var i = 0
-		for frame in root.selected_animation["frames"]:
-			i += 1
-			var button = Button.new()
-			button.text = str(i)
-			button.pressed.connect(_frameButton.bind(button.text))
-			$FramesContainer.add_child(button)
-			root.selected_frame = 0
+		root.selected_frame = 0
+		_refresh_frames()
 		updateTexture(0)
 		_update_item_button()
 	else:
 		self.visible = false
+func _refresh_frames():
+	$FramesContainer.get_children().map(func(c): c.queue_free())
+	var i = 0
+	for frame in root.selected_animation["frames"]:
+		i += 1
+		_create_frame_button(i)
+func _create_frame_button(i):
+	var button = Button.new()
+	button.text = str(i)
+	button.pressed.connect(_frameButton.bind(button.text))
+	$FramesContainer.add_child(button)
+	button.focus_mode = true
 func _frameButton(text_value: String) -> void:
 	root.selected_frame = int(text_value) - 1
 	updateTexture(int(text_value) - 1)

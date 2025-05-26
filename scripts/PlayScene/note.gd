@@ -32,9 +32,9 @@ func _ready() -> void:
 		pass
 func _process(delta: float) -> void:
 	if NoteSprite.modulate.a < 1:
-		NoteSprite.modulate.a += delta * Game.settings.velocity / 2
-		ArrowSprite.modulate.a += delta * Game.settings.velocity / 2
+		NoteSprite.modulate.a += delta * Game.settings["gameplay"]["velocity"] / 2
+		ArrowSprite.modulate.a += delta * Game.settings["gameplay"]["velocity"] / 2
 		if NoteSprite.modulate.a > 1:
 			NoteSprite.modulate.a = 1
 			ArrowSprite.modulate.a = 1
-	position.z = Game.panelSize -((time - Game.currentTime) * Game.settings.velocity / 1000)
+	position.z = Game.panelSize -((time - Game.currentTime) * Game.settings["gameplay"]["velocity"] / 1000)

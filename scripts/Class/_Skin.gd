@@ -33,7 +33,6 @@ func load_from_json(path: String) -> bool:
 	return true
 
 func parse_objects():
-	print("1")
 	var file = FileAccess.open(json_path, FileAccess.READ)
 	if not file:
 		print("not found")
@@ -46,9 +45,8 @@ func parse_objects():
 		for animation in json["animations"]:
 			var frames = animation.get("frames", [])
 			var texture_frames = []
-			var texture_filenames = []
+			#var texture_filenames = []
 			for frame in frames:
-				print(frame)
 				var texture = _load_texture(frame)
 				if texture:
 					texture_frames.append(texture)

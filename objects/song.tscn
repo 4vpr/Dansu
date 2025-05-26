@@ -21,7 +21,7 @@ shadow_offset = Vector2(2, 2)
 
 [node name="song" type="PanelContainer"]
 clip_children = 2
-custom_minimum_size = Vector2(0, 50)
+custom_minimum_size = Vector2(0, 75)
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -48,7 +48,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
-visible = false
 layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1

@@ -13,10 +13,6 @@ func _ready() -> void:
 	pass
 func _pivot():
 	pivot_offset = size/2.0
-	
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
 func _enter() -> void:
 	create_tween().tween_property(self,"scale",hover_scale, 0.1).set_trans(Tween.TRANS_SINE)
 func _exit() -> void:

@@ -14,23 +14,27 @@ func _ready() -> void:
 		if beatmap.diff_value < 10:
 			text = "0" + text
 		modulate = get_color_from_number(beatmap.diff_value)
+func _select() -> void:
+	animate_size(55)
+	var scoreboard = get_tree().get_root().get_node("MainMenu/ScoreBoard")
+	scoreboard._update()
 
-func _process(delta: float) -> void:
-	if !hovered:
-		var target_height = 45 if Game.select_map == beatmap else 35
-		if custom_minimum_size.y != target_height:
-			animate_size(target_height)
+	pass
+func _unselect() -> void:
+	animate_size(35)
+	pass
 
 func _press() -> void:
-	Game.select_map = beatmap
+	Game.select_beatmap(beatmap,self)
+	Game.lastSelectDiff = beatmap.diff_value
 
 func _enter() -> void:
-	hovered = true
-	animate_size(50)
+	if Game.selected_beatmap != beatmap:
+		animate_size(45)
 
 func _exit() -> void:
-	hovered = false
-	animate_size(35)
+	if Game.selected_beatmap != beatmap:
+		animate_size(35)
 
 func animate_size(target_height: float) -> void:
 	tween = create_tween()

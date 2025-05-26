@@ -22,12 +22,9 @@ var sprites_current_update = 0
 
 func _ready() -> void:
 	await get_parent().ready
-	beatmap = Game.select_map
-	print(beatmap.use_default_skin)
+	beatmap = Game.selected_beatmap
 	if beatmap.use_default_skin:
 		beatmap = Game._use_default_skin()
-	#if Game.settings.use_custom_skin:
-	#	beatmap = Game.select_skin
 	setPlayerIdle()
 	playAnimation()
 	scene = get_parent()
@@ -36,7 +33,7 @@ func _ready() -> void:
 	if rails.size() > 0:
 		standRail = closest_rail()
 	var texture_size = sprite.texture.get_size()
-	var target_size = Vector2(200,Game.settings.playerheight)
+	var target_size = Vector2(200,Game.settings["gameplay"]["playerheight"])
 	var scale_factor = Vector2(
 			target_size.x / texture_size.x,
 			target_size.y / texture_size.y
@@ -46,7 +43,6 @@ func _ready() -> void:
 	var world_height = tex_size.y * sprite.pixel_size
 	sprite.position.y = world_height * scale_factor.y / (target_size.y / texture_size.y) / 2
 	scaleVel = scale
-	print(scaleVel)
 func _process(delta: float) -> void:
 	rails = railContainer.get_children()
 	playAnimation()
@@ -70,15 +66,7 @@ func _process(delta: float) -> void:
 
 	if standRail != null:
 		position.x = lerp(position.x, standRail.position.x, delta * 20)
-func _input(event: InputEvent) -> void:
-	if event is InputEventScreenTouch && standRail != null && event.pressed:
-		if event.position.x > 1920.0 / 2.0:
-			if event.position.x < 1550:
-				scene.playerMove(2, standRail)
-				standRail = move_rail(-1)
-			else:
-				scene.playerMove(4, standRail)
-				standRail = move_rail(1)
+
 func closest_rail() -> Node3D:
 	if rails.is_empty():
 		return standRail
@@ -97,17 +85,18 @@ func move(direction: int):
 func move_rail(direction: int) -> Node3D:
 	if rails.is_empty():
 		return standRail
-	
-	var current_x = standRail.position.x
-	var c_rail = standRail
-	var min_distance = INF
-	for rail in rails:
-		if (rail.position.x - current_x) * direction > 0 and rail.active:
-			var distance = abs(rail.position.x - current_x)
-			if distance < min_distance:
-				min_distance = distance
-				c_rail = rail
-	return c_rail
+	if standRail != null:
+		var current_x = standRail.position.x
+		var c_rail = standRail
+		var min_distance = INF
+		for rail in rails:
+			if (rail.position.x - current_x) * direction > 0 and rail.active:
+				var distance = abs(rail.position.x - current_x)
+				if distance < min_distance:
+					min_distance = distance
+					c_rail = rail
+		return c_rail
+	return standRail
 
 func setPlayerIdle():
 	setAnimation(beatmap.player_animation.get("idle", 0))

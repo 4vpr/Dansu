@@ -1,7 +1,7 @@
 extends Node
 
 var score = Score.new()
-var beatmap = Game.select_map
+var beatmap = Game.selected_beatmap
 
 @onready var ButtonExit = $Panel/Button
 @onready var ScoreLabel = $Panel/Score
@@ -13,13 +13,13 @@ func _ready() -> void:
 	# 버튼 연결
 	ButtonExit.pressed.connect(_exit)
 
-	# 배경 이미지 로드
 	_load_background_image()
-
+	
 	# 점수 및 랭크 표시
 	score = Game.score
+	score.save_current_score()
 	ScoreLabel.text = str(int(score.getScore() * 10000))
-	RankLabel.text = score.getRank()
+	RankLabel.text = Game.getRank(score.getScore())
 	JudgeLabel.text = "%d\n%d\n%d\n%d\n%d\n%d\n" % [
 		score.c_perfect_plus,
 		score.c_perfect,
@@ -30,7 +30,7 @@ func _ready() -> void:
 	]
 
 func _load_background_image():
-	$TextureRect.texture = Game.select_folder.cover_image
+	$TextureRect.texture = Game.selected_beatmap_set.cover_image
 
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("ui_cancel"):

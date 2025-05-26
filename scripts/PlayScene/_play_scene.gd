@@ -4,7 +4,7 @@ var rails = []
 var rails_i = 0
 var notes = []
 var notes_i = 0
-var nextnote_i = 0
+var nextnote_i = -1
 var hitnotes = []
 var rail_scene = load("res://objects/rail.tscn")
 var note_scene = load("res://objects/note.tscn")
@@ -21,41 +21,43 @@ var song_end = 0
 @onready var comboDisplayer = $UI/Combo/Combo
 @onready var comboVbox = $UI/Combo
 @onready var accDisplayer = $UI/Acc/Acc
-@onready var tc_leftbutton = $UI/TouchScreen/Left
-@onready var tc_rightbutton = $UI/TouchScreen/Right
-@onready var tc_action = $UI/TouchScreen/Touch
+@onready var tc_left_position = 1260
+@onready var tc_size = 250
+@onready var tc_right_position = 1540
 
 var beatmap: Beatmap
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventScreenTouch:
-		if event.pressed:
-			if event.position.x < DisplayServer.window_get_size().x / 2:
-				playerAction(Game.currentTime)
-
+	if event is InputEventScreenTouch && event.pressed:
+		if event.position.x > tc_left_position && event.position.x < tc_left_position + tc_size:
+			playerMove(2, Game.currentTime)
+			player.move(-1)
+		elif event.position.x > tc_right_position && event.position.x < tc_right_position + tc_size:
+			playerMove(4, Game.currentTime)
+			player.move(1)
+		else:
+			playerAction(Game.currentTime)
 func _ready() -> void:
 	$UI/TouchScreen.visible = Game.isTouchScreen
 	load_background()
 	add_child(sfx_pool)
 	Game.currentTime = 0
-	beatmap = Game.select_map
+	beatmap = Game.selected_beatmap
 	beatmap.parse_objects()
 	check_objects()
-	songplayer.volume_db = linear_to_db(Game.settings.volume_song * Game.settings.volume_master)
 	if beatmap:
 		if beatmap.load_song(songplayer):
 			parse_objects(beatmap)
-			#player.parse_data(beatmap)
+			score.uuid = beatmap.map_uuid
+			score.hash = beatmap.get_hash()
 			current_time_msec = Time.get_ticks_msec()
-			#load_background(beatmap)
-
+			setNextNote()
 var start_time = 0
 var song_playing = false
 var wait = true
 var lerping = 1.5
 
 func _process(delta: float) -> void:
-	
 	if lerping < 0 and wait:
 		songplayer.play()
 		wait = false
@@ -72,7 +74,6 @@ func _process(delta: float) -> void:
 	if not song_playing and songplayer.playing:
 		start_time = Time.get_ticks_msec() - songplayer.get_playback_position() * 1000
 		song_playing = true
-		print("play")
 	if Input.is_action_just_pressed("ui_cancel"):
 		get_tree().change_scene_to_file("res://Scene/main_menu.tscn")
 
@@ -85,7 +86,7 @@ func parse_objects(beatmap: Beatmap):
 
 func load_background():
 	var material = $Background.mesh.surface_get_material(0)
-	material.albedo_texture = Game.select_folder.cover_image
+	material.albedo_texture = Game.selected_beatmap_set.cover_image
 
 func check_objects():
 	# 레일 스폰
@@ -110,7 +111,6 @@ func check_objects():
 				if note.type == 3 or note.type == 4:
 					hitnotes.append(note)
 		notes_i += 1
-
 var current_time_msec = 0
 func _physics_process(delta:float) -> void:
 	if song_playing:
@@ -128,30 +128,31 @@ func _physics_process(delta:float) -> void:
 	if Input.is_action_just_pressed("action_1") or Input.is_action_just_pressed("action_2"):
 		playerAction(Game.currentTime)
 func check_judge():
-	if nextnote_i < notes.size():
+	if nextnote_i < notes.size() && nextnote_i > -1:
 		if notes[nextnote_i].time + score.t_ok < Game.currentTime:
 			write_judge(0,notes[nextnote_i])
 			setNextNote()
 	for note in hitnotes:
-		if note.time <= Game.currentTime:
-			if note.type == 3:
-				if note.rail == player.standRail.id:
-					write_judge(5,note)
-					note.queue_free()
+		if note != null:
+			if note.time <= Game.currentTime:
+				if note.type == 3:
+					if note.rail == player.standRail.id:
+						write_judge(5,note)
+						note.queue_free()
+						hitnotes.erase(note)
+					elif note.time + score.t_ok < Game.currentTime:
+						write_judge(0,note)
+						note.queue_free()
+						hitnotes.erase(note)
+				if note.type == 4:
+					if note.rail == player.standRail.id:
+						write_judge(0,note)
+						note.type = -1
+					else:
+						note.type = -1
+				if note.type == -1 && note.time + 300 < Game.currentTime:
 					hitnotes.erase(note)
-				elif note.time + score.t_ok < Game.currentTime:
-					write_judge(0,note)
 					note.queue_free()
-					hitnotes.erase(note)
-			if note.type == 4:
-				if note.rail == player.standRail.id:
-					write_judge(0,note)
-					note.type = -1
-				else:
-					note.type = -1
-			if note.type == -1 && note.time + 300 < Game.currentTime:
-				note.queue_free()
-				hitnotes.erase(note)
 func playerAction(time):
 	if nextnote_i < notes.size():
 		var note = notes[nextnote_i]
@@ -165,12 +166,13 @@ func playerAction(time):
 func playerMove(dir: int, time):
 	if nextnote_i < notes.size():
 		var note = notes[nextnote_i]
-		if note.type == 2 and note.rail == player.standRail.id and note.dir == dir:
-			var acc = note.time - time
-			var j = score.getJudge(acc)
-			if j != -1:
-				write_judge(j, notes[nextnote_i])
-				setNextNote()
+		if player.standRail != null:
+			if note.type == 2 and note.rail == player.standRail.id and note.dir == dir:
+				var acc = note.time - time
+				var j = score.getJudge(acc)
+				if j != -1:
+					write_judge(j, notes[nextnote_i])
+					setNextNote()
 func write_judge(j: int,note):
 	player.groove = 0
 	var new_judge = judge_scene.instantiate()
@@ -192,15 +194,15 @@ func write_judge(j: int,note):
 			player.setAnimation(player.getNextDefaultDance())
 	else:
 		combo = 0
-		
+
 func setNextNote():
-	notes[nextnote_i].queue_free()
+	if nextnote_i != -1:
+		notes[nextnote_i].queue_free()
 	for note in notes:
 		nextnote_i += 1
 		if nextnote_i < notes.size():
-			if is_instance_valid(notes[nextnote_i]):
-				if nextnote_i >= notes.size():
-					return
-				var type = notes[nextnote_i].type
-				if type == 1 or type == 2:
-					return
+			if nextnote_i >= notes.size():
+				return
+			var type = notes[nextnote_i].type
+			if type == 1 or type == 2:
+				return

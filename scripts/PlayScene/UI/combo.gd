@@ -15,8 +15,6 @@ func _process(_delta: float) -> void:
 	else:
 		scale.y = 1
 	pass
-
-
 func _play():
 	endTime = Game.currentTime + duration
 	pass

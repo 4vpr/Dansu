@@ -1,10 +1,39 @@
 extends Node
-var config_file_path = "user://settings.cfg"
-var settings = {}
+const SAVE_PATH := "user://save.json"
+
+var save_data: Dictionary = {}
+const F11_KEYCODE := 16777265
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_toggle_fullscreen"):
+		settings["graphics"]["fullscreen"] = !settings["graphics"]["fullscreen"]
+		save_settings()
+		center_window()
+		apply_settings()
+	if event is InputEventScreenTouch:
+		isTouchScreen = true
+func load_data():
+	var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if file:
+		var text = file.get_as_text()
+		save_data = JSON.parse_string(text)
+		file.close()
+	else:
+		save_data = {}
+		save_data_to_file()
+func save_data_to_file():
+	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file:
+		var json_string = JSON.stringify(save_data, "\t")
+		file.store_string(json_string)
+		file.close()
+func get_scores_for_uuid(uuid_to_load: String) -> Array:
+	if save_data.has(uuid_to_load):
+		return save_data[uuid_to_load]
+	else:
+		return []
 const panelSize = 11.3
 var score = Score.new()
 var isTouchScreen = false
-var loaded_beatmaps = []
 enum Scene {
 	Play,
 	Edit,
@@ -12,69 +41,193 @@ enum Scene {
 	Main
 }
 var scene = Scene.Main
-func _input(event: InputEvent) -> void:
-	if event is InputEventScreenTouch:
-		isTouchScreen = true
 func _init():
+	var primary_screen_index = DisplayServer.get_primary_screen()
+	DisplayServer.window_set_current_screen(primary_screen_index)
 	load_settings()
+	load_data()
+	apply_settings()
+	center_window()
+var config_file_path = "user://settings.cfg"
+var settings = {
+	"graphics": {
+		"resolution": "1280x720",
+		"fullscreen": false
+	},
+	"audio": {
+		"volume_master": 0.5,
+		"volume_song": 0.25,
+		"volume_sfx": 0.5,
+		"offset": 0.0
+	},
+	"gameplay": {
+		"velocity": 8.0,
+		"playerheight": 450
+	},
+	"key": {
+		"move_left": "J",
+		"move_right": "L",
+		"action_1": "Z",
+		"action_2": "X"
+	}
+}
+
 func load_settings():
 	var config = ConfigFile.new()
 	if config.load(config_file_path) == OK:
-		settings.resolution = config.get_value("graphics", "resolution", "1280x720")
-		settings.fullscreen = config.get_value("graphics", "fullscreen",false)
-		settings.volume_master = config.get_value("audio", "volume", 0.5)
-		settings.volume_song = config.get_value("audio", "volume", 0.25)
-		settings.volume_sfx = config.get_value("audio","volume",0.5)
-		settings.velocity = config.get_value("gameplay", "velocity", 10.0)
-		settings.playerheight = config.get_value("gameplay","playerheight",450)
-		settings.offset = config.get_value("audio","offset",AudioServer.get_output_latency())
-	else:
-		settings.resolution = "1280x720"
-		settings.fullscreen = false
-		settings.volume_master = 0.5
-		settings.volume_song = 0.25
-		settings.volume_sfx = 0.5
-		settings.velocity = 10.0
-		settings.playerheight = 450
-		settings.offset = AudioServer.get_output_latency()
+		for section in settings.keys():
+			var section_data = settings[section]
+			for key in section_data.keys():
+				var default_value = section_data[key]
+				section_data[key] = config.get_value(section, key, default_value)
+	save_settings()
+func center_window():
+	# 주 모니터 인덱스
+	var primary_screen_index = DisplayServer.get_primary_screen()
+	# 주 모니터의 글로벌 좌표
+	var screen_position = DisplayServer.screen_get_position(primary_screen_index)
+	# 주 모니터 크기
+	var screen_size = DisplayServer.screen_get_size(primary_screen_index)
+	# 창 크기 (테두리 포함)
+	var window_size = DisplayServer.window_get_size_with_decorations()
+	# 중앙 좌표 (모니터 절대 좌표계 기준)
+	var centered_position = screen_position + (screen_size - window_size) / 2
+	# 위치 설정
+	DisplayServer.window_set_position(centered_position)
+
 func save_setting(section: String, key: String, value):
 	var config = ConfigFile.new()
+	# 키 설정 저장;
+	for action in InputMap.get_actions():
+		var events = InputMap.action_get_events(action)
+		if events.size() > 0:
+			# 첫 번째 InputEventKey만 저장 (확장 가능)
+			var ev = events[0]
+			if ev is InputEventKey:
+				var key_name = OS.get_keycode_string(ev.physical_keycode)
+				settings["key"][action] = key_name
 	config.load(config_file_path)  # 기존 값 유지
 	config.set_value(section, key, value)
 	config.save(config_file_path)
+
 func apply_settings():
 	# 해상도 적용
-	var res_parts = settings.resolution.split("x")
+	var res_parts = settings["graphics"]["resolution"].split("x")
 	if res_parts.size() == 2:
 		var width = int(res_parts[0])
 		var height = int(res_parts[1])
 		DisplayServer.window_set_size(Vector2i(width, height))
-
 	# 전체화면 적용
 	DisplayServer.window_set_mode(
-	DisplayServer.WINDOW_MODE_FULLSCREEN if settings.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
+	DisplayServer.WINDOW_MODE_FULLSCREEN if settings["graphics"]["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED
 )
+	#키설정 적용
+	for action in settings["key"].keys():
+		var key_str = settings["key"][action]
+		var key_code = OS.find_keycode_from_string(key_str)
+		if key_code != 0:
+			# 기존 이벤트 제거
+			InputMap.action_erase_events(action)
+			# 새로운 이벤트 추가
+			var new_event := InputEventKey.new()
+			new_event.physical_keycode = key_code
+			InputMap.action_add_event(action, new_event)
+		else:
+			print("wrong key")
+			print(OS.find_keycode_from_string(key_str))
+	var master_vol = settings["audio"]["volume_master"]
+	var master_db = linear_to_db(master_vol)
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), master_db)
+
+	# Song 볼륨 (예: Music 버스로)
+	var music_vol = settings["audio"]["volume_song"]
+	var music_db = linear_to_db(music_vol)
+	var music_bus_index = AudioServer.get_bus_index("Music")
+	if music_bus_index != -1:
+		AudioServer.set_bus_volume_db(music_bus_index, music_db)
+
+	# SFX 볼륨
+	var sfx_vol = settings["audio"]["volume_sfx"]
+	var sfx_db = linear_to_db(sfx_vol)
+	var sfx_bus_index = AudioServer.get_bus_index("SFX")
+	if sfx_bus_index != -1:
+		AudioServer.set_bus_volume_db(sfx_bus_index, sfx_db)
+
+
+
 func save_settings():
 	var config = ConfigFile.new()
+	for section in settings.keys():
+		var section_data = settings[section]
+		for key in section_data.keys():
+			var value = section_data[key]
+			config.set_value(section, key, value)
+	config.save(config_file_path)
+
 func _use_default_skin() -> PlayerSkin:
 	var ds = PlayerSkin.new()
-	print("0")
 	ds.folder_path = "res://default/skin/"
 	ds.json_path = "res://default/skin/skin.json"
 	ds.parse_objects()
 	return ds
 var editor_velocity: float = 1
 var offset_recom = AudioServer.get_output_latency()
-
 var currentTime: float = 0.0
-
-var select_map
-var select_folder
-var travelTime
-#Settings
 func setVelocity(v:float) -> void:
-	settings.velocity = v
-	travelTime = panelSize * 1000 / settings.velocity
-	save_setting("gameplay", "velocity", settings.velocity)
+	settings["gameplay"]["velocity"] = v
+	travelTime = panelSize * 1000 / settings["gameplay"]["velocity"]
+	save_settings()
 	pass
 var SongSlider
+var lastSelectDiff = 0
+#비트맵 로딩관련
+var loaded_beatmaps = []
+var selected_beatmap
+var selected_beatmap_set
+var prev_mapcard
+var prev_diffcard
+
+
+
+
+func getRank(a:float):
+	if a >= 101:
+		return "X"
+	elif a >= 100.9:
+		return "SS+"
+	elif a >= 100:
+		return "SS"
+	elif a >= 99:
+		return "S+"
+	elif a >= 95:
+		return "S"
+	elif a >= 90:
+		return "A"
+	elif a >= 80:
+		return "B"
+	elif a >= 70:
+		return "C"
+	return "D"
+
+func get_sorted_scores_for_uuid(uuid: String) -> Array:
+	if not save_data.has(uuid):
+		return []
+	var records = save_data[uuid]
+	if typeof(records) != TYPE_ARRAY:
+		records = [records]
+	records.sort_custom(func(a, b): return b["score"] < a["score"])
+	return records
+func select_beatmap(beatmap,diffcard):
+	if prev_diffcard != null:
+		prev_diffcard._unselect()
+	selected_beatmap = beatmap
+	diffcard._select()
+	prev_diffcard = diffcard
+func select_beatmap_set(beatmapset,mapcard):
+	if selected_beatmap_set != null:
+		if prev_mapcard != null:
+			prev_mapcard._unselect()
+	selected_beatmap_set = beatmapset
+	mapcard._select()
+	prev_mapcard = mapcard
+var travelTime

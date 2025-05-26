@@ -3,7 +3,7 @@ extends HSlider
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	value = Game.settings.velocity
+	value = Game.settings["gameplay"]["velocity"]
 	pass # Replace with function body.
 
 

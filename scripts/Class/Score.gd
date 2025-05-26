@@ -1,7 +1,7 @@
 extends Node
 class_name Score
 
-const t_perfect_plus: float = 24
+const t_perfect_plus: float = 18
 const t_perfect: float = 48
 const t_great: float = 72
 const t_ok: float = 144
@@ -25,26 +25,10 @@ var c_miss = 0
 var score :float = 0
 var max_score :float = 0
 var high_combo = 0
+var uuid = 0
+var hash = 0
 
-func getRank():
-	var a = getScore()
-	if a >= 101:
-		return "X"
-	elif a >= 100.9:
-		return "SS+"
-	elif a >= 100:
-		return "SS"
-	elif a >= 99:
-		return "S+"
-	elif a >= 95:
-		return "S"
-	elif a >= 90:
-		return "A"
-	elif a >= 80:
-		return "B"
-	elif a >= 70:
-		return "C"
-	return "D"
+
 func getJudge(i) -> int:
 	var j:int = -1
 	if i < t_perfect_plus && i > t_perfect_plus * -1:
@@ -79,11 +63,34 @@ func addScore(i):
 	elif i == 0:
 		c_miss += 1
 
-
 func getScore() -> float:
 	var f:float = 0
+	if c_note == 0:
+		return 0
 	if c_note <= c_perfect_plus + c_perfect:
 		f = (float(c_perfect_plus) / float(c_note)) + 100
 	else:
 		f = score / max_score * 100
 	return f
+
+func save_current_score():
+	if uuid == null or uuid == "0":
+		print("no uuid found cant save score")
+		return
+	var data: Dictionary = {
+		"score": getScore(),
+		"note": c_note,
+		"perfect_plus": c_perfect_plus,
+		"perfect": c_perfect,
+		"good": c_good,
+		"ok": c_ok,
+		"bad": c_bad,
+		"miss": c_miss,
+		"high_combo": high_combo,
+		"hash": hash
+	}
+	if Game.save_data.has(uuid):
+		Game.save_data[uuid].append(data)
+	else:
+		Game.save_data[uuid] = [data]
+	Game.save_data_to_file()

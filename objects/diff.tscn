@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://7l0jd2n6p3vw"]
+[gd_scene load_steps=3 format=3 uid="uid://1lane5ec3doq"]
 
 [ext_resource type="Script" path="res://scripts/SongSelect/difficulty button.gd" id="1_73yte"]
 

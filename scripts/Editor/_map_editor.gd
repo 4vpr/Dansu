@@ -13,6 +13,7 @@ var beatmap = Beatmap.new()
 @onready var RailContainer = $Preview/RailContainer;
 @onready var Win_Animation = $Animation
 @onready var option_button = $Animation/Panel/OptionButton
+@onready var file_dialog: FileDialog = $FileDialog
 var SongIsPlaying = false
 var map_data = {}
 var rail_scene = load("res://objects/editor/rail.tscn")
@@ -23,6 +24,13 @@ var rails = []; var notes = []
 var rail_scope = null
 var selected_animation
 var selected_frame
+var selected_prev
+func select_object(object):
+	if selected_prev != null:
+		selected_prev._unselect()
+	selected = object
+	selected_prev = object
+	object._select()
 
 #레일 선택
 func scope_rail():
@@ -49,11 +57,7 @@ func rail_check():
 					RailContainer.remove_child(rail)
 	for rail in RailContainer.get_children():
 		rail.position.y = (Game.currentTime - rail.start) * Game.editor_velocity - rail.size.y - 100
-func undo():
-	pass
-func redo():
-	pass
-	
+
 #노트 드래그로 옮기는 기능
 func check_drag():
 	if selected != null:
@@ -72,28 +76,34 @@ func check_drag():
 func create_note(type,dir = 0):
 	var new_note = note_scene.instantiate()
 	var time = int(snap_to_bpm(Game.currentTime))
-	for note in notes:
-		if note.time == time:
-			notes.erase(note)
-			note.queue_free()
-			print("sametime")
-		print(note.time)
-	print(time)
 	if selected != null:
+		for note in notes:
+			if note.visible && note.hasrail:
+				if note.time == time:
+					if note.type != 4 && type != 4:
+						note.visible = false
+						undo_objects.append(note)
+						check_undo_size()
+					elif note.rail == rail_scope.id:
+						note.visible = false
+						undo_objects.append(note)
+						check_undo_size()
+
 		new_note.type = type
 		new_note.time = time
-		print(Game.currentTime)
 		new_note.rail = rail_scope.id
 		new_note.dir = dir
 		new_note.animation = 0
+		
 		notes.push_back(new_note)
+		undo_objects.append(new_note)
+		check_undo_size()
 		rail_scope.notes.add_child(new_note)
 		rail_scope._update()
-		selected = new_note
-#레일 생성
+		select_object(new_note)
 func create_rail():
 	var new_rail = rail_scene.instantiate()
-	new_rail.start = Game.currentTime - 50
+	new_rail.start = Game.currentTime - 85
 	var used_ids := {}
 	for rail in rails:
 		used_ids[rail.id] = true
@@ -101,9 +111,11 @@ func create_rail():
 	while used_ids.has(i):
 		i += 1
 	new_rail.id = i
-	new_rail.end = Game.currentTime + 500
+	new_rail.end = Game.currentTime + 1085
 	new_rail.pos = 0
-	selected = new_rail
+	select_object(new_rail)
+	undo_objects.append(new_rail)
+	check_undo_size()
 	rails.push_back(new_rail)
 	pass
 func load_pngs() -> void:
@@ -122,7 +134,6 @@ func load_pngs() -> void:
 			"filename" : file_name
 			}
 			sprites.append(new_sprite)
-			print(file_name)
 		file_name = dir.get_next()
 	dir.list_dir_end()
 	var i = 0
@@ -134,12 +145,10 @@ func snap_to_bpm(timing: float, division: int = beatsdiv) -> float:
 	var beat_interval = 60000.0 / beatmap.song_bpm  # ms per beat
 	var snap_interval = beat_interval / division
 	
-	print("Beat Interval: ", beat_interval)
 	
 	var relative_timing = timing - beatmap.song_bpmstart
 	var snapped_steps = round(relative_timing / snap_interval)
 	var snapped_timing = snapped_steps * snap_interval + beatmap.song_bpmstart
-	print(snapped_timing)
 	return snapped_timing
 
 var clipboard
@@ -174,7 +183,6 @@ func paste() -> void:
 var last_hash := ""
 func _on_check_folder():
 	var current_hash = calculate_folder_hash(beatmap.folder_path.path_join("sprite"))
-	print(beatmap.folder_path.path_join("sprite"))
 	if current_hash != last_hash:
 		last_hash = current_hash
 		load_pngs()
@@ -191,11 +199,26 @@ func calculate_folder_hash(path: String) -> String:
 		file_name = dir.get_next()
 	dir.list_dir_end()
 	return hash_input.md5_text()
+func _open_file_dialog():
+	file_dialog.popup_centered()
+func _on_file_selected(file_path: String):
+	var file = file_path.get_file()
+	var src_file = FileAccess.open(file_path, FileAccess.READ)
+	if src_file:
+		var _data = src_file.get_buffer(src_file.get_length())
+		src_file.close()
+		var dst_file = FileAccess.open(beatmap.folder_path.path_join(file), FileAccess.WRITE)
+		if dst_file:
+			dst_file.store_buffer(_data)
+			dst_file.close()
+	Game.selected_beatmap_set._load_cover_image()
 func _ready() -> void:
-	beatmap = Game.select_map
+	beatmap = Game.selected_beatmap
 	Game.currentTime = 0
-	Song.volume_db = linear_to_db(Game.settings.volume_song * Game.settings.volume_master)
 	add_child(sfx_pool)
+	file_dialog.use_native_dialog = true
+	file_dialog.file_selected.connect(_on_file_selected)
+	file_dialog.add_filter("*.png, *.jpg, *jpeg ; images")
 	parse_data()
 	load_pngs()
 
@@ -229,25 +252,35 @@ func _ready() -> void:
 							beatmap.set(field_name, new_text)
 						TYPE_FLOAT:
 							beatmap.set(field_name, new_text.to_float())
-		)	
+		)
 	$SongControl/B_Pause.pressed.connect(_on_pause_pressed)
 	$NoteControl/B_Note.pressed.connect(create_note.bind(1))
 	$NoteControl/B_Note2.pressed.connect(create_note.bind(3))
 	$NoteControl/B_Note3.pressed.connect(create_note.bind(4))
 	$NoteControl/B_Left.pressed.connect(create_note.bind(2,2))
 	$NoteControl/B_Right.pressed.connect(create_note.bind(2,4))
-	$NoteControl/B_Save.pressed.connect(save_to_json)
 	$NoteControl/B_Rail.pressed.connect(create_rail)
-	$NoteControl/B_Remove.pressed.connect(_on_remove_pressed)
+	$ObjectControl/B_Remove.pressed.connect(_on_remove_pressed)
+	$ObjectControl/B_Undo.pressed.connect(undo)
+	%"ExploreImage".pressed.connect(_open_file_dialog)
+	%B_Exit.pressed.connect(_quit)
+	%SaveS.pressed.connect(_save)
+	%SaveQ.pressed.connect(_save_exit)
 	SongSlider.value_changed.connect(_on_slider_changed)
 	SongSlider.max_value = Song.stream.get_length()
 
-
 var nextHitSound = -INF
+func _save() -> void:
+	$Menu.visible = false
+	save_to_json()
+func _save_exit() -> void:
+	save_to_json()
+	_quit()
+func _quit() -> void:
+	get_tree().change_scene_to_file("res://Scene/main_menu.tscn")
 func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("ui_cancel"):
-		get_tree().change_scene_to_file("res://Scene/main_menu.tscn")
-		print("exit")
+		$Menu.visible = !$Menu.visible
 	rail_check()
 	check_drag()
 	scope_rail()
@@ -266,7 +299,7 @@ func _process(_delta: float) -> void:
 				sfx_pool.play_sound(preload("res://Resources/normal-hitnormal.wav"))
 				nextHitSound = INF
 			for note in notes:
-				if note.time > Game.currentTime &&  note.time < h:
+				if note.time > Game.currentTime &&  note.time < h && note.visible && note.hasrail:
 					nextHitSound = note.time
 					h = note.time
 			if Game.currentTime > h:
@@ -285,11 +318,14 @@ func snap_notes():
 #저장
 func save_to_json():
 	var json_data = {}
+	json_data["file_audio"] = beatmap.file_audio
 	json_data["title"] = beatmap.meta_title
 	json_data["artist"] = beatmap.meta_artist
 	json_data["creator"] = beatmap.meta_creator
 	json_data["bpm"] = beatmap.song_bpm
 	json_data["bpmstart"] = beatmap.song_bpmstart
+	if beatmap.map_uuid == "0":
+		beatmap.map_uuid = beatmap.generate_uuid()
 	json_data["uuid"] = beatmap.map_uuid
 	json_data["difficulty_name"] = beatmap.diff_name
 	json_data["difficulty_value"] = beatmap.diff_value
@@ -316,22 +352,24 @@ func save_to_json():
 		})
 	json_data["rails"] = []
 	for rail in rails:
-		json_data["rails"].append({
-			"id": rail.id,
-			"end": rail.end,
-			"move": rail.moves,
-			"start": rail.start,
-			"position": rail.pos
-			})
+		if rail.visible == true:
+			json_data["rails"].append({
+				"id": rail.id,
+				"end": rail.end,
+				"move": rail.moves,
+				"start": rail.start,
+				"position": rail.pos
+				})
 	json_data["notes"] = []
 	for note in notes:
-		json_data["notes"].append({
-			"type": int(note.type),
-			"time": int(note.time),
-			"rail": int(note.rail),
-			"dir": int(note.dir),
-			"animation": note.animation
-			})
+		if note.visible && note.hasrail:
+			json_data["notes"].append({
+				"type": int(note.type),
+				"time": int(note.time),
+				"rail": int(note.rail),
+				"dir": int(note.dir),
+				"animation": note.animation
+				})
 	var file = FileAccess.open(beatmap.json_path, FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(json_data, "\t"))  # JSON 변환 후 저장
@@ -339,8 +377,6 @@ func save_to_json():
 		print("JSON 파일 저장 완료:", beatmap.json_path)
 	else:
 		print("JSON 파일 저장 실패")
-		
-		
 #데이터 파싱
 func parse_data():
 	beatmap.parse_objects(true)
@@ -377,13 +413,44 @@ func _on_slider_changed(value: float) -> void:
 			paused_position = value
 func _on_song_finished() -> void:
 	SongIsPlaying = false
+var undo_objects = []
+func undo():
+	if undo_objects.size() > 0:
+		undo_objects[-1].visible = !undo_objects[-1].visible
+		if undo_objects[-1] in rails:
+			for note in undo_objects[-1].notes.get_children():
+				note.hasrail = true
+	undo_objects.pop_back()
+var redo_objects = []
+func redo():
+	pass
+func check_undo_size():
+	if undo_objects.size() > 20:
+		if !undo_objects[0]:
+			if !undo_objects[0].visible:
+				var undo_item = undo_objects[0]
+				if undo_item in rails:
+					for note in undo_item.notes.get_children():
+						notes.erase(note)
+						note.queue_free()
+					undo_item.queue_free()
+					rails.erase(undo_item)
+				if undo_item in notes:
+					undo_item.queue_free()
+					notes.erase(undo_item)
+		undo_objects.remove_at(0)
 func _on_remove_pressed():
+	undo_objects.append(selected)
+	check_undo_size()
 	if selected != null:
 		if selected in rails:
 			for note in selected.notes.get_children():
-				notes.erase(note)
-				note.queue_free()
-			rails.erase(selected)
-		if selected in notes:
-			notes.erase(selected)
-		selected.queue_free()
+				note.hasrail = false
+				#notes.erase(note)
+				#note.queue_free()
+			#rails.erase(selected)
+		selected.visible = false
+		#if selected in notes:
+			#notes.erase(selected)
+			#selected.visible = false
+		#selected.queue_free()

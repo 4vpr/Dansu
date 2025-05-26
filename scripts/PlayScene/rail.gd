@@ -16,7 +16,7 @@ var initial_position = Vector3.ZERO
 func _ready() -> void:
 	initial_position = position
 	mesh.scale.z = (end - start) * size / Game.travelTime
-	mesh.position.z = Game.panelSize -((start - Game.currentTime) * Game.settings.velocity / 1000) - mesh.scale.z / 2
+	mesh.position.z = Game.panelSize -((start - Game.currentTime) * Game.settings["gameplay"]["velocity"] / 1000) - mesh.scale.z / 2
 
 func _process(_delta: float) -> void:
 	if moves.size() > 0:
@@ -27,7 +27,7 @@ func _process(_delta: float) -> void:
 			elif Game.currentTime >= move["endtime"]:
 				move_i += 1
 				initial_position = position
-	mesh.position.z = Game.panelSize -((start - Game.currentTime) * Game.settings.velocity / 1000) - mesh.scale.z / 2
+	mesh.position.z = Game.panelSize -((start - Game.currentTime) * Game.settings["gameplay"]["velocity"] / 1000) - mesh.scale.z / 2
 
 	if start - Game.currentTime < rail_fix:
 		active = true

@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://d3hb08swexfpk"]
+[gd_scene load_steps=29 format=3 uid="uid://d3hb08swexfpk"]
 
 [ext_resource type="Script" path="res://scripts/Editor/_map_editor.gd" id="1_35pr7"]
 [ext_resource type="Script" path="res://Scene/b_anim.gd" id="2_bwg2g"]
@@ -19,13 +19,6 @@ events = [SubResource("InputEventKey_6701s")]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_efahd"]
 blend_mode = 1
-
-[sub_resource type="InputEventKey" id="InputEventKey_ldwwp"]
-device = -1
-keycode = 4194312
-
-[sub_resource type="Shortcut" id="Shortcut_3morn"]
-events = [SubResource("InputEventKey_ldwwp")]
 
 [sub_resource type="InputEventKey" id="InputEventKey_nomtr"]
 device = -1
@@ -74,6 +67,21 @@ unicode = 114
 
 [sub_resource type="Shortcut" id="Shortcut_jt3v3"]
 events = [SubResource("InputEventKey_mb8kq")]
+
+[sub_resource type="InputEventKey" id="InputEventKey_ldwwp"]
+device = -1
+keycode = 4194312
+
+[sub_resource type="Shortcut" id="Shortcut_3morn"]
+events = [SubResource("InputEventKey_ldwwp")]
+
+[sub_resource type="InputEventKey" id="InputEventKey_0dpo2"]
+device = -1
+ctrl_pressed = true
+keycode = 90
+
+[sub_resource type="Shortcut" id="Shortcut_cuxo8"]
+events = [SubResource("InputEventKey_0dpo2")]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_aqd54"]
 bg_color = Color(0.111197, 0.111197, 0.111197, 1)
@@ -148,9 +156,9 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -552.0
+offset_left = -110.0
 offset_top = -69.0
-offset_right = -351.0
+offset_right = 91.0
 offset_bottom = -29.0
 grow_horizontal = 2
 grow_vertical = 0
@@ -187,8 +195,10 @@ anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -312.0
-offset_bottom = -596.0
+offset_left = -310.0
+offset_top = 21.0
+offset_right = 2.0
+offset_bottom = -509.0
 grow_horizontal = 0
 grow_vertical = 2
 script = ExtResource("3_s286n")
@@ -209,15 +219,11 @@ offset_bottom = 67.0
 
 [node name="Label" type="Label" parent="Inspecter/Defaults"]
 layout_mode = 2
-text = "DivBeat
+text = "Beat DIvision
 "
 
 [node name="Divis" type="LineEdit" parent="Inspecter/Defaults"]
 layout_mode = 2
-
-[node name="Adjust" type="Button" parent="Inspecter/Defaults"]
-layout_mode = 2
-text = "Adjust to notes"
 
 [node name="Vbox" type="VBoxContainer" parent="Inspecter"]
 layout_mode = 0
@@ -235,18 +241,6 @@ offset_top = -20.0
 offset_right = 40.0
 offset_bottom = 20.0
 grow_vertical = 2
-
-[node name="B_Save" type="Button" parent="NoteControl"]
-layout_mode = 2
-focus_mode = 0
-text = "SAVE
-MAP"
-
-[node name="B_Remove" type="Button" parent="NoteControl"]
-layout_mode = 2
-focus_mode = 0
-shortcut = SubResource("Shortcut_3morn")
-text = "REMOVE"
 
 [node name="B_Note" type="Button" parent="NoteControl"]
 layout_mode = 2
@@ -283,6 +277,33 @@ layout_mode = 2
 focus_mode = 0
 shortcut = SubResource("Shortcut_jt3v3")
 text = "RAIL (R)"
+
+[node name="ObjectControl" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = 130.5
+offset_right = 74.0
+offset_bottom = 231.5
+grow_vertical = 2
+
+[node name="B_Remove" type="Button" parent="ObjectControl"]
+layout_mode = 2
+focus_mode = 0
+shortcut = SubResource("Shortcut_3morn")
+text = "REMOVE"
+
+[node name="B_Undo" type="Button" parent="ObjectControl"]
+layout_mode = 2
+focus_mode = 0
+shortcut = SubResource("Shortcut_cuxo8")
+text = "UNDO"
+
+[node name="B_Redo" type="Button" parent="ObjectControl"]
+layout_mode = 2
+focus_mode = 0
+text = "REDO"
 
 [node name="Animation" type="Window" parent="."]
 gui_embed_subwindows = true
@@ -419,9 +440,8 @@ text = "fps"
 
 [node name="Song Setup" type="Window" parent="."]
 title = "Song Setup"
-position = Vector2i(800, 300)
+position = Vector2i(528, 41)
 size = Vector2i(500, 400)
-visible = false
 unresizable = true
 popup_window = true
 script = ExtResource("4_f2l3r")
@@ -519,11 +539,13 @@ virtual_keyboard_type = 2
 [node name="SelectSong" type="HBoxContainer" parent="Song Setup/Control/VBox"]
 layout_mode = 2
 
-[node name="Button" type="Button" parent="Song Setup/Control/VBox/SelectSong"]
+[node name="ExploreImage" type="Button" parent="Song Setup/Control/VBox/SelectSong"]
+unique_name_in_owner = true
 layout_mode = 2
-text = "Explore Song"
+text = "ExploreCoverImage"
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"Music"
 
 [node name="Label" type="Label" parent="."]
 layout_mode = 0
@@ -550,3 +572,49 @@ text = "1.타이머로 폴더감지해서 스프라이트 자동 불러오기
 5. Inspector 에 노트선택시 애니메이션 선택기능
 6. 애니메이션 미리보기 기능
 7. 애니메이션 편집기에서 미리보기"
+
+[node name="FileDialog" type="FileDialog" parent="."]
+title = "Open a File"
+position = Vector2i(30, 200)
+size = Vector2i(1000, 500)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+
+[node name="Menu" type="Window" parent="."]
+title = "Menu"
+initial_position = 1
+size = Vector2i(450, 100)
+visible = false
+unresizable = true
+borderless = true
+always_on_top = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Menu"]
+offset_right = 458.0
+offset_bottom = 100.0
+alignment = 1
+
+[node name="B_Exit" type="Button" parent="Menu/HBoxContainer"]
+unique_name_in_owner = true
+modulate = Color(1, 0, 0, 1)
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Don't Save
+And Quit"
+
+[node name="SaveS" type="Button" parent="Menu/HBoxContainer"]
+unique_name_in_owner = true
+modulate = Color(0, 1, 1, 1)
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Save Changes
+"
+
+[node name="SaveQ" type="Button" parent="Menu/HBoxContainer"]
+unique_name_in_owner = true
+modulate = Color(0.988476, 0.865487, 0.549256, 1)
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Save Changes
+And Quit"

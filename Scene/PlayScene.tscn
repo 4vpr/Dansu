@@ -87,7 +87,6 @@ gi_mode = 0
 pixel_size = 0.001
 texture_filter = 0
 render_priority = 1
-region_rect = Rect2(0, 0, 214.879, 510.717)
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1.8)
@@ -106,6 +105,7 @@ skeleton = NodePath("../..")
 transform = Transform3D(0.999999, 0, 0, 0, 0.999999, 2.68221e-07, 0, 1.19209e-07, 1, 0, -0.5, -6.5)
 
 [node name="SongPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"Music"
 
 [node name="UI" type="Control" parent="."]
 layout_mode = 3
@@ -183,27 +183,40 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Left" type="TextureButton" parent="UI/TouchScreen"]
-layout_mode = 0
-offset_left = 1340.0
-offset_top = 770.0
-offset_right = 1540.0
-offset_bottom = 970.0
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1260.0
+offset_top = 790.0
+offset_right = -410.0
+offset_bottom = -90.0
+grow_horizontal = 2
+grow_vertical = 2
 texture_normal = ExtResource("10_vkoos")
 ignore_texture_size = true
 stretch_mode = 0
 
 [node name="Right" type="TextureButton" parent="UI/TouchScreen"]
-layout_mode = 0
-offset_left = 1600.0
-offset_top = 770.0
-offset_right = 1800.0
-offset_bottom = 970.0
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1540.0
+offset_top = 790.0
+offset_right = -130.0
+offset_bottom = -90.0
+grow_horizontal = 2
+grow_vertical = 2
 texture_normal = ExtResource("10_vkoos")
 ignore_texture_size = true
 stretch_mode = 0
 flip_h = true
 
 [node name="Pause" type="TextureButton" parent="UI/TouchScreen"]
+visible = false
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
@@ -217,6 +230,7 @@ texture_normal = ExtResource("11_q1tko")
 stretch_mode = 0
 
 [node name="Touch" type="TextureButton" parent="UI/TouchScreen"]
+visible = false
 layout_mode = 0
 offset_right = 800.0
 offset_bottom = 1080.0

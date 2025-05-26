@@ -15,12 +15,10 @@ var prev_map = null
 
 func _ready() -> void:
 	await get_parent().ready
-	prev_map = Game.select_map
+	prev_map = Game.selected_beatmap
 	_reset()
-
 func _reset():
-	
-	beatmap = Game.select_map
+	beatmap = Game.selected_beatmap
 	groove = 0.2
 	groove_rst = 0.2
 	default_dance_i = 0
@@ -28,7 +26,7 @@ func _reset():
 	sprites_current_index = 0
 	sprites_current_update_time = 0
 	sprites_current_update = 0
-	beatmap = Game.select_map
+	beatmap = Game.selected_beatmap
 	print(beatmap.use_default_skin)
 	if beatmap.use_default_skin:
 		beatmap = Game._use_default_skin()
@@ -38,16 +36,14 @@ func _reset():
 			return
 		var json = JSON.parse_string(file.get_as_text())
 		beatmap.load_player_resources(json)
-		print(beatmap.json_path)
 	setPlayerIdle()
 	playAnimation()
 	scaleVel = scale
 
 func _process(delta: float) -> void:
 	time += delta
-	if prev_map != Game.select_map:
+	if prev_map != Game.selected_beatmap:
 		_reset()
-		print("rst")
 	playAnimation()
 	if groove < groove_rst:
 		scale.y = scaleVel.y + (groove_rst - groove) / groove_rst / 6
@@ -55,7 +51,7 @@ func _process(delta: float) -> void:
 	else:
 		scale = scaleVel
 		pass
-	prev_map = Game.select_map
+	prev_map = Game.selected_beatmap
 
 func setPlayerIdle():
 	setAnimation(beatmap.player_animation.get("idle", 0))
