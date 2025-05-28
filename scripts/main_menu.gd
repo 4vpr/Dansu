@@ -4,10 +4,8 @@ extends Control
 @onready var Main_Player = $Player.position.x
 @onready var Main_SongSelect = $SongSelect.position.x
 @onready var Score_board = $ScoreBoard.position.x
-
 @onready var Option_unselected = $Options.position.x
-var Option_selected = 0.0
-
+var Option_selected = 1000.0
 var option_window: bool = false
 var SS_BG = -2500.0
 var SS_Menu = -3000.0
@@ -28,6 +26,7 @@ func _ready() -> void:
 	$Menu/Options.pressed.connect(options)
 	$Menu/Exit.pressed.connect(exit)
 func exit():
+	Game.save_settings()
 	get_tree().quit()
 func _process(delta: float) -> void:
 	if 옵션창키기:
@@ -36,6 +35,7 @@ func _process(delta: float) -> void:
 			옵션창키기 = false
 	else:
 		$Options.position.x = lerp($Options.position.x , Option_unselected , delta * 10.0)
+		pass
 	if Game.scene == Game.Scene.Play or Game.scene == Game.Scene.Edit:
 		$Menu.position.x = lerp($Menu.position.x , SS_Menu , delta * 10.0)
 		$BG.position.x = lerp($BG.position.x , SS_BG , delta * 10.0)
@@ -57,11 +57,14 @@ func play():
 	if Game.scene == Game.Scene.Main:
 		Game.scene = Game.Scene.Play
 		$SongSelect/Edit.visible = false
-		option_window = false
+		옵션창키기 = false
+		Game.save_settings()
 func edit():
 	if Game.scene == Game.Scene.Main:
 		Game.scene = Game.Scene.Edit
 		$SongSelect/Edit.visible = true
-		option_window = false
+		옵션창키기 = false
+		Game.save_settings()
 func options():
 	옵션창키기 = !옵션창키기
+	Game.save_settings()

@@ -1,7 +1,7 @@
 extends Node
 @onready var root = $"../.."
 @onready var option = $OptionButton
-@onready var box = $"../VBoxContainer"
+@onready var box = $"../ScrollContainer/VBoxContainer"
 @onready var animation_scene = load("res://objects/editor/animation.tscn")
 
 func _ready() -> void:
@@ -33,28 +33,29 @@ func _remove_frame() -> void:
 			root.selected_frame -= 1
 		_update()
 func _new_animation() -> void:
-	var used_ids = []
-	for animation in root.animations:
-		used_ids.append(int(animation["id"]))
-	var id = 1
-	var new_frame = []
-	new_frame.append(root.sprites[0]["texture"])
-	var new_frame_filename = []
-	new_frame_filename.append(root.sprites[0]["filename"])
-	while id in used_ids:
-		id += 1
-	var new_animation = {
-		"id" = id,
-		"name" = "new animation",
-		"fps" = 10.0,
-		"effect" = "none",
-		"frames" = new_frame,
-		"frame_filenames" = new_frame_filename
-	}
-	root.animations.append(new_animation)
-	var new_anim_scene = animation_scene.instantiate()
-	new_anim_scene.animation = new_animation
-	box.add_child(new_anim_scene)
+	if root.animations.size() > 0:
+		var used_ids = []
+		for animation in root.animations:
+			used_ids.append(int(animation["id"]))
+		var id = 1
+		var new_frame = []
+		new_frame.append(root.sprites[0]["texture"])
+		var new_frame_filename = []
+		new_frame_filename.append(root.sprites[0]["filename"])
+		while id in used_ids:
+			id += 1
+		var new_animation = {
+			"id" = id,
+			"name" = "new animation",
+			"fps" = 10.0,
+			"effect" = "none",
+			"frames" = new_frame,
+			"frame_filenames" = new_frame_filename
+		}
+		root.animations.append(new_animation)
+		var new_anim_scene = animation_scene.instantiate()
+		new_anim_scene.animation = new_animation
+		box.add_child(new_anim_scene)
 func _update_item_button() -> void:
 	option.select(-1)
 	for i in option.get_item_count():

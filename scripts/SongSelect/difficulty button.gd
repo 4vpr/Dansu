@@ -18,7 +18,6 @@ func _select() -> void:
 	animate_size(55)
 	var scoreboard = get_tree().get_root().get_node("MainMenu/ScoreBoard")
 	scoreboard._update()
-
 	pass
 func _unselect() -> void:
 	animate_size(35)
@@ -51,7 +50,7 @@ var color_map = {
 	20: Color("DE542C"),  # 주황 
 	25: Color("C02323"),  # 빨강 
 	30: Color("DE4CB2"),  # 핑크 
-	35: Color("29D668")   # 보라 
+	35: Color("8b00ff"),   # 보라 
 }
 
 func get_color_from_number(value: float) -> Color:

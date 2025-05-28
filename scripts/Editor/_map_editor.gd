@@ -121,7 +121,7 @@ func create_rail():
 func load_pngs() -> void:
 	var dir = DirAccess.open(beatmap.folder_path + "/sprite")
 	if dir == null:
-		print("폴더가 없습니다 : ", beatmap.folder_path)
+		print("no folder exist! : ", beatmap.folder_path)
 		return
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
@@ -374,9 +374,9 @@ func save_to_json():
 	if file:
 		file.store_string(JSON.stringify(json_data, "\t"))  # JSON 변환 후 저장
 		file.close()
-		print("JSON 파일 저장 완료:", beatmap.json_path)
+		print("JSON Saved!:", beatmap.json_path)
 	else:
-		print("JSON 파일 저장 실패")
+		print("JSON failed to save")
 #데이터 파싱
 func parse_data():
 	beatmap.parse_objects(true)
@@ -387,7 +387,7 @@ func parse_data():
 	for animation in animations:
 		var new_anim = animation_scene.instantiate()
 		new_anim.animation = animation
-		$Animation/VBoxContainer.add_child(new_anim)
+		$Animation/ScrollContainer/VBoxContainer.add_child(new_anim)
 
 func _input(event):
 	if event is InputEventMouseButton:
@@ -446,11 +446,4 @@ func _on_remove_pressed():
 		if selected in rails:
 			for note in selected.notes.get_children():
 				note.hasrail = false
-				#notes.erase(note)
-				#note.queue_free()
-			#rails.erase(selected)
 		selected.visible = false
-		#if selected in notes:
-			#notes.erase(selected)
-			#selected.visible = false
-		#selected.queue_free()

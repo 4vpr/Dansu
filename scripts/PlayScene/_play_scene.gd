@@ -182,10 +182,11 @@ func write_judge(j: int,note):
 	score.addScore(j)
 	comboVbox._play()
 	accDisplayer.text = str(snapped(score.getScore(), 0.01)) + "%"
-
 	if j != 0:
 		if j != 4:
 			combo += 1
+			if score.high_combo < combo:
+				score.high_combo = combo
 		sfx_pool.play_sound(preload("res://Resources/drum-slidertick.wav"))
 		player.sprites_current = null
 		if note.animation > 0:
@@ -206,3 +207,5 @@ func setNextNote():
 			var type = notes[nextnote_i].type
 			if type == 1 or type == 2:
 				return
+		else:
+			return

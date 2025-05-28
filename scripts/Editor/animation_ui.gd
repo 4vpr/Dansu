@@ -1,6 +1,6 @@
 extends Control
 var animation
-@onready var root = $"../../.."
+@onready var root = $"../../../.."
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -11,11 +11,11 @@ func _ready() -> void:
 
 func _on_edit_pressed():
 	root.selected_animation = animation
-	$"../../Panel"._update()
+	$"../../../Panel"._update()
 	
 func _on_del_pressed():
 	root.animations.erase(animation)
-	$"../../Panel"._update()
+	$"../../../Panel"._update()
 	self.queue_free()
 
 func _update() -> void:

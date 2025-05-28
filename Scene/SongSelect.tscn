@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://dqyrp3v4bjcuj"]
+[gd_scene load_steps=6 format=3 uid="uid://dqyrp3v4bjcuj"]
 
 [ext_resource type="Script" path="res://scripts/SongSelect/_song_select.gd" id="1_mrfqk"]
 [ext_resource type="Script" path="res://Scene/map_panel.gd" id="3_fcmbx"]
+[ext_resource type="Script" path="res://Scene/song_select_music.gd" id="4_uvrsa"]
 [ext_resource type="Script" path="res://scripts/SongSelect/h_slider.gd" id="5_pbdis"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_7c3fw"]
@@ -22,10 +23,8 @@ anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -930.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -170.0
+offset_left = -811.0
+offset_right = -3.0
 grow_horizontal = 0
 grow_vertical = 2
 horizontal_scroll_mode = 0
@@ -33,7 +32,7 @@ vertical_scroll_mode = 2
 script = ExtResource("3_fcmbx")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MapPanel"]
-custom_minimum_size = Vector2(900, 0)
+custom_minimum_size = Vector2(800, 0)
 layout_mode = 2
 
 [node name="velocity" type="HSlider" parent="."]
@@ -94,3 +93,14 @@ offset_top = 215.0
 offset_right = 430.0
 offset_bottom = 238.0
 text = "drop down .mp3 file here to create new beatmap"
+
+[node name="Node" type="Node" parent="."]
+script = ExtResource("4_uvrsa")
+
+[node name="CurrentPlayer" type="AudioStreamPlayer" parent="Node"]
+volume_db = -20.0
+bus = &"Music"
+
+[node name="NextPlayer" type="AudioStreamPlayer" parent="Node"]
+volume_db = -20.0
+bus = &"Music"

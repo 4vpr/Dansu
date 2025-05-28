@@ -1,8 +1,8 @@
 extends Node
 const SAVE_PATH := "user://save.json"
-
 var save_data: Dictionary = {}
 const F11_KEYCODE := 16777265
+signal beatmap_selected(beatmap)
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_toggle_fullscreen"):
 		settings["graphics"]["fullscreen"] = !settings["graphics"]["fullscreen"]
@@ -44,10 +44,29 @@ var scene = Scene.Main
 func _init():
 	var primary_screen_index = DisplayServer.get_primary_screen()
 	DisplayServer.window_set_current_screen(primary_screen_index)
+	check_folders()
 	load_settings()
 	load_data()
 	apply_settings()
 	center_window()
+
+func check_folders():
+	var required_dirs = ["Songs", "Skins"]
+	var base_path = "user://"
+	for dir_name in required_dirs:
+		var full_path = base_path + dir_name
+		var dir = DirAccess.open(full_path)
+		if !dir:
+			# 경로가 없으면 생성
+			var parent_dir = DirAccess.open(base_path)
+			if parent_dir:
+				var result = parent_dir.make_dir(dir_name)
+				if result == OK:
+					print(dir_name + " new folder at :", full_path)
+				else:
+					print(dir_name + " failed to create :", full_path)
+			else:
+				print(" failed to open :", base_path)
 var config_file_path = "user://settings.cfg"
 var settings = {
 	"graphics": {
@@ -65,8 +84,8 @@ var settings = {
 		"playerheight": 450
 	},
 	"key": {
-		"move_left": "J",
-		"move_right": "L",
+		"move_left": "LEFT",
+		"move_right": "RIGHT",
 		"action_1": "Z",
 		"action_2": "X"
 	}
@@ -223,6 +242,7 @@ func select_beatmap(beatmap,diffcard):
 	selected_beatmap = beatmap
 	diffcard._select()
 	prev_diffcard = diffcard
+
 func select_beatmap_set(beatmapset,mapcard):
 	if selected_beatmap_set != null:
 		if prev_mapcard != null:
@@ -230,4 +250,5 @@ func select_beatmap_set(beatmapset,mapcard):
 	selected_beatmap_set = beatmapset
 	mapcard._select()
 	prev_mapcard = mapcard
+	emit_signal("beatmap_selected", beatmapset.beatmaps[0])
 var travelTime

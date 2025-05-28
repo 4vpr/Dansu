@@ -12,7 +12,6 @@ func _ready() -> void:
 	$Edit/AddDifficulty.connect("pressed",_add_new_difficulty)
 	if Game.scene == Game.Scene.Edit:
 		$Edit.visible = true
-	
 func _load() -> void:
 	# 외부 맵 로드
 	var folders = get_folders_in_path(OS.get_user_data_dir().path_join("Songs"))
@@ -25,7 +24,6 @@ func _add_beatmap_set(folder: String) -> BeatmapSet:
 	var beatmap_set = BeatmapSet.new()
 	beatmap_set.load_from_folder(folder)
 	if beatmap_set.beatmaps.size() > 0:
-		var i = 0
 		Game.loaded_beatmaps.append(beatmap_set)
 	return beatmap_set
 func _refresh():
@@ -38,11 +36,12 @@ func _refresh():
 			var new_map = map_scene.instantiate()
 			new_map.beatmap_set = beatmap
 			map_panel.add_child(new_map)
+			if beatmap == Game.selected_beatmap_set:
+				Game.select_beatmap_set(beatmap,new_map)
 			if Game.selected_beatmap == null:
 				Game.select_beatmap_set(beatmap,new_map)
 				Game.selected_beatmap = beatmap.beatmaps[0]
-			if beatmap == Game.selected_beatmap_set:
-				Game.select_beatmap_set(beatmap,new_map)
+				pass
 func _load_built_in_maps():
 	var list_path = "res://song/map_list.json"
 	if not FileAccess.file_exists(list_path):
@@ -133,3 +132,4 @@ func _add_new_difficulty():
 				child.beatmap_set.beatmaps.append(new_beatmap)
 				Game.selected_beatmap = new_beatmap
 				child.reload_beatmap()
+				

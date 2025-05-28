@@ -310,7 +310,6 @@ gui_embed_subwindows = true
 title = "Animation"
 position = Vector2i(0, 36)
 size = Vector2i(1280, 720)
-visible = false
 unresizable = true
 popup_window = true
 script = ExtResource("3_krufn")
@@ -334,10 +333,13 @@ grow_horizontal = 0
 text = "Open Folder"
 script = ExtResource("6_juang")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Animation"]
-offset_top = 50.0
-offset_right = 40.0
-offset_bottom = 95.0
+[node name="ScrollContainer" type="ScrollContainer" parent="Animation"]
+offset_top = 45.0
+offset_right = 380.0
+offset_bottom = 720.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Animation/ScrollContainer"]
+layout_mode = 2
 
 [node name="Panel" type="Panel" parent="Animation"]
 clip_contents = true
@@ -561,14 +563,11 @@ vertical_alignment = 1
 
 [node name="Label2" type="Label" parent="."]
 layout_mode = 0
-offset_left = -510.0
-offset_top = 18.0
-offset_right = -74.0
-offset_bottom = 197.0
-text = "1.타이머로 폴더감지해서 스프라이트 자동 불러오기
-2. 애니메이션 삭제버튼
-3. fps랑 name 동기화
-4. playerState (idle 등) 토글버튼
+offset_left = -518.0
+offset_top = 50.0
+offset_right = -82.0
+offset_bottom = 290.0
+text = "4. playerState (idle 등) 토글버튼
 5. Inspector 에 노트선택시 애니메이션 선택기능
 6. 애니메이션 미리보기 기능
 7. 애니메이션 편집기에서 미리보기"

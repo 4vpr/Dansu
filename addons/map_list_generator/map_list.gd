@@ -28,7 +28,6 @@ func _generate_map_list():
 					var file_name = sub_dir.get_next()
 					while file_name != "":
 						if file_name.ends_with(".json"):
-							print(file_name)
 							var sub_path = root_path.path_join(folder_name).path_join(file_name)
 							map_list.append(sub_path)
 						file_name = sub_dir.get_next()

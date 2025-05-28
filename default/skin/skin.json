@@ -4,7 +4,7 @@
 			"effect": "none",
 			"fps": 2,
 			"frames": [
-				"sprite1.png"
+				"danshe (1).png"
 			],
 			"id": 1,
 			"name": "none"
@@ -13,18 +13,29 @@
 			"effect": "shake",
 			"fps": 2,
 			"frames": [
-				"sprite2.png"
+				"danshe (2).png"
 			],
 			"id": 2,
+			"name": "none"
+		},
+				{
+			"effect": "shake",
+			"fps": 2,
+			"frames": [
+				"danshe (3).png"
+			],
+			"id": 3,
 			"name": "none"
 		}
 	],
 	"player": {
 		"defaultdance": [
 			1,
+			2,
+			3,
 			2
 		],
-		"idle": 1,
+		"idle": 2,
 		"jump": 1,
 		"land": 1,
 		"left": 0,

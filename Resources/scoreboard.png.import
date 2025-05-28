@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://mpqcpch4o32c"
-path="res://.godot/imported/sprite1.png-0cc4a8bbf72d0cef8cd1b9f8e4a47e1a.ctex"
+uid="uid://clo46ei6lyban"
+path="res://.godot/imported/scoreboard.png-2fd956ab2d0535451bbb7a1ccb475263.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://default/skin/sprite/sprite1.png"
-dest_files=["res://.godot/imported/sprite1.png-0cc4a8bbf72d0cef8cd1b9f8e4a47e1a.ctex"]
+source_file="res://Resources/scoreboard.png"
+dest_files=["res://.godot/imported/scoreboard.png-2fd956ab2d0535451bbb7a1ccb475263.ctex"]
 
 [params]
 

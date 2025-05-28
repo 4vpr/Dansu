@@ -16,11 +16,13 @@ func _ready() -> void:
 		connect("mouse_exited", Callable(self, "_on_mouse_exited"))
 func _select():
 	animate_size(200.0)
+	modulate = Color("ffffff")
 	reload_beatmap()
 	$Buttons/Button.text = "PLAY"
 func _unselect():
 	$HBoxContainer.get_children().map(func(c): c.queue_free())
 	animate_size(75.0)
+	modulate = Color("a2a2a2")
 	$Buttons/Button.text = ""
 func reload_beatmap():
 	beatmap_set.beatmaps.sort_custom(func(a, b):

@@ -7,8 +7,17 @@ func _update():
 	$BPM.text = "BPM " + str(Game.selected_beatmap.song_bpm)
 	$Difficulty.text = Game.selected_beatmap.diff_name
 	if scores.size() == 0:
-		$Rank.text = "never"
-		$Score.text = "played"
+		$Rank.text = ""
+		$Score.text = "never played"
+		$FC.visible = false
+		$AJ.visible = false
 	else:
+		$FC.visible = false
+		$AJ.visible = false
 		$Rank.text = Game.getRank(scores[0]["score"])
 		$Score.text = str(str(int(scores[0]["score"] * 10000)))
+		if scores[0]["score"] >= 100:
+			$AJ.visible = true
+		elif scores[0]["miss"] == 0:
+			$FC.visible = true
+		$Combo.text =  str(scores[0]["high_combo"]) + ("X") + " / "+ str(scores[0]["note"]) + ("X")

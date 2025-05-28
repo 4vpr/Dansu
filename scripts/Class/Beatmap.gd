@@ -186,12 +186,11 @@ func load_song(player: AudioStreamPlayer) -> bool:
 					var parts = folder_path.split("Songs/")
 					if parts.size() > 1:
 						var relative_path = "Songs/" + parts[1]
-						var ogg = AudioStreamOggVorbis.new()
+						#var ogg = AudioStreamOggVorbis.new()
 						var user_folder = "user://" + relative_path
-						print("user:// 실제 경로: ", ProjectSettings.globalize_path("user://"))
+						print("user://: ", ProjectSettings.globalize_path("user://"))
 						print(user_folder.path_join(file_audio))
 						stream = load(user_folder.path_join(file_audio))
-						print(stream)
 				"wav_FIX":
 					var wav = AudioStreamWAV.new()
 					wav.data = data

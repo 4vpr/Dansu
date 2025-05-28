@@ -12,7 +12,7 @@ corner_radius_bottom_left = 20
 
 [sub_resource type="LabelSettings" id="LabelSettings_w7sp5"]
 font = ExtResource("3_rgtcp")
-font_size = 30
+font_size = 25
 outline_size = 5
 outline_color = Color(0, 0, 0, 0.027451)
 shadow_size = 10
@@ -20,6 +20,7 @@ shadow_color = Color(0, 0, 0, 1)
 shadow_offset = Vector2(2, 2)
 
 [node name="song" type="PanelContainer"]
+modulate = Color(0.633757, 0.633757, 0.633757, 1)
 clip_children = 2
 custom_minimum_size = Vector2(0, 75)
 anchors_preset = 15

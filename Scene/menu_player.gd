@@ -18,7 +18,10 @@ func _ready() -> void:
 	prev_map = Game.selected_beatmap
 	_reset()
 func _reset():
-	beatmap = Game.selected_beatmap
+	if Game.selected_beatmap != null:
+		beatmap = Game.selected_beatmap
+	else:
+		beatmap = Game._use_default_skin()
 	groove = 0.2
 	groove_rst = 0.2
 	default_dance_i = 0
@@ -27,7 +30,7 @@ func _reset():
 	sprites_current_update_time = 0
 	sprites_current_update = 0
 	beatmap = Game.selected_beatmap
-	print(beatmap.use_default_skin)
+	pivot_offset = Vector2(size.x / 2, size.y)
 	if beatmap.use_default_skin:
 		beatmap = Game._use_default_skin()
 	else:
