@@ -32,21 +32,23 @@ var note_scene_editor = load("res://objects/editor/note.tscn")
 var texture_cache = {}
 
 func get_json():
-	var path = folder_path.path_join(json_path)
-	var file = FileAccess.open(path, FileAccess.READ)
+	var file = FileAccess.open(json_path, FileAccess.READ)
 	if not file:
 		return false
 	var json = JSON.parse_string(file.get_as_text())
 	return json
+func get_difficulty() -> float:
+	var json = get_json()
+	return BeatmapDifficultyAnalyzer.calculate_difficulty(json)
 func parse_meta():
 	var fields = {
 		"map_uuid": ["uuid", map_uuid],
-		"meta_title": ["title", "?"],
+		"meta_title": ["title", ""],
 		"meta_artist": ["artist", "unknown"],
 		"meta_creator": ["creator", "unknown"],
 		"song_bpm": ["bpm", 100],
 		"song_bpmstart": ["bpmstart", 0],
-		"diff_name": ["difficulty_name", "New"],
+		"diff_name": ["difficulty_name", "new"],
 		"diff_value": ["difficulty_value", 0],
 		"use_default_skin": ["use_default_skin", true],
 		"file_audio": ["file_audio","song.mp3"]
@@ -55,6 +57,7 @@ func parse_meta():
 		var json_key = fields[var_name][0]
 		var default_value = fields[var_name][1]
 		set(var_name, json_file.get(json_key, default_value))
+	diff_value = get_difficulty()
 	return true
 func parse_notes(is_editor: bool = false):
 	var _notes = []
@@ -84,13 +87,11 @@ func parse_rails(is_editor: bool = false):
 			if is_editor:
 				new_rail.pos = rail_data.get("position", 0.0)
 			else:
+				new_rail.pos = rail_data.get("position", 0.0)
 				new_rail.position.x = rail_data.get("position", 0.0)
 			rails.append(new_rail)
 	rails.sort_custom(func(a, b): return a.start < b.start)
 	return _rails
-
-
-
 func load_from_json(path: String) -> bool:
 	var file = FileAccess.open(path, FileAccess.READ)
 	if not file:
@@ -116,8 +117,8 @@ func load_from_json(path: String) -> bool:
 		var json_key = fields[var_name][0]
 		var default_value = fields[var_name][1]
 		set(var_name, json.get(json_key, default_value))
-
 	json_path = path
+	diff_value = get_difficulty()
 	return true
 
 func parse_objects(is_editor: bool = false):
@@ -169,11 +170,9 @@ func load_song(player: AudioStreamPlayer) -> bool:
 	var _path = folder_path.path_join(file_audio)
 	var stream: AudioStream = null
 
-	# 리소스 경로일 경우
 	if _path.begins_with("res://"):
 		stream = load(_path)
 	else:
-		# 외부 파일일 경우 확장자 확인
 		if !FileAccess.file_exists(_path):
 			return false
 
@@ -284,13 +283,8 @@ func get_hash() -> String:
 	context.update(hash_data.to_utf8_buffer())
 	var hash_result = context.finish()
 	var hex_str = hash_result.hex_encode()
-
 	var integrity_id = hex_str.substr(0, 8)
-	#print("[integrity_id] " + integrity_id)
-
 	return integrity_id
-	
-
 func generate_uuid() -> String:
 	var hex_chars = "0123456789abcdef"
 	var uuid = ""

@@ -6,20 +6,26 @@ var map_scene = load("res://objects/song.tscn")
 func _ready() -> void:
 	if Game.loaded_beatmaps.size() < 1:
 		_load()
-	_refresh()
 	await get_tree().process_frame
 	DisplayServer.window_set_drop_files_callback(Callable(self, "_on_files_dropped"))
 	$Edit/AddDifficulty.connect("pressed",_add_new_difficulty)
 	if Game.scene == Game.Scene.Edit:
 		$Edit.visible = true
+	_refresh()
 func _load() -> void:
-	# 외부 맵 로드
-	var folders = get_folders_in_path(OS.get_user_data_dir().path_join("Songs"))
+	var folders = get_folders_in_path("user://Songs")
 	for folder in folders:
+		print(folder)
 		_add_beatmap_set(folder)
 	# 내장 맵 로드
 	_load_built_in_maps()
-
+	_refresh()
+var save_selected_beatmap_uuid
+func _reload() -> void:
+	if Game.selected_beatmap:
+		save_selected_beatmap_uuid = Game.selected_beatmap.uuid
+	Game.loaded_beatmaps.clear()
+	_load()
 func _add_beatmap_set(folder: String) -> BeatmapSet:
 	var beatmap_set = BeatmapSet.new()
 	beatmap_set.load_from_folder(folder)
@@ -68,7 +74,7 @@ func get_folders_in_path(path: String) -> Array:
 			file_name = dir.get_next()
 		dir.list_dir_end()
 	else:
-		print("폴더 탐색 실패: ", path)
+		print(path)
 	return folders
 func _on_files_dropped(files: Array[String]) -> void:
 	if Game.scene == Game.Scene.Edit:
@@ -132,4 +138,3 @@ func _add_new_difficulty():
 				child.beatmap_set.beatmaps.append(new_beatmap)
 				Game.selected_beatmap = new_beatmap
 				child.reload_beatmap()
-				

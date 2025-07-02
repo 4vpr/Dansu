@@ -238,7 +238,6 @@ func _ready() -> void:
 		"meta_artist": TYPE_STRING,
 		"song_bpm": TYPE_FLOAT,
 		"song_bpmstart": TYPE_FLOAT,
-		"diff_value": TYPE_FLOAT,
 		"diff_name": TYPE_STRING
 	}
 	for name in fields:
@@ -273,8 +272,10 @@ var nextHitSound = -INF
 func _save() -> void:
 	$Menu.visible = false
 	save_to_json()
+	Game.selected_beatmap.load_from_json(beatmap.json_path)
 func _save_exit() -> void:
 	save_to_json()
+	Game.selected_beatmap.load_from_json(beatmap.json_path)
 	_quit()
 func _quit() -> void:
 	get_tree().change_scene_to_file("res://Scene/main_menu.tscn")
@@ -313,8 +314,6 @@ func _process(_delta: float) -> void:
 func snap_notes():
 	for note in notes:
 		note.time = snap_to_bpm(note.time)
-
-
 #저장
 func save_to_json():
 	var json_data = {}
@@ -415,6 +414,7 @@ func _on_song_finished() -> void:
 	SongIsPlaying = false
 var undo_objects = []
 func undo():
+	redo_objects.append(undo_objects[-1])
 	if undo_objects.size() > 0:
 		undo_objects[-1].visible = !undo_objects[-1].visible
 		if undo_objects[-1] in rails:
@@ -423,8 +423,15 @@ func undo():
 	undo_objects.pop_back()
 var redo_objects = []
 func redo():
-	pass
+	undo_objects.append(redo_objects[-1])
+	if redo_objects.size() > 0:
+		redo_objects[-1].visible = !redo_objects[-1].visible
+		if redo_objects[-1] in rails:
+			for note in redo_objects[-1].notes.get_children():
+				note.hasrail = true
+	redo_objects.pop_back()
 func check_undo_size():
+	redo_objects.clear()
 	if undo_objects.size() > 20:
 		if !undo_objects[0]:
 			if !undo_objects[0].visible:

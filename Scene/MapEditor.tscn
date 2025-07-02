@@ -107,16 +107,10 @@ anchors_preset = -1
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -250.0
-offset_right = 250.0
+offset_right = 500.0
 offset_bottom = 2955.0
+pivot_offset = Vector2(250, 0)
 color = Color(0, 0, 0, 0.196078)
-
-[node name="RailContainer" type="Control" parent="Preview"]
-anchors_preset = 0
-offset_left = 240.0
-offset_top = 1000.0
-offset_right = 240.0
-offset_bottom = 1000.0
 
 [node name="BG2" type="ColorRect" parent="Preview"]
 layout_mode = 1
@@ -125,26 +119,33 @@ anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -250.0
 offset_top = 897.0
-offset_right = 250.0
+offset_right = 499.0
 offset_bottom = 902.0
 color = Color(0, 0, 0, 1)
 
+[node name="RailContainer" type="Control" parent="Preview"]
+anchors_preset = 0
+offset_left = 375.0
+offset_top = 1000.0
+offset_right = 375.0
+offset_bottom = 1000.0
+
 [node name="B_anim" type="Button" parent="."]
 layout_mode = 2
-offset_left = 1497.0
-offset_top = 896.0
-offset_right = 1585.0
-offset_bottom = 936.0
+offset_left = 3.0
+offset_top = 2.0
+offset_right = 91.0
+offset_bottom = 42.0
 focus_mode = 0
 text = "animation"
 script = ExtResource("2_bwg2g")
 
 [node name="B_meta" type="Button" parent="."]
 layout_mode = 2
-offset_left = 1494.0
-offset_top = 944.0
-offset_right = 1587.0
-offset_bottom = 984.0
+offset_left = 93.0
+offset_top = 2.0
+offset_right = 186.0
+offset_bottom = 42.0
 focus_mode = 0
 text = "song setup"
 script = ExtResource("2_f85ny")
@@ -310,6 +311,7 @@ gui_embed_subwindows = true
 title = "Animation"
 position = Vector2i(0, 36)
 size = Vector2i(1280, 720)
+visible = false
 unresizable = true
 popup_window = true
 script = ExtResource("3_krufn")
@@ -499,18 +501,6 @@ text = "Difficulty"
 [node name="diff_name" type="LineEdit" parent="Song Setup/Control/VBox/Difficulty"]
 layout_mode = 2
 placeholder_text = "Hard"
-expand_to_text_length = true
-
-[node name="Difficulty2" type="HBoxContainer" parent="Song Setup/Control/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="Song Setup/Control/VBox/Difficulty2"]
-layout_mode = 2
-text = "Difficulty Value"
-
-[node name="diff_value" type="LineEdit" parent="Song Setup/Control/VBox/Difficulty2"]
-layout_mode = 2
-placeholder_text = "10"
 expand_to_text_length = true
 
 [node name="StartPoint" type="HBoxContainer" parent="Song Setup/Control/VBox"]

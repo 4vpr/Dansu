@@ -48,7 +48,6 @@ func load_background():
 	if beatmap_set.cover_image:
 		BG.texture = beatmap_set.cover_image
 	else:
-		#BG.texture = load("res://objects/4aaf2f00918ee690a70ffad71acc5459.jpg")
 		pass
 func _gui_input(event):
 	if Game.selected_beatmap_set != beatmap_set:

@@ -1,6 +1,5 @@
 extends Node
 const SAVE_PATH := "user://save.json"
-var save_data: Dictionary = {}
 const F11_KEYCODE := 16777265
 signal beatmap_selected(beatmap)
 func _unhandled_input(event: InputEvent) -> void:
@@ -11,21 +10,83 @@ func _unhandled_input(event: InputEvent) -> void:
 		apply_settings()
 	if event is InputEventScreenTouch:
 		isTouchScreen = true
+
+const FIELD_NAMES = [
+	"score", "note", "perfect_plus", "perfect", "good",
+	"ok", "bad", "miss", "high_combo", "hash"
+]
+
+var save_data: Dictionary = {}
+
 func load_data():
 	var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
 	if file:
 		var text = file.get_as_text()
-		save_data = JSON.parse_string(text)
+		var parsed = JSON.parse_string(text)
 		file.close()
+		if typeof(parsed) == TYPE_DICTIONARY:
+			for uuid in parsed.keys():
+				var new_entries: Array = []
+				for entry in parsed[uuid]:
+					match typeof(entry):
+						TYPE_DICTIONARY:
+							var compact_entry: Array = [
+								snappedf(entry.get("score", 0.0), 0.0001),
+								entry.get("note", 0),
+								entry.get("perfect_plus", 0),
+								entry.get("perfect", 0),
+								entry.get("good", 0),
+								entry.get("ok", 0),
+								entry.get("bad", 0),
+								entry.get("miss", 0),
+								entry.get("high_combo", 0),
+								entry.get("hash", "")
+							]
+							new_entries.append(compact_entry)
+						TYPE_ARRAY:
+							var restored_entry := {}
+							for i in entry.size():
+								if i < FIELD_NAMES.size():
+									restored_entry[FIELD_NAMES[i]] = entry[i]
+							new_entries.append(restored_entry)
+				parsed[uuid] = new_entries
+		save_data = parsed
+		save_data_to_file()
 	else:
 		save_data = {}
 		save_data_to_file()
+
 func save_data_to_file():
+	var data_to_save: Dictionary = {}
+	for uuid in save_data.keys():
+		var new_entries: Array = []
+		for entry in save_data[uuid]:
+			match typeof(entry):
+				TYPE_DICTIONARY:
+					# Dictionary → 압축 Array 변환
+					var compact_entry: Array = [
+						snappedf(entry.get("score", 0.0), 0.0001),
+						entry.get("note", 0),
+						entry.get("perfect_plus", 0),
+						entry.get("perfect", 0),
+						entry.get("good", 0),
+						entry.get("ok", 0),
+						entry.get("bad", 0),
+						entry.get("miss", 0),
+						entry.get("high_combo", 0),
+						entry.get("hash", "")
+					]
+					new_entries.append(compact_entry)
+				TYPE_ARRAY:
+					# 이미 압축된 경우 그대로
+					new_entries.append(entry)
+		data_to_save[uuid] = new_entries
 	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file:
-		var json_string = JSON.stringify(save_data, "\t")
+		var json_string = JSON.stringify(data_to_save)  # 압축 저장
 		file.store_string(json_string)
 		file.close()
+
 func get_scores_for_uuid(uuid_to_load: String) -> Array:
 	if save_data.has(uuid_to_load):
 		return save_data[uuid_to_load]

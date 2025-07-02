@@ -19,20 +19,15 @@ func _ready() -> void:
 	Game.connect("beatmap_selected", Callable(self, "_on_beatmap_selected"))
 
 func _on_beatmap_selected(beatmap: Beatmap) -> void:
-	# 크로스페이드 중이라면 안전하게 중단하고 새 트랙으로
 	if is_crossfading:
 		if crossfade_tween:
 			crossfade_tween.kill()
-		_finish_crossfade()  # 중단 후 정리
-
-	# 다음 플레이어 준비
+		_finish_crossfade()
 	beatmap.load_song(next_player)
 	if next_player.stream:
 		next_player.play()
 		var middle = 0.5 * next_player.stream.get_length()
 		next_player.seek(middle)
-
-	# 새 크로스페이드 시작
 	_crossfade()
 
 func _crossfade() -> void:
@@ -44,13 +39,8 @@ func _crossfade() -> void:
 
 func _finish_crossfade() -> void:
 	current_player.stop()
-	
-	# Swap players
 	var temp = current_player
 	current_player = next_player
 	next_player = temp
-	
-	# 다음 트랙 재생을 위해 볼륨 초기화
 	next_player.volume_db = -80
-	
 	is_crossfading = false

@@ -77,18 +77,19 @@ func save_current_score():
 	if uuid == null or uuid == "0":
 		print("no uuid found cant save score")
 		return
-	var data: Dictionary = {
-		"score": getScore(),
-		"note": c_note,
-		"perfect_plus": c_perfect_plus,
-		"perfect": c_perfect,
-		"good": c_good,
-		"ok": c_ok,
-		"bad": c_bad,
-		"miss": c_miss,
-		"high_combo": high_combo,
-		"hash": hash
-	}
+	var score = snappedf(getScore(), 0.0001)  # 소수점 4자리로 반올림
+	var data = [
+		score,             # 0: score
+		c_note,            # 1: note
+		c_perfect_plus,    # 2: perfect_plus
+		c_perfect,         # 3: perfect
+		c_good,            # 4: good
+		c_ok,              # 5: ok
+		c_bad,             # 6: bad
+		c_miss,            # 7: miss
+		high_combo,        # 8: high_combo
+		hash               # 9: hash
+	]
 	if Game.save_data.has(uuid):
 		Game.save_data[uuid].append(data)
 	else:

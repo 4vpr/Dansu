@@ -5,7 +5,7 @@ var button: Button
 
 func _enter_tree():
 	button = Button.new()
-	button.text = "맵리스트 갱신"
+	button.text = "Update .json"
 	button.pressed.connect(_generate_map_list)
 	add_control_to_container(EditorPlugin.CONTAINER_TOOLBAR, button)
 
@@ -42,6 +42,6 @@ func _generate_map_list():
 	if file:
 		file.store_string(json_string)
 		file.close()
-		print_rich("[color=lime]map_list.json 생성 완료![/color]")
+		print_rich("[color=lime]map_list.json saved[/color]")
 	else:
-		print_rich("[color=red]map_list.json 생성 실패![/color]")
+		print_rich("[color=red]map_list.json failed![/color]")

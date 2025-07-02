@@ -55,7 +55,6 @@ func _process(delta: float) -> void:
 	else:
 		scale = scaleVel
 		pass
-
 	if isJumping:
 		jumpDurationCurrent -= delta
 		if Input.is_action_just_pressed("move_down") or jumpDurationCurrent < 0:
@@ -63,10 +62,8 @@ func _process(delta: float) -> void:
 		position.y = lerp(position.y, jumpHeight + groundHeight, delta * 20)
 	else:
 		position.y = lerp(position.y, groundHeight, delta * 20)
-
 	if standRail != null:
 		position.x = lerp(position.x, standRail.position.x, delta * 20)
-
 func closest_rail() -> Node3D:
 	if rails.is_empty():
 		return standRail

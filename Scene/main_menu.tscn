@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://dxfmwdq83fxan"]
+[gd_scene load_steps=37 format=3 uid="uid://dxfmwdq83fxan"]
 
 [ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_8jwjo"]
 [ext_resource type="Texture2D" uid="uid://bbtnd1giiabmu" path="res://Resources/font/dansu.png" id="1_efvlb"]
@@ -10,10 +10,15 @@
 [ext_resource type="PackedScene" uid="uid://dqyrp3v4bjcuj" path="res://Scene/SongSelect.tscn" id="4_6vgtf"]
 [ext_resource type="Script" path="res://scripts/button_animation.gd" id="4_25ley"]
 [ext_resource type="Script" path="res://Scene/logo.gd" id="7_4tx4k"]
+[ext_resource type="Script" path="res://Scene/bm1.gd" id="10_1hsei"]
 [ext_resource type="Script" path="res://Scene/score_board.gd" id="10_hp6ec"]
 [ext_resource type="Script" path="res://Scene/options.gd" id="10_qv8ao"]
+[ext_resource type="Script" path="res://Scene/button_2.gd" id="11_7a5c3"]
 [ext_resource type="Texture2D" uid="uid://clo46ei6lyban" path="res://Resources/scoreboard.png" id="11_jrlw2"]
+[ext_resource type="Script" path="res://scripts/SongSelect/h_slider.gd" id="11_vbwqa"]
 [ext_resource type="Shader" path="res://Resources/wave.gdshader" id="12_jpbaa"]
+[ext_resource type="Texture2D" uid="uid://l7kjabd48h3l" path="res://Textures/4aaf2f00918ee690a70ffad71acc5459.jpg" id="15_myhgw"]
+[ext_resource type="Script" path="res://Scene/user.gd" id="18_xbuua"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_knxge"]
 
@@ -36,6 +41,8 @@
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7pttm"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_44qxo"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_1bnu6"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_v5wdu"]
 
@@ -77,9 +84,9 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -1777.0
+offset_left = -1760.0
 offset_top = -272.0
-offset_right = 1700.0
+offset_right = 1717.0
 offset_bottom = 11.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -131,10 +138,10 @@ layout_mode = 1
 anchors_preset = -1
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 94.0
-offset_top = -367.0
-offset_right = 382.0
-offset_bottom = -248.0
+offset_left = 86.0
+offset_top = -357.0
+offset_right = 374.0
+offset_bottom = -238.0
 grow_horizontal = 2
 grow_vertical = 0
 focus_mode = 0
@@ -222,6 +229,38 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_osae6")
 theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_7pttm")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_44qxo")
 text = "Options"
+script = ExtResource("4_25ley")
+
+[node name="download" type="Button" parent="Menu"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 108.0
+offset_top = -410.0
+offset_right = 240.0
+offset_bottom = -369.0
+grow_vertical = 0
+focus_mode = 0
+theme_override_colors/font_hover_pressed_color = Color(0.0923971, 0.0923971, 0.0923971, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(0.762404, 0.762404, 0.762404, 1)
+theme_override_fonts/font = ExtResource("3_3fvc3")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/focus = SubResource("StyleBoxEmpty_knxge")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_o15t8")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_7fxx7")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_fgeov")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_dac06")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_1rj05")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_faxk7")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_e0a5y")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_osae6")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_7pttm")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_44qxo")
+text = "dansu.net"
 script = ExtResource("4_25ley")
 
 [node name="Exit" type="Button" parent="Menu"]
@@ -443,6 +482,51 @@ offset_bottom = 393.0
 text = "Music"
 horizontal_alignment = 1
 
+[node name="velocity" type="HSlider" parent="Options"]
+layout_mode = 0
+offset_left = 149.0
+offset_top = 1014.0
+offset_right = 774.0
+offset_bottom = 1030.0
+min_value = 5.0
+max_value = 20.0
+step = 0.5
+value = 5.0
+script = ExtResource("11_vbwqa")
+
+[node name="Label" type="Label" parent="Options/velocity"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = -5.19
+anchor_right = 0.5
+anchor_bottom = -2.121
+offset_left = 16.0
+offset_top = 49.04
+offset_right = -144.0
+offset_bottom = 22.936
+text = "notespeed
+"
+label_settings = SubResource("LabelSettings_1bnu6")
+
+[node name="Button" type="Button" parent="Options"]
+layout_mode = 0
+offset_left = 17.0
+offset_top = 650.0
+offset_right = 233.0
+offset_bottom = 704.0
+text = "open beatmap folder
+"
+script = ExtResource("10_1hsei")
+
+[node name="Button2" type="Button" parent="Options"]
+layout_mode = 0
+offset_left = 251.0
+offset_top = 650.0
+offset_right = 467.0
+offset_bottom = 704.0
+text = "reload"
+script = ExtResource("11_7a5c3")
+
 [node name="SongSelect" parent="." instance=ExtResource("4_6vgtf")]
 layout_mode = 1
 offset_left = 1920.0
@@ -599,3 +683,56 @@ offset_right = 365.0
 offset_bottom = 176.0
 focus_mode = 0
 text = "..."
+
+[node name="pp" type="Label" parent="ScoreBoard"]
+layout_mode = 0
+offset_left = -49.0
+offset_top = 214.0
+offset_right = -9.0
+offset_bottom = 237.0
+text = "0pp"
+
+[node name="User" type="Control" parent="ScoreBoard"]
+anchors_preset = 0
+offset_left = -55.0
+offset_top = 860.0
+offset_right = 442.0
+offset_bottom = 990.0
+script = ExtResource("18_xbuua")
+
+[node name="Panel" type="Panel" parent="ScoreBoard/User"]
+layout_mode = 0
+offset_left = -3.0
+offset_top = 4.0
+offset_right = 496.0
+offset_bottom = 130.0
+
+[node name="TextureRect" type="TextureRect" parent="ScoreBoard/User/Panel"]
+layout_mode = 0
+offset_left = 41.0
+offset_top = 27.0
+offset_right = 111.0
+offset_bottom = 97.0
+texture = ExtResource("15_myhgw")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="username" type="Label" parent="ScoreBoard/User/Panel"]
+layout_mode = 0
+offset_left = 136.0
+offset_top = 38.0
+offset_right = 329.0
+offset_bottom = 63.0
+theme_override_fonts/font = ExtResource("3_3fvc3")
+theme_override_font_sizes/font_size = 25
+text = "username"
+
+[node name="rating" type="Label" parent="ScoreBoard/User/Panel"]
+layout_mode = 0
+offset_left = 141.0
+offset_top = 73.0
+offset_right = 216.0
+offset_bottom = 94.0
+theme_override_fonts/font = ExtResource("3_3fvc3")
+theme_override_font_sizes/font_size = 20
+text = "0000 sp"

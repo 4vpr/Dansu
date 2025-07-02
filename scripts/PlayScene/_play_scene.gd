@@ -1,5 +1,4 @@
 extends Node3D
-
 var rails = []
 var rails_i = 0
 var notes = []
@@ -14,7 +13,7 @@ var score = Score.new()
 var combo = 0
 var judgeDisplayDuration = 1
 var song_end = 0
-
+const DifficultyAnalyzer = preload("res://scripts/Class/difficulty_analyzer.gd")
 @onready var player = $Player
 @onready var rail_container = $Ground/RailContainor
 @onready var songplayer = $SongPlayer
@@ -24,9 +23,7 @@ var song_end = 0
 @onready var tc_left_position = 1260
 @onready var tc_size = 250
 @onready var tc_right_position = 1540
-
 var beatmap: Beatmap
-
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch && event.pressed:
 		if event.position.x > tc_left_position && event.position.x < tc_left_position + tc_size:
@@ -51,6 +48,7 @@ func _ready() -> void:
 			score.uuid = beatmap.map_uuid
 			score.hash = beatmap.get_hash()
 			current_time_msec = Time.get_ticks_msec()
+			print(beatmap.get_difficulty())
 			setNextNote()
 var start_time = 0
 var song_playing = false
@@ -195,7 +193,6 @@ func write_judge(j: int,note):
 			player.setAnimation(player.getNextDefaultDance())
 	else:
 		combo = 0
-
 func setNextNote():
 	if nextnote_i != -1:
 		notes[nextnote_i].queue_free()

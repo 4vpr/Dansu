@@ -40,19 +40,16 @@ func animate_size(target_height: float) -> void:
 	var current_size = custom_minimum_size
 	var target_size = Vector2(current_size.x, target_height)
 	tween.tween_property(self, "custom_minimum_size", target_size, 0.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-
-
 var color_map = {
 	0: Color("a0a0a0"),   # 회색
 	5: Color("1AC9E6"),   # 하늘
 	10: Color("1DE45D"),  # 초록
-	15: Color("EA5D35"),  # 노랑 
+	15: Color("EAB835"),  # 노랑 
 	20: Color("DE542C"),  # 주황 
 	25: Color("C02323"),  # 빨강 
 	30: Color("DE4CB2"),  # 핑크 
 	35: Color("8b00ff"),   # 보라 
 }
-
 func get_color_from_number(value: float) -> Color:
 	var keys = color_map.keys()
 	keys.sort()

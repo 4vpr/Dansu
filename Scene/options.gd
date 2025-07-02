@@ -18,7 +18,6 @@ func _ready() -> void:
 	$A1.text = Game.settings["key"]["action_1"]
 	$A2.pressed.connect(_a2)
 	$A2.text = Game.settings["key"]["action_2"]
-
 func _master(value):
 	Game.settings["audio"]["volume_master"] = value / 100
 	var db = linear_to_db(Game.settings["audio"]["volume_master"])
