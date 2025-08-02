@@ -5,9 +5,9 @@ var notes = []
 var notes_i = 0
 var nextnote_i = -1
 var hitnotes = []
-var rail_scene = load("res://objects/rail.tscn")
-var note_scene = load("res://objects/note.tscn")
-var judge_scene = load("res://objects/judge.tscn")
+var rail_scene = preload("res://objects/rail.tscn")
+var note_scene = preload("res://objects/note.tscn")
+var judge_scene = preload("res://objects/judge.tscn")
 var sfx_pool = SfxPool.new()
 var score = Score.new()
 var combo = 0
@@ -35,6 +35,7 @@ func _input(event: InputEvent) -> void:
 		else:
 			playerAction(Game.currentTime)
 func _ready() -> void:
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	$UI/TouchScreen.visible = Game.isTouchScreen
 	load_background()
 	add_child(sfx_pool)
@@ -201,7 +202,9 @@ func setNextNote():
 		if nextnote_i < notes.size():
 			if nextnote_i >= notes.size():
 				return
-			var type = notes[nextnote_i].type
+			var type = 0
+			if is_instance_valid(notes[nextnote_i]):
+				type = notes[nextnote_i].type
 			if type == 1 or type == 2:
 				return
 		else:

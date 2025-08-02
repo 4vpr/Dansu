@@ -10,7 +10,6 @@ var sprites_current_index = 0 #현재 스프라이트 인덱스;
 var sprites_current_update_time = 0 #재생중인시간;
 var sprites_current_update = 0 #재생이끝나는시간;
 var time = 0
-
 var prev_map = null
 
 func _ready() -> void:
@@ -43,7 +42,7 @@ func _reset():
 	playAnimation()
 	scaleVel = scale
 
-func _process(delta: float) -> void:
+func _process2(delta: float) -> void:
 	time += delta
 	if prev_map != Game.selected_beatmap:
 		_reset()
@@ -55,7 +54,6 @@ func _process(delta: float) -> void:
 		scale = scaleVel
 		pass
 	prev_map = Game.selected_beatmap
-
 func setPlayerIdle():
 	setAnimation(beatmap.player_animation.get("idle", 0))
 func setAnimation(id):
@@ -85,4 +83,3 @@ func playAnimation():
 		texture = sprites_current[sprites_current_index]
 	else:
 		setPlayerIdle()
-	

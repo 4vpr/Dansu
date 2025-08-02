@@ -31,8 +31,6 @@ func select_object(object):
 	selected = object
 	selected_prev = object
 	object._select()
-
-#레일 선택
 func scope_rail():
 	if selected != null:
 		if selected.get("rail") != null:
@@ -41,8 +39,6 @@ func scope_rail():
 					rail_scope = rail
 		else:
 			rail_scope = selected
-			
-#레일 스폰 확인
 func rail_check():
 	for rail in rails:
 		if not rail.get_parent() == RailContainer:
@@ -57,8 +53,6 @@ func rail_check():
 					RailContainer.remove_child(rail)
 	for rail in RailContainer.get_children():
 		rail.position.y = (Game.currentTime - rail.start) * Game.editor_velocity - rail.size.y - 100
-
-#노트 드래그로 옮기는 기능
 func check_drag():
 	if selected != null:
 		var offset
@@ -71,8 +65,6 @@ func check_drag():
 			if selected.get("start") != null:
 				pass
 			selected._update()
-			
-#노트 생성
 func create_note(type,dir = 0):
 	var new_note = note_scene.instantiate()
 	var time = int(snap_to_bpm(Game.currentTime))
@@ -310,10 +302,11 @@ func _process(_delta: float) -> void:
 		nextHitSound = -INF
 
 
-#모든노트 스냅
+#모든노트를 새로 갱신된 bpm에 맞게 가장 가까운 곳으로 스넵함.
 func snap_notes():
 	for note in notes:
 		note.time = snap_to_bpm(note.time)
+
 #저장
 func save_to_json():
 	var json_data = {}

@@ -414,10 +414,18 @@ offset_top = 79.0
 offset_right = 335.0
 offset_bottom = 110.0
 focus_mode = 0
-item_count = 2
+item_count = 6
 popup/item_0/text = "1280x720"
-popup/item_1/text = "1920x1080"
+popup/item_1/text = "1440x810"
 popup/item_1/id = 1
+popup/item_2/text = "1600x900"
+popup/item_2/id = 2
+popup/item_3/text = "1920x1080"
+popup/item_3/id = 3
+popup/item_4/text = "2560x1440"
+popup/item_4/id = 4
+popup/item_5/text = "3840x2160"
+popup/item_5/id = 5
 
 [node name="Label2" type="Label" parent="Options/Panel"]
 layout_mode = 0

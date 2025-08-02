@@ -131,8 +131,10 @@ func check_folders():
 var config_file_path = "user://settings.cfg"
 var settings = {
 	"graphics": {
-		"resolution": "1280x720",
-		"fullscreen": false
+		"resolution": "1920x1080",
+		"fullscreen": true,
+		"MaxFPS": 1000,
+		"VSync": true,
 	},
 	"audio": {
 		"volume_master": 0.5,
@@ -142,7 +144,10 @@ var settings = {
 	},
 	"gameplay": {
 		"velocity": 8.0,
-		"playerheight": 450
+		"playerheight": 450,
+		"pollingRate": 1000,
+		"playerSpeed": 10,
+		"showFPS": false
 	},
 	"key": {
 		"move_left": "LEFT",
@@ -168,9 +173,9 @@ func center_window():
 	var screen_position = DisplayServer.screen_get_position(primary_screen_index)
 	# 주 모니터 크기
 	var screen_size = DisplayServer.screen_get_size(primary_screen_index)
-	# 창 크기 (테두리 포함)
+	# 창 크기
 	var window_size = DisplayServer.window_get_size_with_decorations()
-	# 중앙 좌표 (모니터 절대 좌표계 기준)
+	# 중앙 좌표
 	var centered_position = screen_position + (screen_size - window_size) / 2
 	# 위치 설정
 	DisplayServer.window_set_position(centered_position)
@@ -201,6 +206,9 @@ func apply_settings():
 	DisplayServer.window_set_mode(
 	DisplayServer.WINDOW_MODE_FULLSCREEN if settings["graphics"]["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED
 )
+	#fps 적용
+	Engine.max_fps = settings["graphics"]["MaxFPS"]
+	Engine.physics_ticks_per_second = settings["gameplay"]["pollingRate"]
 	#키설정 적용
 	for action in settings["key"].keys():
 		var key_str = settings["key"][action]

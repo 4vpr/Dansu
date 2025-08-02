@@ -1,32 +1,45 @@
 extends Node
 class_name Score
 
+
+# timing of each judgements (ms)
 const t_perfect_plus: float = 18
 const t_perfect: float = 48
 const t_great: float = 72
 const t_ok: float = 144
 const t_bad: float = 288
 
+# score of each judgements
 const s_perfect_plus: float = 100
 const s_perfect = 99
 const s_great = 50
 const s_ok = 25
 const s_bad = 0
 
-# 친 노트 갯
+# count of judgement for result
 var c_note :int = 0
 var c_perfect_plus = 0
 var c_perfect = 0 
-var c_good = 0
+var c_great = 0
 var c_ok = 0
 var c_bad = 0
 var c_miss = 0
 
+# current score
 var score :float = 0
+# max score for the map
 var max_score :float = 0
 var high_combo = 0
+
+
 var uuid = 0
+
+# hash for the score
 var hash = 0
+# 맵 실행시 맵파일로 해시를 생성, 비교해서 맵이 되었을시 uuid만으로 상호호환이 안되기 하기 위함.
+# 예시상황) 유저가 맵을 배포함 -> 다른유저가 플레이하여 기록 남김 -> 맵이 업데이트 됨
+# -> 해당 기록은 해시값의 비교로 맵의 다른버전에서 기록된 점수라는 사실을 알 수 있음.
+
 
 
 func getJudge(i) -> int:
@@ -52,7 +65,7 @@ func addScore(i):
 		c_perfect += 1
 		score += s_perfect
 	elif i == 2:
-		c_good += 1
+		c_great += 1
 		score += s_great
 	elif i == 3:
 		c_ok += 1
@@ -62,7 +75,6 @@ func addScore(i):
 		score += s_bad
 	elif i == 0:
 		c_miss += 1
-
 func getScore() -> float:
 	var f:float = 0
 	if c_note == 0:
@@ -72,24 +84,22 @@ func getScore() -> float:
 	else:
 		f = score / max_score * 100
 	return f
-
 func save_current_score():
 	if uuid == null or uuid == "0":
-		print("no uuid found cant save score")
+		print("no uuid found")
 		return
-	var score = snappedf(getScore(), 0.0001)  # 소수점 4자리로 반올림
-	var data = [
-		score,             # 0: score
-		c_note,            # 1: note
-		c_perfect_plus,    # 2: perfect_plus
-		c_perfect,         # 3: perfect
-		c_good,            # 4: good
-		c_ok,              # 5: ok
-		c_bad,             # 6: bad
-		c_miss,            # 7: miss
-		high_combo,        # 8: high_combo
-		hash               # 9: hash
-	]
+	var data: Dictionary = {
+		"score": getScore(),
+		"note": c_note,
+		"perfect_plus": c_perfect_plus,
+		"perfect": c_perfect,
+		"good": c_great,
+		"ok": c_ok,
+		"bad": c_bad,
+		"miss": c_miss,
+		"high_combo": high_combo,
+		"hash": hash
+	}
 	if Game.save_data.has(uuid):
 		Game.save_data[uuid].append(data)
 	else:

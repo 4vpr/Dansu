@@ -16,11 +16,11 @@ static func calculate_pp(score: float, difficulty: float) -> float:
 	if score <= 90.0:
 		multiplier = lerp(0.0, 0.1, score / 80.0)
 	elif score <= 93.0:
-		multiplier = lerp(0.1, 0.5, (score - 80.0) / 10.0)
+		multiplier = lerp(0.1, 0.3, (score - 80.0) / 10.0)
 	elif score <= 95.0:
-		multiplier = lerp(0.5, 0.75, (score - 90.0) / 5.0)
+		multiplier = lerp(0.3, 0.8, (score - 90.0) / 5.0)
 	elif score <= 99.0:
-		multiplier = lerp(0.75, 1.0, (score - 95.0) / 4.0)
+		multiplier = lerp(0.8, 1.0, (score - 95.0) / 4.0)
 	elif score <= 100.0:
 		multiplier = lerp(1.0, 1.1, (score - 99.0))
 	elif score <= 101.0:
