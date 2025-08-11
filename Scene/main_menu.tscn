@@ -1,4 +1,4 @@
-[gd_scene load_steps=37 format=3 uid="uid://dxfmwdq83fxan"]
+[gd_scene load_steps=38 format=3 uid="uid://dxfmwdq83fxan"]
 
 [ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_8jwjo"]
 [ext_resource type="Texture2D" uid="uid://bbtnd1giiabmu" path="res://Resources/font/dansu.png" id="1_efvlb"]
@@ -19,6 +19,7 @@
 [ext_resource type="Shader" path="res://Resources/wave.gdshader" id="12_jpbaa"]
 [ext_resource type="Texture2D" uid="uid://l7kjabd48h3l" path="res://Textures/4aaf2f00918ee690a70ffad71acc5459.jpg" id="15_myhgw"]
 [ext_resource type="Script" path="res://Scene/user.gd" id="18_xbuua"]
+[ext_resource type="Script" path="res://scripts/dump/dump_login.gd" id="20_4yqsr"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_knxge"]
 
@@ -744,3 +745,12 @@ offset_bottom = 94.0
 theme_override_fonts/font = ExtResource("3_3fvc3")
 theme_override_font_sizes/font_size = 20
 text = "0000 sp"
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 0
+offset_left = 79.0
+offset_top = 568.0
+offset_right = 237.0
+offset_bottom = 621.0
+text = "login"
+script = ExtResource("20_4yqsr")

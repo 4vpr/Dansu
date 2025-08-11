@@ -23,7 +23,7 @@ func _ready() -> void:
 	JudgeLabel.text = "%d\n%d\n%d\n%d\n%d\n%d\n" % [
 		score.c_perfect_plus,
 		score.c_perfect,
-		score.c_good,
+		score.c_great,
 		score.c_ok,
 		score.c_bad,
 		score.c_miss

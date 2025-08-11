@@ -1,6 +1,16 @@
 extends Node
 class_name Score
 
+var http_request: HTTPRequest
+
+func _ready():
+	# HTTPRequest 노드 추가(없으면) ㅇ
+	if not has_node("HTTPRequest"):
+		http_request = HTTPRequest.new()
+		add_child(http_request)
+		http_request.connect("request_completed", Callable(self, "_on_request_completed"))
+	else:
+		http_request = get_node("HTTPRequest")
 
 # timing of each judgements (ms)
 const t_perfect_plus: float = 18

@@ -113,7 +113,7 @@ func check_objects():
 var current_time_msec = 0
 func _physics_process(delta:float) -> void:
 	if song_playing:
-		Game.currentTime = Time.get_ticks_msec() - start_time - Game.offset_recom
+		Game.currentTime = Time.get_ticks_msec() - start_time - Game.offset_recom + Game.settings["audio"]["offset"]
 	check_judge()
 	if Input.is_action_just_pressed("move_left"):
 		playerMove(2, Game.currentTime)
