@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3 uid="uid://dxfmwdq83fxan"]
+[gd_scene load_steps=37 format=3 uid="uid://dxfmwdq83fxan"]
 
 [ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_8jwjo"]
 [ext_resource type="Texture2D" uid="uid://bbtnd1giiabmu" path="res://Resources/font/dansu.png" id="1_efvlb"]
@@ -6,7 +6,6 @@
 [ext_resource type="Texture2D" uid="uid://cu830uj1owjev" path="res://Resources/sky.png" id="1_gl0sn"]
 [ext_resource type="Texture2D" uid="uid://bxw5e3lxbnw8f" path="res://Resources/mainmenu-wall.png" id="1_ytn2u"]
 [ext_resource type="FontFile" uid="uid://dyqkpg5wawdxu" path="res://Resources/font/Next Bravo.ttf" id="3_3fvc3"]
-[ext_resource type="Texture2D" uid="uid://cyq6xhns0hq77" path="res://Textures/no texture.png" id="3_hcvje"]
 [ext_resource type="PackedScene" uid="uid://dqyrp3v4bjcuj" path="res://Scene/SongSelect.tscn" id="4_6vgtf"]
 [ext_resource type="Script" path="res://scripts/button_animation.gd" id="4_25ley"]
 [ext_resource type="Script" path="res://Scene/logo.gd" id="7_4tx4k"]
@@ -107,7 +106,6 @@ offset_bottom = -146.0
 grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(226, 536)
-texture = ExtResource("3_hcvje")
 expand_mode = 1
 stretch_mode = 5
 script = ExtResource("1_fud82")
@@ -709,6 +707,15 @@ offset_right = 442.0
 offset_bottom = 990.0
 script = ExtResource("18_xbuua")
 
+[node name="Button" type="Button" parent="ScoreBoard/User"]
+layout_mode = 0
+offset_left = 7.0
+offset_top = -68.0
+offset_right = 165.0
+offset_bottom = -15.0
+text = "login"
+script = ExtResource("20_4yqsr")
+
 [node name="Panel" type="Panel" parent="ScoreBoard/User"]
 layout_mode = 0
 offset_left = -3.0
@@ -745,12 +752,3 @@ offset_bottom = 94.0
 theme_override_fonts/font = ExtResource("3_3fvc3")
 theme_override_font_sizes/font_size = 20
 text = "0000 sp"
-
-[node name="Button" type="Button" parent="."]
-layout_mode = 0
-offset_left = 79.0
-offset_top = 568.0
-offset_right = 237.0
-offset_bottom = 621.0
-text = "login"
-script = ExtResource("20_4yqsr")

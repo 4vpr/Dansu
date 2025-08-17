@@ -26,4 +26,6 @@ func _thread_func():
 	OS.delay_msec(10) # 과도한 디스크 점유 방지
 
 func _emit_loaded(set: BeatmapSet):
+	Game.loaded_beatmaps.append(set)
+	print("beatmap_loaded")
 	emit_signal("beatmap_loaded", set)
