@@ -1,5 +1,5 @@
 extends RefCounted
-class_name Beatmap
+class_name Chart
 
 var notes = []
 var rails = []

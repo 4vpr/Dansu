@@ -95,6 +95,6 @@ func updateTexture(i: int) -> void:
 
 func _on_item_selected(index):
 	var text = option.get_item_text(index)
-	root.selected_animation["frames"][root.selected_frame] = root.beatmap._load_texture(text)
+	root.selected_animation["frames"][root.selected_frame] = root.chart._load_texture(text)
 	root.selected_animation["frame_filenames"][root.selected_frame] = text
 	updateTexture(root.selected_frame)

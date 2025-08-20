@@ -1,39 +1,42 @@
 extends RefCounted
-class_name BeatmapSet
+class_name ChartSet
 
 var folder_path: String = ""
 var meta_title: String = "?"
 var cover_image: Texture2D = null
-var beatmaps: Array[Beatmap] = []
+var charts: Array[Chart] = []
 
 func _clear():
-	for beatmap in beatmaps:
-		beatmap._clear()
+	for chart in charts:
+		chart._clear()
 func load_from_folder(path: String):
 	folder_path = path
 	var json_files = get_json_files_in_path(path)
 	for json_file in json_files:
-		var beatmap = Beatmap.new()
-		beatmap.folder_path = path
-		if beatmap.load_from_json(path.path_join(json_file)):
-			beatmaps.append(beatmap)
-	if beatmaps.size() > 0:
-		meta_title = beatmaps[0].meta_title
-		_load_cover_image()
+		var chart = Chart.new()
+		chart.folder_path = path
+		if chart.load_from_json(path.path_join(json_file)):
+			charts.append(chart)
+	if charts.size() > 0:
+		meta_title = charts[0].meta_title
+		#_load_cover_image()
 
 func _load_cover_image():
 	var bg_candidates = ["bg.jpg", "bg.jpeg", "bg.png"]
 	var image_path = ""
+	# 내장맵 불러오기
 	if folder_path.begins_with("res://"):
 		for bg_file in bg_candidates:
 			var try_path = folder_path.path_join(bg_file)
 			if ResourceLoader.exists(try_path):
 				image_path = try_path
 				break
+	# 유저맵 불러오기
 	else:
 		image_path = _get_bg_path()
 	if image_path == "":
 		return
+	
 	if image_path.begins_with("res://"):
 		var texture = load(image_path)
 		if texture:

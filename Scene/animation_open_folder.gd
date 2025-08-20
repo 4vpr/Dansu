@@ -4,6 +4,6 @@ func _ready() -> void:
 	pressed.connect(_press)
 	pass
 func _press() -> void:
-	var sprite_path = $"../..".beatmap.folder_path.path_join("sprite")
+	var sprite_path = $"../..".chart.folder_path.path_join("sprite")
 	var absolute_path = ProjectSettings.globalize_path(sprite_path)
 	OS.shell_open(absolute_path)

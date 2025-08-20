@@ -1,10 +1,7 @@
 extends Button
-
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	pressed.connect(_on_button_pressed)
-	pass # Replace with function body.
-
+	pass
 func _on_button_pressed():
 	$"../Song Setup".visible = true
 	pass

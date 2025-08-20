@@ -7,7 +7,7 @@ var animations = []
 var sprites = []
 var beatsdiv = 2
 var sfx_pool = SfxPool.new()
-var beatmap = Beatmap.new()
+var chart = Chart.new()
 @onready var SongSlider = $SongSlider
 @onready var Inspecter = $Inspecter;@onready var Song = $AudioStreamPlayer
 @onready var RailContainer = $Preview/RailContainer;
@@ -111,9 +111,9 @@ func create_rail():
 	rails.push_back(new_rail)
 	pass
 func load_pngs() -> void:
-	var dir = DirAccess.open(beatmap.folder_path + "/sprite")
+	var dir = DirAccess.open(chart.folder_path + "/sprite")
 	if dir == null:
-		print("no folder exist! : ", beatmap.folder_path)
+		print("no folder exist! : ", chart.folder_path)
 		return
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
@@ -122,7 +122,7 @@ func load_pngs() -> void:
 	while file_name != "":
 		if not dir.current_is_dir() and file_name.ends_with(".png"):
 			var new_sprite = {
-			"texture" : beatmap._load_texture(file_name),
+			"texture" : chart._load_texture(file_name),
 			"filename" : file_name
 			}
 			sprites.append(new_sprite)
@@ -134,13 +134,13 @@ func load_pngs() -> void:
 		i += 1
 # BPM 보간
 func snap_to_bpm(timing: float, division: int = beatsdiv) -> float:
-	var beat_interval = 60000.0 / beatmap.song_bpm  # ms per beat
+	var beat_interval = 60000.0 / chart.song_bpm  # ms per beat
 	var snap_interval = beat_interval / division
 	
 	
-	var relative_timing = timing - beatmap.song_bpmstart
+	var relative_timing = timing - chart.song_bpmstart
 	var snapped_steps = round(relative_timing / snap_interval)
-	var snapped_timing = snapped_steps * snap_interval + beatmap.song_bpmstart
+	var snapped_timing = snapped_steps * snap_interval + chart.song_bpmstart
 	return snapped_timing
 
 var clipboard
@@ -174,7 +174,7 @@ func paste() -> void:
 					
 var last_hash := ""
 func _on_check_folder():
-	var current_hash = calculate_folder_hash(beatmap.folder_path.path_join("sprite"))
+	var current_hash = calculate_folder_hash(chart.folder_path.path_join("sprite"))
 	if current_hash != last_hash:
 		last_hash = current_hash
 		load_pngs()
@@ -199,13 +199,13 @@ func _on_file_selected(file_path: String):
 	if src_file:
 		var _data = src_file.get_buffer(src_file.get_length())
 		src_file.close()
-		var dst_file = FileAccess.open(beatmap.folder_path.path_join(file), FileAccess.WRITE)
+		var dst_file = FileAccess.open(chart.folder_path.path_join(file), FileAccess.WRITE)
 		if dst_file:
 			dst_file.store_buffer(_data)
 			dst_file.close()
-	Game.selected_beatmap_set._load_cover_image()
+	CM.sc._load_cover_image()
 func _ready() -> void:
-	beatmap = Game.selected_beatmap
+	chart = CM.sc
 	Game.currentTime = 0
 	add_child(sfx_pool)
 	file_dialog.use_native_dialog = true
@@ -214,7 +214,7 @@ func _ready() -> void:
 	parse_data()
 	load_pngs()
 
-	last_hash = calculate_folder_hash(beatmap.folder_path.path_join("sprite"))
+	last_hash = calculate_folder_hash(chart.folder_path.path_join("sprite"))
 	var timer = Timer.new()
 	timer.wait_time = 1.0
 	timer.autostart = true
@@ -223,8 +223,8 @@ func _ready() -> void:
 
 	for button in get_tree().get_nodes_in_group("ui_buttons"):
 		button.focus_mode = Control.FOCUS_NONE
-	if beatmap:
-		beatmap.load_song(Song)
+	if chart:
+		chart.load_song(Song)
 	var fields = {
 		"meta_title": TYPE_STRING,
 		"meta_artist": TYPE_STRING,
@@ -235,14 +235,14 @@ func _ready() -> void:
 	for name in fields:
 		var field = find_child(name, true, false)
 		if field is LineEdit:
-			field.text = str(beatmap.get(name))
+			field.text = str(chart.get(name))
 			field.text_changed.connect(
 				func(new_text, field_name = name, field_type = fields[name]):
 					match field_type:
 						TYPE_STRING:
-							beatmap.set(field_name, new_text)
+							chart.set(field_name, new_text)
 						TYPE_FLOAT:
-							beatmap.set(field_name, new_text.to_float())
+							chart.set(field_name, new_text.to_float())
 		)
 	$SongControl/B_Pause.pressed.connect(_on_pause_pressed)
 	$NoteControl/B_Note.pressed.connect(create_note.bind(1))
@@ -264,10 +264,10 @@ var nextHitSound = -INF
 func _save() -> void:
 	$Menu.visible = false
 	save_to_json()
-	Game.selected_beatmap.load_from_json(beatmap.json_path)
+	CM.sc.load_from_json(chart.json_path)
 func _save_exit() -> void:
 	save_to_json()
-	Game.selected_beatmap.load_from_json(beatmap.json_path)
+	CM.sc.load_from_json(chart.json_path)
 	_quit()
 func _quit() -> void:
 	get_tree().change_scene_to_file("res://Scene/main_menu.tscn")
@@ -310,17 +310,17 @@ func snap_notes():
 #저장
 func save_to_json():
 	var json_data = {}
-	json_data["file_audio"] = beatmap.file_audio
-	json_data["title"] = beatmap.meta_title
-	json_data["artist"] = beatmap.meta_artist
-	json_data["creator"] = beatmap.meta_creator
-	json_data["bpm"] = beatmap.song_bpm
-	json_data["bpmstart"] = beatmap.song_bpmstart
-	if beatmap.map_uuid == "0":
-		beatmap.map_uuid = beatmap.generate_uuid()
-	json_data["uuid"] = beatmap.map_uuid
-	json_data["difficulty_name"] = beatmap.diff_name
-	json_data["difficulty_value"] = beatmap.diff_value
+	json_data["file_audio"] = chart.file_audio
+	json_data["title"] = chart.meta_title
+	json_data["artist"] = chart.meta_artist
+	json_data["creator"] = chart.meta_creator
+	json_data["bpm"] = chart.song_bpm
+	json_data["bpmstart"] =chart.song_bpmstart
+	if chart.map_uuid == "0":
+		chart.map_uuid = chart.generate_uuid()
+	json_data["uuid"] = chart.map_uuid
+	json_data["difficulty_name"] = chart.diff_name
+	json_data["difficulty_value"] = chart.diff_value
 	if !player_animation.is_empty() && animations.size() > 0:
 		json_data["player"] = {
 			"idle": player_animation["idle"],
@@ -362,20 +362,20 @@ func save_to_json():
 				"dir": int(note.dir),
 				"animation": note.animation
 				})
-	var file = FileAccess.open(beatmap.json_path, FileAccess.WRITE)
+	var file = FileAccess.open(chart.json_path, FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(json_data, "\t"))  # JSON 변환 후 저장
 		file.close()
-		print("JSON Saved!:", beatmap.json_path)
+		print("JSON Saved!:", chart.json_path)
 	else:
 		print("JSON failed to save")
 #데이터 파싱
 func parse_data():
-	beatmap.parse_objects(true)
-	notes = beatmap.notes
-	rails = beatmap.rails
-	player_animation = beatmap.player_animation
-	animations = beatmap.animations
+	chart.parse_objects(true)
+	notes = chart.notes
+	rails = chart.rails
+	player_animation = chart.player_animation
+	animations = chart.animations
 	for animation in animations:
 		var new_anim = animation_scene.instantiate()
 		new_anim.animation = animation
@@ -385,10 +385,10 @@ func _input(event):
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
 			SongSlider.value = snap_to_bpm(SongSlider.value * 1000) / 1000
-			SongSlider.value += 60 / beatmap.song_bpm / beatsdiv
+			SongSlider.value += 60 / chart.song_bpm / beatsdiv
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
 			SongSlider.value = snap_to_bpm(SongSlider.value * 1000) / 1000
-			SongSlider.value -= 60 / beatmap.song_bpm / beatsdiv
+			SongSlider.value -= 60 / chart.song_bpm / beatsdiv
 func _on_pause_pressed() -> void:
 	if SongIsPlaying:
 		paused_position = Song.get_playback_position()

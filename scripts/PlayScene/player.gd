@@ -2,7 +2,7 @@ extends Node3D
 
 @onready var railContainer: Node3D = $"../Ground/RailContainor"
 @onready var sprite = $Sprite
-var beatmap
+var chart
 var standRail: Node3D
 var isJumping: bool = false
 var jumpDuration: float = 0.3
@@ -22,9 +22,9 @@ var sprites_current_update = 0
 
 func _ready() -> void:
 	await get_parent().ready
-	beatmap = Game.selected_beatmap
-	if beatmap.use_default_skin:
-		beatmap = Game._use_default_skin()
+	chart = CM.sc
+	if chart.use_default_skin:
+		chart = Game._use_default_skin()
 	setPlayerIdle()
 	playAnimation()
 	scene = get_parent()
@@ -96,10 +96,10 @@ func move_rail(direction: int) -> Node3D:
 	return standRail
 
 func setPlayerIdle():
-	setAnimation(beatmap.player_animation.get("idle", 0))
+	setAnimation(chart.player_animation.get("idle", 0))
 
 func setAnimation(id):
-	for animation in beatmap.animations:
+	for animation in chart.animations:
 		if animation["id"] == id:
 			sprites_current = animation["frames"]
 			sprites_current_index = 0
@@ -107,7 +107,7 @@ func setAnimation(id):
 			sprites_current_update_time = 1000 / animation["fps"]
 
 func getNextDefaultDance() -> int:
-	var default_dances = beatmap.player_animation.get("defaultdance", [])
+	var default_dances = chart.player_animation.get("defaultdance", [])
 	if default_dances.is_empty():
 		return 0
 

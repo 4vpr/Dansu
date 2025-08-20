@@ -1,7 +1,7 @@
 extends Node
 const SAVE_PATH := "user://save.json"
 const F11_KEYCODE := 16777265
-signal beatmap_selected(beatmap)
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_toggle_fullscreen"):
 		settings["graphics"]["fullscreen"] = !settings["graphics"]["fullscreen"]
@@ -305,19 +305,4 @@ func get_sorted_scores_for_uuid(uuid: String) -> Array:
 		records = [records]
 	records.sort_custom(func(a, b): return b["score"] < a["score"])
 	return records
-func select_beatmap(beatmap,diffcard):
-	if prev_diffcard != null:
-		prev_diffcard._unselect()
-	selected_beatmap = beatmap
-	diffcard._select()
-	prev_diffcard = diffcard
-
-func select_beatmap_set(beatmapset,mapcard):
-	if selected_beatmap_set != null:
-		if prev_mapcard != null:
-			prev_mapcard._unselect()
-	selected_beatmap_set = beatmapset
-	mapcard._select()
-	prev_mapcard = mapcard
-	emit_signal("beatmap_selected", beatmapset.beatmaps[0])
 var travelTime

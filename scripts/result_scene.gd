@@ -1,7 +1,7 @@
 extends Node
 
 var score = Score.new()
-var beatmap = Game.selected_beatmap
+var chart = CM.sc
 
 @onready var ButtonExit = $Panel/Button
 @onready var ScoreLabel = $Panel/Score

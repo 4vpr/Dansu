@@ -15,7 +15,9 @@ config/description="Dansu"
 config/version="dev"
 run/main_scene="res://Scene/main_menu.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
+boot_splash/bg_color=Color(0, 0, 0, 0)
 boot_splash/show_image=false
+boot_splash/use_filter=false
 config/icon="res://Resources/dansu.png"
 config/windows_native_icon="res://Resources/dansu.ico"
 
@@ -27,6 +29,7 @@ buses/default_bus_layout="res://audio_bus.tres"
 
 Game="*res://scripts/Class/Game.gd"
 OAuth="*res://scripts/Class/discord_OAuth.gd"
+CM="*res://scripts/chart/chart_manager.gd"
 
 [display]
 

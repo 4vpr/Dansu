@@ -1,8 +1,8 @@
 [gd_scene load_steps=6 format=3 uid="uid://68ky1dydaoqf"]
 
-[ext_resource type="Script" path="res://scripts/SongSelect/song_ui.gd" id="1_tfsxq"]
-[ext_resource type="FontFile" uid="uid://dyqkpg5wawdxu" path="res://Resources/font/Next Bravo.ttf" id="3_rgtcp"]
-[ext_resource type="Script" path="res://scripts/Editor/button.gd" id="4_h1e07"]
+[ext_resource type="Script" path="res://scripts/SongSelect/song_ui.gd" id="1_slkj2"]
+[ext_resource type="FontFile" uid="uid://dyqkpg5wawdxu" path="res://Resources/font/Next Bravo.ttf" id="2_2sli2"]
+[ext_resource type="Script" path="res://scripts/Editor/button.gd" id="3_0okyf"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yp3d1"]
 corner_radius_top_left = 20
@@ -11,7 +11,7 @@ corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
 [sub_resource type="LabelSettings" id="LabelSettings_w7sp5"]
-font = ExtResource("3_rgtcp")
+font = ExtResource("2_2sli2")
 font_size = 25
 outline_size = 5
 outline_color = Color(0, 0, 0, 0.027451)
@@ -31,7 +31,7 @@ offset_bottom = -923.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_yp3d1")
-script = ExtResource("1_tfsxq")
+script = ExtResource("1_slkj2")
 
 [node name="BGContainer" type="Control" parent="."]
 layout_mode = 2
@@ -63,4 +63,4 @@ alignment = 1
 custom_minimum_size = Vector2(75, 0)
 layout_mode = 2
 focus_mode = 0
-script = ExtResource("4_h1e07")
+script = ExtResource("3_0okyf")

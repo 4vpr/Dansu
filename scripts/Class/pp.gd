@@ -72,13 +72,10 @@ static func get_pp_list_from_saved_scores() -> Array[float]:
 
 		if max_score < 0:
 			continue
-
-		for beatmap_set in Game.loaded_beatmaps:
-			for beatmap in beatmap_set.beatmaps:
-				if beatmap.map_uuid == uuid:
-					var diff_value = beatmap.diff_value
+		for chart_set in CM.charts:
+			for chart in chart_set:
+				if chart.map_uuid == uuid:
+					var diff_value = chart.diff_value
 					var pp = calculate_pp(max_score, diff_value)
 					pp_list.append(pp)
-					break
-
 	return pp_list

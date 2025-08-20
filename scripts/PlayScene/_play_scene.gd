@@ -23,7 +23,7 @@ const DifficultyAnalyzer = preload("res://scripts/Class/difficulty_analyzer.gd")
 @onready var tc_left_position = 1260
 @onready var tc_size = 250
 @onready var tc_right_position = 1540
-var beatmap: Beatmap
+var chart: Chart
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch && event.pressed:
 		if event.position.x > tc_left_position && event.position.x < tc_left_position + tc_size:
@@ -40,16 +40,15 @@ func _ready() -> void:
 	load_background()
 	add_child(sfx_pool)
 	Game.currentTime = 0
-	beatmap = Game.selected_beatmap
-	beatmap.parse_objects()
+	chart = CM.sc
+	chart.parse_objects()
 	check_objects()
-	if beatmap:
-		if beatmap.load_song(songplayer):
-			parse_objects(beatmap)
-			score.uuid = beatmap.map_uuid
-			score.hash = beatmap.get_hash()
+	if chart:
+		if chart.load_song(songplayer):
+			parse_objects(chart)
+			score.uuid = chart.map_uuid
+			score.hash = chart.get_hash()
 			current_time_msec = Time.get_ticks_msec()
-			print(beatmap.get_difficulty())
 			setNextNote()
 var start_time = 0
 var song_playing = false
@@ -76,9 +75,9 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("ui_cancel"):
 		get_tree().change_scene_to_file("res://Scene/main_menu.tscn")
 
-func parse_objects(beatmap: Beatmap):
-	rails = beatmap.rails
-	notes = beatmap.notes
+func parse_objects(chart: Chart):
+	rails = chart.rails
+	notes = chart.notes
 	rails.sort_custom(func(a, b): return a.start < b.start)
 	notes.sort_custom(func(a, b): return a.time < b.time)
 	song_end = notes[-1].time + 1000 if notes.size() > 0 else 0

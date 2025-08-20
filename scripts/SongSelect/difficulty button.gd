@@ -1,6 +1,6 @@
 extends Button
 
-var beatmap: Beatmap
+var chart: Chart
 var hovered = false
 
 @onready var tween
@@ -9,11 +9,11 @@ func _ready() -> void:
 	pressed.connect(_press)
 	mouse_entered.connect(_enter)
 	mouse_exited.connect(_exit)
-	if beatmap:
-		text = str(int(beatmap.diff_value))
-		if beatmap.diff_value < 10:
+	if chart:
+		text = str(int(chart.diff_value))
+		if chart.diff_value < 10:
 			text = "0" + text
-		modulate = get_color_from_number(beatmap.diff_value)
+		modulate = get_color_from_number(chart.diff_value)
 func _select() -> void:
 	animate_size(55)
 	var scoreboard = get_tree().get_root().get_node("MainMenu/ScoreBoard")
@@ -24,15 +24,15 @@ func _unselect() -> void:
 	pass
 
 func _press() -> void:
-	Game.select_beatmap(beatmap,self)
-	Game.lastSelectDiff = beatmap.diff_value
+	Game.select_beatmap(chart,self)
+	Game.lastSelectDiff = chart.diff_value
 
 func _enter() -> void:
-	if Game.selected_beatmap != beatmap:
+	if Game.selected_beatmap != chart:
 		animate_size(45)
 
 func _exit() -> void:
-	if Game.selected_beatmap != beatmap:
+	if Game.selected_beatmap != chart:
 		animate_size(35)
 
 func animate_size(target_height: float) -> void:
