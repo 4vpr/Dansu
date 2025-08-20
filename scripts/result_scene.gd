@@ -30,7 +30,7 @@ func _ready() -> void:
 	]
 
 func _load_background_image():
-	$TextureRect.texture = Game.selected_beatmap_set.cover_image
+	$TextureRect.texture = CM.ss._load_cover_image()
 
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("ui_cancel"):

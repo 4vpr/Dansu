@@ -1,11 +1,23 @@
 extends Node
 
 # ===== Signals =====
-signal chartset_loaded(set) # ChartSet
+
+@warning_ignore("unused_signal")
+signal chartset_loaded(_set)
+
+@warning_ignore("unused_signal")
 signal progress_changed(ratio: float) # 0.0 ~ 1.0
+
+@warning_ignore("unused_signal")
 signal loading_finished()
+
+@warning_ignore("unused_signal")
 signal chart_selected(chart)
-signal chartset_selected(chartset)
+
+@warning_ignore("unused_signal")
+signal chartset_selected(chart_set)
+
+@warning_ignore("unused_signal")
 signal chart_loaded()
 
 # ===== State =====
@@ -24,7 +36,7 @@ var _stop := false
 var _mutex := Mutex.new()
 
 func _ready() -> void:
-	folders = get_folders_in_path("user://songs")
+	folders = get_folders_in_path("user://Songs")
 	start_loading(folders, 4)
 
 # --- Public: start/stop loading ---
@@ -77,6 +89,8 @@ func _thread_func() -> void:
 
 # --- Emitters (main thread) ---
 func _emit_loaded(_set: ChartSet) -> void:
+	if charts.size() == 0:
+		select_chartset(_set)
 	charts.append(_set)
 	emit_signal("chartset_loaded", _set)
 
@@ -157,7 +171,7 @@ func _new_chart_set(files: Array[String]) -> void:
 		for ext in supported_extensions:
 			if file_path.to_lower().ends_with(ext):
 				var song_file_name := file.get_basename()
-				var base_dir := "user://songs"
+				var base_dir := "user://Songs"
 				DirAccess.make_dir_recursive_absolute(base_dir)
 				var random_number := str(randi_range(100000, 999999)) + " "
 				var folder_name := random_number + song_file_name

@@ -9,30 +9,31 @@ func _ready() -> void:
 	pressed.connect(_press)
 	mouse_entered.connect(_enter)
 	mouse_exited.connect(_exit)
+	CM.connect("chart_selected", Callable(self, "chart_event"))
 	if chart:
 		text = str(int(chart.diff_value))
 		if chart.diff_value < 10:
 			text = "0" + text
 		modulate = get_color_from_number(chart.diff_value)
+func chart_event(c) -> void:
+	if c != chart:
+		_unselect()
+	else:
+		_select()
 func _select() -> void:
 	animate_size(55)
-	var scoreboard = get_tree().get_root().get_node("MainMenu/ScoreBoard")
-	scoreboard._update()
 	pass
 func _unselect() -> void:
 	animate_size(35)
 	pass
-
 func _press() -> void:
-	Game.select_beatmap(chart,self)
-	Game.lastSelectDiff = chart.diff_value
-
+	CM.select_chart(chart)
+	CM.lastSelectedDiff = chart.diff_value
 func _enter() -> void:
-	if Game.selected_beatmap != chart:
+	if CM.sc != chart:
 		animate_size(45)
-
 func _exit() -> void:
-	if Game.selected_beatmap != chart:
+	if CM.sc != chart:
 		animate_size(35)
 
 func animate_size(target_height: float) -> void:

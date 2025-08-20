@@ -14,11 +14,12 @@ var playable = false
 
 func _ready() -> void:
 	CM.connect("chart_loaded", Callable(self, "_loaded"))
-	CM.connect("chartset_selected", Callable(self, "_reset"))
+	CM.connect("chart_selected", Callable(self, "_reset"))
 	await get_parent().ready
-func _reset():
-	if Game.selected_beatmap != null:
-		chart = CM.sc
+func _reset(c):
+	if c != null:
+		chart = c
+		print(chart.meta_title)
 	else:
 		chart = Game._use_default_skin()
 	groove = 0.2
@@ -28,7 +29,7 @@ func _reset():
 	sprites_current_index = 0
 	sprites_current_update_time = 0
 	sprites_current_update = 0
-	chart = Game.selected_beatmap
+	chart = c
 	pivot_offset = Vector2(size.x / 2, size.y)
 	if chart.use_default_skin:
 		chart = Game._use_default_skin()

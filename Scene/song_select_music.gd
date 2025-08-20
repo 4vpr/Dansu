@@ -16,14 +16,14 @@ func _ready() -> void:
 	next_player = player_b
 	current_player.volume_db = target_volume_db
 	next_player.volume_db = -80
-	Game.connect("beatmap_selected", Callable(self, "_on_beatmap_selected"))
+	CM.connect("chartset_selected", Callable(self, "_on_selected"))
 
-func _on_beatmap_selected(chart: Chart) -> void:
+func _on_selected(c) -> void:
 	if is_crossfading:
 		if crossfade_tween:
 			crossfade_tween.kill()
 		_finish_crossfade()
-	chart.load_song(next_player)
+	c.charts[0].load_song(next_player)
 	if next_player.stream:
 		next_player.play()
 		var middle = 0.5 * next_player.stream.get_length()

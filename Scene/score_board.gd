@@ -1,12 +1,14 @@
 extends Panel
 var scores = []
-func _update():
-	var diff = Game.selected_beatmap.get_difficulty()
-	scores = Game.get_sorted_scores_for_uuid(Game.selected_beatmap.map_uuid)
-	$Title.text = Game.selected_beatmap.meta_title
-	$Artist.text = Game.selected_beatmap.meta_artist
-	$BPM.text = "BPM " + str(Game.selected_beatmap.song_bpm)
-	$Difficulty.text = Game.selected_beatmap.diff_name + " (" + str(snappedf(diff,0.01)) + ")"
+func _ready():
+	CM.connect("chart_selected", Callable(self,"_update"))
+func _update(chart):
+	var diff = chart.get_difficulty()
+	scores = Game.get_sorted_scores_for_uuid(chart.map_uuid)
+	$Title.text = chart.meta_title
+	$Artist.text = chart.meta_artist
+	$BPM.text = "BPM " + str(chart.song_bpm)
+	$Difficulty.text = chart.diff_name + " (" + str(snappedf(diff,0.01)) + ")"
 	if scores.size() == 0:
 		$Rank.text = ""
 		$Score.text = "never played"

@@ -73,7 +73,7 @@ static func get_pp_list_from_saved_scores() -> Array[float]:
 		if max_score < 0:
 			continue
 		for chart_set in CM.charts:
-			for chart in chart_set:
+			for chart in chart_set.charts:
 				if chart.map_uuid == uuid:
 					var diff_value = chart.diff_value
 					var pp = calculate_pp(max_score, diff_value)

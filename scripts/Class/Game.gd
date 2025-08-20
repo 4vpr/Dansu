@@ -268,15 +268,6 @@ func setVelocity(v:float) -> void:
 	pass
 var SongSlider
 var lastSelectDiff = 0
-#비트맵 로딩관련
-var loaded_beatmaps = []
-var selected_beatmap
-var selected_beatmap_set
-var prev_mapcard
-var prev_diffcard
-
-
-
 
 func getRank(a:float):
 	if a >= 101:

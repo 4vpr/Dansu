@@ -84,7 +84,7 @@ func parse_objects(chart: Chart):
 
 func load_background():
 	var material = $Background.mesh.surface_get_material(0)
-	material.albedo_texture = Game.selected_beatmap_set.cover_image
+	material.albedo_texture = CM.ss._load_cover_image()
 
 func check_objects():
 	# 레일 스폰
