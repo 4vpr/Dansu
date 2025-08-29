@@ -65,7 +65,7 @@ func _load_texture(file_name: String) -> Texture2D:
 	if texture_cache.has(file_name):
 		return texture_cache[file_name]
 
-	var texture_path = folder_path.path_join("sprite/" + file_name)
+	var texture_path = folder_path.path_join("sprite").path_join(file_name)
 	var texture: Texture2D = null
 
 	if texture_path.begins_with("res://"):

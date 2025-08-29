@@ -22,8 +22,8 @@ signal chart_loaded()
 
 # ===== State =====
 var charts: Array = []
-var sc # selected chart
-var ss # selected set
+var sc : Chart # selected chart
+var ss : ChartSet # selected set
 var folders: Array[String] = []
 var lastSelectedDiff := 0
 

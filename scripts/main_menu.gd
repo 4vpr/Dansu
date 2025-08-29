@@ -12,7 +12,7 @@ var SS_Menu = -3000.0
 var SS_Player = 320.0
 var SS_SongSelect = 0.0
 var SS_ScoreBoard = 50.0
-var 옵션창키기 = false
+var is_option_window = false
 func _ready() -> void:
 	if Game.scene == Game.Scene.Play or Game.scene == Game.Scene.Edit:
 		$BG.position.x = -2500.0
@@ -29,10 +29,10 @@ func exit():
 	Game.save_settings()
 	get_tree().quit()
 func _process(delta: float) -> void:
-	if 옵션창키기:
+	if is_option_window :
 		$Options.position.x = lerp($Options.position.x , Option_selected , delta * 10.0)
 		if Input.is_action_just_pressed("ui_cancel"):
-			옵션창키기 = false
+			is_option_window  = false
 	else:
 		$Options.position.x = lerp($Options.position.x , Option_unselected , delta * 10.0)
 		pass
@@ -57,14 +57,14 @@ func play():
 	if Game.scene == Game.Scene.Main:
 		Game.scene = Game.Scene.Play
 		$SongSelect/Edit.visible = false
-		옵션창키기 = false
+		is_option_window  = false
 		Game.save_settings()
 func edit():
 	if Game.scene == Game.Scene.Main:
 		Game.scene = Game.Scene.Edit
 		$SongSelect/Edit.visible = true
-		옵션창키기 = false
+		is_option_window  = false
 		Game.save_settings()
 func options():
-	옵션창키기 = !옵션창키기
+	is_option_window  = !is_option_window 
 	Game.save_settings()
