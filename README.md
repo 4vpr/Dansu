@@ -1,8 +1,11 @@
 # Dansu
 > The open-source rhythm game project by h4yase
 
-![InGame](https://img.itch.zone/aW1hZ2UvMzU0NzgxMS8yMTE5ODgwMy5wbmc=/original/Qnbxn3.png)  
-![Editor](https://img.itch.zone/aW1hZ2UvMzU0NzgxMS8yMTE5ODc4Ni5wbmc=/347x500/dPgV8N.png)  
+![InGame](https://img.itch.zone/aW1hZ2UvMzU0NzgxMS8yMTE5ODgwMy5wbmc=/347x500/2BMhB4.png) ![Editor](https://img.itch.zone/aW1hZ2UvMzU0NzgxMS8yMTE5ODc4Ni5wbmc=/347x500/dPgV8N.png)  
+
+Watch Gameplay
+https://www.youtube.com/watch?v=0c4pRtBW3mM
+
 
 ### [Play Game](https://h4yase.itch.io/dansu)  
 
