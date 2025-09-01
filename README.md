@@ -1,10 +1,12 @@
 # Dansu
 > The open-source rhythm game project by h4yase
 
+![InGame](https://img.itch.zone/aW1hZ2UvMzU0NzgxMS8yMTE5ODgwMy5wbmc=/original/Qnbxn3.png)  
+![Editor](https://img.itch.zone/aW1hZ2UvMzU0NzgxMS8yMTE5ODc4Ni5wbmc=/347x500/dPgV8N.png)  
+
 ### [Play Game](https://h4yase.itch.io/dansu)  
 
 # how to play
-
 
 
 arrow keys to move (and red notes)
