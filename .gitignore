@@ -1,6 +1,30 @@
 # Godot 4+ specific ignores
 .import/
+*.import
+
+# Godot project metadata
 .godot/
-.tmp
-song/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# IDE / Editor
+.vscode/
+.idea/
+
+# Build outputs
+export/
+*.apk
+*.aab
+*.ipa
+*.zip
+*.exe
+*.pck
+*.dll
+*.dylib
+*.so
+
+# Temporary / Logs
 *.tmp
+*.log
