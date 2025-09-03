@@ -36,10 +36,10 @@ text = "Options"
 
 [node name="WindowMode" type="OptionButton" parent="Panel"]
 layout_mode = 0
-offset_left = 33.0
-offset_top = 44.0
-offset_right = 165.0
-offset_bottom = 75.0
+offset_left = 342.0
+offset_top = 78.0
+offset_right = 474.0
+offset_bottom = 109.0
 focus_mode = 0
 
 [node name="Master" type="HSlider" parent="Panel"]

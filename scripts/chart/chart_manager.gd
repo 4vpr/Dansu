@@ -64,6 +64,264 @@ func stop() -> void:
 			t.wait_to_finish()
 	_threads.clear()
 
+# ===== Export / Import =====
+# Export currently selected ChartSet (ss) to user://Songs/Export as .dansu (zip)
+func export_selected_chartset() -> void:
+	if ss == null:
+		print("[Export] No chart set selected.")
+		return
+	var source_dir: String = ss.folder_path
+	if source_dir == "" or not DirAccess.dir_exists_absolute(source_dir):
+		print("[Export] Invalid source folder:", source_dir)
+		return
+
+	var export_root := "user://Songs/Export"
+	DirAccess.make_dir_recursive_absolute(export_root)
+
+	var folder_name := source_dir.get_file() # last folder name of the chart set
+	if folder_name == "":
+		folder_name = "chartset_" + str(randi_range(100000, 999999))
+
+	var export_file := export_root.path_join(folder_name + ".dansu")
+	var ok = _zip_directory_with_root(source_dir, export_file, folder_name)
+	if ok:
+		print("[Export] Saved:", export_file)
+	else:
+		print("[Export] Failed:", export_file)
+
+# Import a .dansu (zip) file into user://Songs and load it immediately
+func import_dansu(archive_path: String) -> void:
+	if archive_path == "" or not FileAccess.file_exists(archive_path):
+		print("[Import] File not found:", archive_path)
+		return
+	var reader := ZIPReader.new()
+	var open_status := reader.open(ProjectSettings.globalize_path(archive_path))
+	if open_status != OK:
+		print("[Import] ZIP open failed (status:", open_status, ") for:", archive_path)
+		return
+
+	var files: PackedStringArray = reader.get_files()
+	if files.is_empty():
+		reader.close()
+		print("[Import] Empty archive:", archive_path)
+		return
+
+	# Determine top-level folder in archive (if any)
+	var top_level := ""
+	for f in files:
+		var parts := f.split("/", false)
+		if parts.size() > 1 and parts[0] != "":
+			top_level = parts[0]
+			break
+
+	var base_name := archive_path.get_file().get_basename()
+	var chartset_name := (top_level if top_level != "" else base_name)
+
+	var songs_root := "user://Songs"
+	DirAccess.make_dir_recursive_absolute(songs_root)
+	var target_root := songs_root.path_join(chartset_name)
+	# Ensure unique folder if already exists
+	var unique_root := target_root
+	var suffix := 1
+	while DirAccess.dir_exists_absolute(unique_root):
+		unique_root = target_root + "_" + str(suffix)
+		suffix += 1
+	DirAccess.make_dir_recursive_absolute(unique_root)
+
+	for entry in files:
+		# Skip directory entries
+		if entry.ends_with("/"):
+			continue
+		var bytes := reader.read_file(entry)
+		var rel_path := entry
+		if top_level != "" and entry.begins_with(top_level + "/"):
+			rel_path = entry.substr(top_level.length() + 1)
+		# Guard against empty rel_path (e.g., if entry was exactly top-level folder)
+		if rel_path == "":
+			continue
+		var out_path := unique_root.path_join(rel_path)
+		DirAccess.make_dir_recursive_absolute(out_path.get_base_dir())
+		var fa = FileAccess.open(out_path, FileAccess.WRITE)
+		if fa:
+			fa.store_buffer(bytes)
+			fa.close()
+		else:
+			print("[Import] Failed to write:", out_path)
+
+	reader.close()
+
+	# Load chart set for metadata of imported files
+	var new_set := ChartSet.new()
+	new_set.load_from_folder(unique_root)
+	if new_set.charts.size() == 0:
+		print("[Import] No charts found after import at:", unique_root)
+		return
+
+	# Build index of existing charts by uuid and remember owning set
+	var uuid_to_chart: Dictionary = {}
+	var uuid_to_set: Dictionary = {}
+	for s in charts:
+		for c in s.charts:
+			uuid_to_chart[c.map_uuid] = c
+			uuid_to_set[c.map_uuid] = s
+
+	# Determine if any chart in the import matches an existing set by uuid
+	var matched_set: ChartSet = null
+	for c in new_set.charts:
+		if uuid_to_set.has(c.map_uuid):
+			matched_set = uuid_to_set[c.map_uuid]
+			break
+
+	var any_updated := false
+	var any_new_into_matched := false
+	var all_identical := true
+
+	if matched_set != null:
+		# Merge/update into the matched existing set
+		for nc in new_set.charts:
+			var new_json = _read_json(nc.json_path)
+			if typeof(new_json) != TYPE_DICTIONARY:
+				continue
+			var new_uuid: String = new_json.get("uuid", "0")
+			var new_hash := Chart.compute_hash_from_json(new_json)
+			if uuid_to_chart.has(new_uuid):
+				var ec: Chart = uuid_to_chart[new_uuid]
+				var existing_json = _read_json(ec.json_path)
+				var existing_hash := Chart.compute_hash_from_json(existing_json) if typeof(existing_json) == TYPE_DICTIONARY else ""
+				if existing_hash == new_hash and existing_hash != "":
+					# identical -> skip
+					continue
+				# update existing chart assets + json (overwrite existing json file path)
+				_copy_chart_resources(nc.folder_path, ec.folder_path, new_json)
+				_copy_file(nc.json_path, ec.json_path)
+				any_updated = true
+				all_identical = false
+			else:
+				# new chart -> add into matched set folder
+				_copy_chart_resources(nc.folder_path, matched_set.folder_path, new_json)
+				_copy_file(nc.json_path, matched_set.folder_path.path_join(nc.json_path.get_file()))
+				any_new_into_matched = true
+				all_identical = false
+
+		# Clean up extracted folder; reload sets to reflect changes
+		_delete_dir_recursive(unique_root)
+		if any_updated or any_new_into_matched:
+			print("[Import] Merged into existing set:", matched_set.folder_path, " updated:", any_updated, " added:", any_new_into_matched)
+			reload()
+		else:
+			print("[Import] All charts identical; nothing changed.")
+		return
+
+	# No matched set -> treat as new set
+	charts.append(new_set)
+	call_deferred("_emit_loaded", new_set)
+	print("[Import] Imported to:", unique_root)
+
+# Internal: zip a directory so that the root folder in the archive is `root_name`
+func _zip_directory_with_root(src_dir: String, out_zip_path: String, root_name: String) -> bool:
+	var packer := ZIPPacker.new()
+	var status := packer.open(ProjectSettings.globalize_path(out_zip_path))
+	if status != OK:
+		print("[ZIP] Failed to open:", out_zip_path, " status:", status)
+		return false
+	var ok := _zip_dir_recursive(packer, src_dir, root_name)
+	packer.close()
+	return ok
+
+func _zip_dir_recursive(packer: ZIPPacker, current_dir_path: String, rel_prefix: String) -> bool:
+	var dir := DirAccess.open(current_dir_path)
+	if not dir:
+		print("[ZIP] Cannot open dir:", current_dir_path)
+		return false
+	dir.list_dir_begin()
+	var name := dir.get_next()
+	var all_ok := true
+	while name != "":
+		if name != "." and name != "..":
+			if dir.current_is_dir():
+				var sub_ok := _zip_dir_recursive(packer, current_dir_path.path_join(name), rel_prefix.path_join(name))
+				all_ok = all_ok and sub_ok
+			else:
+				var file_path := current_dir_path.path_join(name)
+				var data := FileAccess.get_file_as_bytes(file_path)
+				var start_status := packer.start_file(rel_prefix.path_join(name))
+				if start_status != OK:
+					print("[ZIP] start_file failed:", name, " status:", start_status)
+					all_ok = false
+				else:
+					packer.write_file(data)
+					packer.close_file()
+		name = dir.get_next()
+	dir.list_dir_end()
+	return all_ok
+
+# ===== Helpers: JSON, hashing, file ops =====
+func _read_json(path: String):
+	var f := FileAccess.open(path, FileAccess.READ)
+	if not f:
+		return null
+	var txt := f.get_as_text()
+	return JSON.parse_string(txt)
+
+func _copy_file(src: String, dst: String) -> void:
+	DirAccess.make_dir_recursive_absolute(dst.get_base_dir())
+	var data := FileAccess.get_file_as_bytes(src)
+	var fa := FileAccess.open(dst, FileAccess.WRITE)
+	if fa:
+		fa.store_buffer(data)
+		fa.close()
+
+func _copy_dir_recursive(src_dir: String, dst_dir: String) -> void:
+	if not DirAccess.dir_exists_absolute(src_dir):
+		return
+	DirAccess.make_dir_recursive_absolute(dst_dir)
+	var dir := DirAccess.open(src_dir)
+	if not dir:
+		return
+	dir.list_dir_begin()
+	var name := dir.get_next()
+	while name != "":
+		if name != "." and name != "..":
+			var src_path := src_dir.path_join(name)
+			var dst_path := dst_dir.path_join(name)
+			if dir.current_is_dir():
+				_copy_dir_recursive(src_path, dst_path)
+			else:
+				_copy_file(src_path, dst_path)
+		name = dir.get_next()
+	dir.list_dir_end()
+
+func _copy_chart_resources(src_folder: String, dst_folder: String, json: Dictionary) -> void:
+	# Copy audio if present
+	var audio_file: String = json.get("file_audio", "")
+	if audio_file != "":
+		var src_audio := src_folder.path_join(audio_file)
+		if FileAccess.file_exists(src_audio):
+			_copy_file(src_audio, dst_folder.path_join(audio_file))
+	# Copy sprite directory wholesale if exists
+	var src_sprite_dir := src_folder.path_join("sprite")
+	if DirAccess.dir_exists_absolute(src_sprite_dir):
+		_copy_dir_recursive(src_sprite_dir, dst_folder.path_join("sprite"))
+
+func _delete_dir_recursive(path: String) -> void:
+	if not DirAccess.dir_exists_absolute(path):
+		return
+	var dir := DirAccess.open(path)
+	if not dir:
+		return
+	dir.list_dir_begin()
+	var name := dir.get_next()
+	while name != "":
+		if name != "." and name != "..":
+			var p := path.path_join(name)
+			if dir.current_is_dir():
+				_delete_dir_recursive(p)
+			else:
+				DirAccess.remove_absolute(p)
+		name = dir.get_next()
+	dir.list_dir_end()
+	DirAccess.remove_absolute(path)
+
 # --- Worker thread ---
 func _thread_func() -> void:
 	while true:

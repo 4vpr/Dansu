@@ -231,6 +231,7 @@ text = "Options"
 script = ExtResource("4_25ley")
 
 [node name="download" type="Button" parent="Menu"]
+visible = false
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -691,6 +692,7 @@ offset_bottom = 237.0
 text = "0pp"
 
 [node name="User" type="Control" parent="ScoreBoard"]
+visible = false
 anchors_preset = 0
 offset_left = -55.0
 offset_top = 860.0

@@ -285,6 +285,39 @@ func get_hash() -> String:
 	var hex_str = hash_result.hex_encode()
 	var integrity_id = hex_str.substr(0, 8)
 	return integrity_id
+
+# Compute chart hash directly from a JSON dictionary without instancing nodes.
+# Ensures order-stable hashing by sorting rails by start and notes by time.
+static func compute_hash_from_json(json: Dictionary) -> String:
+	var hash_data := ""
+	var rails_arr: Array = json.get("rails", [])
+	var notes_arr: Array = json.get("notes", [])
+
+	# Sort deterministically like parse_rails/notes would do
+	rails_arr.sort_custom(func(a, b):
+		return (a.get("start", -1) < b.get("start", -1))
+	)
+	notes_arr.sort_custom(func(a, b):
+		return (a.get("time", 0) < b.get("time", 0))
+	)
+
+	for rail in rails_arr:
+		hash_data += str(rail.get("id", -1))
+		hash_data += str(rail.get("start", -1))
+		hash_data += str(rail.get("end", -1))
+
+	for note in notes_arr:
+		hash_data += str(note.get("type", 0))
+		hash_data += str(note.get("time", 0))
+		hash_data += str(note.get("dir", 0))
+		hash_data += str(note.get("rail", 0))
+
+	var context := HashingContext.new()
+	context.start(HashingContext.HASH_MD5)
+	context.update(hash_data.to_utf8_buffer())
+	var hash_result := context.finish()
+	var hex_str := hash_result.hex_encode()
+	return hex_str.substr(0, 8)
 func generate_uuid() -> String:
 	var hex_chars = "0123456789abcdef"
 	var uuid = ""

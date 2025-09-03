@@ -19,9 +19,18 @@ func _addchart(c) -> void:
 	new_chart.chart_set = c
 	map_panel.add_child(new_chart)
 func _on_files_dropped(files: Array[String]) -> void:
-	CM._new_chart_set(files)
+	# Support dropping .dansu archives as well as raw audio files
+	var audio_files: Array[String] = []
+	for f in files:
+		var lower := f.to_lower()
+		if lower.ends_with(".dansu"):
+			CM.import_dansu(f)
+		else:
+			audio_files.append(f)
+	if audio_files.size() > 0:
+		CM._new_chart_set(audio_files)
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	for child in map_panel.get_children():
 		var childpos = child.position.y + map_panel.position.y
 		var bgable:bool = childpos > -300 and childpos < 1300

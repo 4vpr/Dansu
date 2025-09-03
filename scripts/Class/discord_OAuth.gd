@@ -8,23 +8,24 @@ const SAVE_PATH = "user://user.json"
 var fetch_timer: Timer
 
 func _ready():
-	http_request = HTTPRequest.new()
-	add_child(http_request)
-	http_request.connect("request_completed", Callable(self, "_on_request_completed"))
+	#http_request = HTTPRequest.new()
+	#add_child(http_request)
+	#http_request.connect("request_completed", Callable(self, "_on_request_completed"))
 
-	fetch_timer = Timer.new()
-	add_child(fetch_timer)
-	fetch_timer.wait_time = 1.0  # 5초마다 반복
-	fetch_timer.connect("timeout", Callable(self, "fetch_user_info"))
+	#fetch_timer = Timer.new()
+	#add_child(fetch_timer)
+	#fetch_timer.wait_time = 1.0  # 5초마다 반복
+	#fetch_timer.connect("timeout", Callable(self, "fetch_user_info"))
 	
-	load_login_info()
-	if is_logged_in():
-		print("User already logged in:", discord_id, username)
-	else:
-		print("User not logged in, fetching info from server...")
-		fetch_user_info()
+	#load_login_info()
+	#if is_logged_in():
+		#print("User already logged in:", discord_id, username)
+	#else:
+		#print("User not logged in, fetching info from server...")
+		#fetch_user_info()
 	
-	fetch_timer.start()
+	#fetch_timer.start()
+	pass
 
 func login():
 	OS.shell_open("http://127.0.0.1:5000/login")
