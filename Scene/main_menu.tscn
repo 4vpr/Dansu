@@ -336,14 +336,13 @@ offset_right = 342.0
 offset_bottom = 34.0
 text = "Options"
 
-[node name="FullScreen" type="CheckButton" parent="Options/Panel"]
+[node name="WindowMode" type="OptionButton" parent="Options/Panel"]
 layout_mode = 0
 offset_left = 33.0
 offset_top = 44.0
 offset_right = 165.0
 offset_bottom = 75.0
 focus_mode = 0
-text = "Full Screen"
 
 [node name="Master" type="HSlider" parent="Options/Panel"]
 layout_mode = 0
@@ -567,7 +566,6 @@ offset_left = -298.5
 offset_top = 151.0
 offset_right = -186.5
 offset_bottom = 201.0
-text = "X"
 label_settings = SubResource("LabelSettings_8e7rh")
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -581,7 +579,6 @@ offset_left = -10.0
 offset_top = -29.989
 offset_right = 834.0
 offset_bottom = 20.011
-text = "title"
 label_settings = SubResource("LabelSettings_8e7rh")
 vertical_alignment = 1
 
@@ -594,7 +591,6 @@ offset_left = -2.0
 offset_top = -10.457
 offset_right = 563.0
 offset_bottom = 14.543
-text = "artist"
 label_settings = SubResource("LabelSettings_tbysm")
 vertical_alignment = 1
 
@@ -607,7 +603,6 @@ offset_left = 317.0
 offset_top = 27.543
 offset_right = 778.0
 offset_bottom = 52.543
-text = "difficulty"
 label_settings = SubResource("LabelSettings_tbysm")
 horizontal_alignment = 2
 vertical_alignment = 1
@@ -621,7 +616,6 @@ offset_left = -3.0
 offset_top = 24.543
 offset_right = 161.0
 offset_bottom = 49.543
-text = "bpm 200"
 label_settings = SubResource("LabelSettings_tbysm")
 vertical_alignment = 1
 
@@ -636,7 +630,6 @@ offset_left = 268.221
 offset_top = 153.0
 offset_right = 390.221
 offset_bottom = 174.0
-text = "FUll combo!"
 label_settings = SubResource("LabelSettings_ug1nb")
 horizontal_alignment = 2
 
@@ -665,7 +658,6 @@ offset_left = 179.221
 offset_top = 178.0
 offset_right = 382.221
 offset_bottom = 199.0
-text = "200x / 200x"
 label_settings = SubResource("LabelSettings_ug1nb")
 horizontal_alignment = 2
 
@@ -678,7 +670,6 @@ offset_left = -175.779
 offset_top = 152.0
 offset_right = 79.221
 offset_bottom = 202.0
-text = "999000"
 label_settings = SubResource("LabelSettings_8e7rh")
 
 [node name="Button" type="Button" parent="ScoreBoard"]

@@ -53,7 +53,7 @@ func _ready() -> void:
 var start_time = 0
 var song_playing = false
 var wait = true
-var lerping = 1.5
+var lerping = 1.5 + abs(Game.settings["audio"]["offset"] * 1000)
 
 func _process(delta: float) -> void:
 	if lerping < 0 and wait:

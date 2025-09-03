@@ -5,6 +5,12 @@ var dir
 var type
 var rail
 var animation
+
+# longnote things
+#var duration = 0
+#var is_longnote = false
+#var endrail
+
 @onready var NoteSprite= $NoteSprite
 @onready var ArrowSprite = $ArrowSprite
 var NoteTex = preload("res://Resources/note.png")
@@ -14,22 +20,21 @@ func _ready() -> void:
 	if type == 1:
 		NoteSprite.texture = NoteTex
 		ArrowSprite.visible = false
-		pass
-	if type == 2:
+	elif type == 2:
 		NoteSprite.texture = MoveTex
 		ArrowSprite.visible = true
-		pass
-	NoteSprite.modulate.a = 0
-	ArrowSprite.modulate.a = 0
-	if type == 3:
+		NoteSprite.modulate.a = 0
+		ArrowSprite.modulate.a = 0
+	elif type == 3:
 		NoteSprite.texture = NoteTex
 		ArrowSprite.visible = false
 		scale.x = 0.5
-	if type == 4:
+	elif type == 4:
 		position.y = 0.15
 		NoteSprite.texture = SpikeTex
 		ArrowSprite.visible = false
-		pass
+	#if is_longnote:
+		#pass
 func _process(delta: float) -> void:
 	if NoteSprite.modulate.a < 1:
 		NoteSprite.modulate.a += delta * Game.settings["gameplay"]["velocity"] / 2

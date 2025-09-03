@@ -237,7 +237,6 @@ offset_bottom = 1080.0
 
 [node name="Background" type="MeshInstance3D" parent="."]
 transform = Transform3D(2.3, 0, 0, 0, 1.294, 0, 0, 0, 1.198, 0, 1, -10)
-visible = false
 mesh = SubResource("QuadMesh_5iy25")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]

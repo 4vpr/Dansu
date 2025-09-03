@@ -1,0 +1,49 @@
+func apply_settings():
+	_apply_display_settings()
+	# ?¥ÏÉÅ???ÅÏö©
+	var res_parts = settings["graphics"]["resolution"].split("x")
+	if res_parts.size() == 2:
+		var width = int(res_parts[0])
+		var height = int(res_parts[1])
+		DisplayServer.window_set_size(Vector2i(width, height))
+	# ?ÑÏ≤¥?îÎ©¥ ?ÅÏö©
+	DisplayServer.window_set_mode(
+	DisplayServer.WINDOW_MODE_FULLSCREEN if settings["graphics"]["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED
+)
+	#fps ?ÅÏö©
+	Engine.max_fps = settings["graphics"]["MaxFPS"]
+	Engine.physics_ticks_per_second = settings["gameplay"]["pollingRate"]
+	#?§ÏÑ§???ÅÏö©
+	for action in settings["key"].keys():
+		var key_str = settings["key"][action]
+		var key_code = OS.find_keycode_from_string(key_str)
+		if key_code != 0:
+			# Í∏∞Ï°¥ ?¥Î≤§???úÍ±∞
+			InputMap.action_erase_events(action)
+			# ?àÎ°ú???¥Î≤§??Ï∂îÍ?
+			var new_event := InputEventKey.new()
+			new_event.physical_keycode = key_code
+			InputMap.action_add_event(action, new_event)
+		else:
+			print("wrong key")
+			print(OS.find_keycode_from_string(key_str))
+	var master_vol = settings["audio"]["volume_master"]
+	var master_db = linear_to_db(master_vol)
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), master_db)
+
+	# Song Î≥ºÎ•® (?? Music Î≤ÑÏä§Î°?
+	var music_vol = settings["audio"]["volume_song"]
+	var music_db = linear_to_db(music_vol)
+	var music_bus_index = AudioServer.get_bus_index("Music")
+	if music_bus_index != -1:
+		AudioServer.set_bus_volume_db(music_bus_index, music_db)
+
+	# SFX Î≥ºÎ•®
+	var sfx_vol = settings["audio"]["volume_sfx"]
+	var sfx_db = linear_to_db(sfx_vol)
+	var sfx_bus_index = AudioServer.get_bus_index("SFX")
+	if sfx_bus_index != -1:
+		AudioServer.set_bus_volume_db(sfx_bus_index, sfx_db)
+
+
+

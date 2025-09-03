@@ -4,7 +4,9 @@ const F11_KEYCODE := 16777265
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_toggle_fullscreen"):
-		settings["graphics"]["fullscreen"] = !settings["graphics"]["fullscreen"]
+		var mode: String = settings["graphics"].get("window_mode", "windowed")
+		mode = "windowed" if mode == "fullscreen" else "fullscreen"
+		settings["graphics"]["window_mode"] = mode
 		save_settings()
 		center_window()
 		apply_settings()
@@ -132,7 +134,8 @@ var config_file_path = "user://settings.cfg"
 var settings = {
 	"graphics": {
 		"resolution": "1920x1080",
-		"fullscreen": true,
+		"window_mode": "fullscreen", # windowed | fullscreen | borderless
+		"fullscreen": true, # legacy toggle for migration
 		"MaxFPS": 1000,
 		"VSync": true,
 	},
@@ -165,6 +168,10 @@ func load_settings():
 			for key in section_data.keys():
 				var default_value = section_data[key]
 				section_data[key] = config.get_value(section, key, default_value)
+		# Migrate legacy fullscreen -> window_mode if missing
+		if !settings["graphics"].has("window_mode"):
+			var legacy_full = bool(settings["graphics"].get("fullscreen", false))
+			settings["graphics"]["window_mode"] = "fullscreen" if legacy_full else "windowed"
 	save_settings()
 func center_window():
 	# 주 모니터 인덱스
@@ -179,6 +186,35 @@ func center_window():
 	var centered_position = screen_position + (screen_size - window_size) / 2
 	# 위치 설정
 	DisplayServer.window_set_position(centered_position)
+
+func _apply_display_settings() -> void:
+	var primary_screen_index = DisplayServer.get_primary_screen()
+	var screen_position = DisplayServer.screen_get_position(primary_screen_index)
+	var screen_size = DisplayServer.screen_get_size(primary_screen_index)
+
+	var mode: String = settings["graphics"].get("window_mode", "windowed")
+	var res_parts = settings["graphics"]["resolution"].split("x")
+	var req_size := Vector2i(1920, 1080)
+	if res_parts.size() == 2:
+		req_size = Vector2i(int(res_parts[0]), int(res_parts[1]))
+	var final_size := req_size
+	if mode != "fullscreen":
+		final_size.x = min(final_size.x, screen_size.x)
+		final_size.y = min(final_size.y, screen_size.y)
+
+	match mode:
+		"fullscreen":
+			settings["graphics"]["fullscreen"] = true
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+		"borderless":
+			settings["graphics"]["fullscreen"] = false
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
+			settings["graphics"]["resolution"] = str(screen_size.x) + "x" + str(screen_size.y)
+			DisplayServer.window_set_position(screen_position)
+		_:
+			settings["graphics"]["fullscreen"] = false
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+			settings["graphics"]["resolution"] = str(final_size.x) + "x" + str(final_size.y)
 
 func save_setting(section: String, key: String, value):
 	var config = ConfigFile.new()
@@ -196,6 +232,7 @@ func save_setting(section: String, key: String, value):
 	config.save(config_file_path)
 
 func apply_settings():
+	_apply_display_settings()
 	# 해상도 적용
 	var res_parts = settings["graphics"]["resolution"].split("x")
 	if res_parts.size() == 2:
@@ -206,6 +243,37 @@ func apply_settings():
 	DisplayServer.window_set_mode(
 	DisplayServer.WINDOW_MODE_FULLSCREEN if settings["graphics"]["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED
 )
+
+	# Enforce specific handling for selected window_mode
+	var __mode: String = settings["graphics"].get("window_mode", "windowed")
+	var __parts = settings["graphics"]["resolution"].split("x")
+	var __size := Vector2i(1920, 1080)
+	if __parts.size() == 2:
+		__size = Vector2i(int(__parts[0]), int(__parts[1]))
+	var __primary = DisplayServer.get_primary_screen()
+	var __screen_pos = DisplayServer.screen_get_position(__primary)
+	var __screen_size = DisplayServer.screen_get_size(__primary)
+	if __mode == "fullscreen":
+		# Use exclusive fullscreen to actually switch to selected resolution
+		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
+		DisplayServer.window_set_size(__size)
+	elif __mode == "borderless":
+		# Borderless should cover the entire screen and be visible
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
+		DisplayServer.window_set_size(__screen_size)
+		DisplayServer.window_set_position(__screen_pos)
+	else:
+		# Windowed
+		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		DisplayServer.window_set_size(__size)
+
+	# Center window after resolution change in windowed mode
+	var ____mode = settings["graphics"].get("window_mode", "windowed")
+	if ____mode == "windowed":
+		center_window()
 	#fps 적용
 	Engine.max_fps = settings["graphics"]["MaxFPS"]
 	Engine.physics_ticks_per_second = settings["gameplay"]["pollingRate"]

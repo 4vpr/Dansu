@@ -7,6 +7,7 @@ var diff_scene = load("res://objects/diff.tscn")
 var chart_set: ChartSet
 var hovered = false
 var tween
+var has_BG = false
 func _ready() -> void:
 	CM.connect("chartset_selected", Callable(self, "_select_event"))
 	if chart_set:
@@ -14,7 +15,6 @@ func _ready() -> void:
 		set_mouse_filter(MOUSE_FILTER_STOP)
 		connect("mouse_entered", Callable(self, "_on_mouse_entered"))
 		connect("mouse_exited", Callable(self, "_on_mouse_exited"))
-		load_background()
 	if CM.ss == chart_set:
 		_select()
 func _select_event(s):
@@ -52,10 +52,13 @@ func reload():
 			closest_map_scene = diff
 		$HBoxContainer.add_child(diff)
 	CM.select_chart(closest_map)
+
+
 var _bg_req_token: int = 0
 var _bg_thread: Thread
 
 func load_background() -> void:
+	has_BG = true
 	if chart_set == null or chart_set.image_path == null or chart_set.image_path == "":
 		push_warning("BG: empty image_path")
 		return

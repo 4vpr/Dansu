@@ -39,8 +39,13 @@ func _ready() -> void:
 	folders = get_folders_in_path("user://Songs")
 	start_loading(folders, 4)
 
+func reload() -> void:
+	folders = get_folders_in_path("user://Songs")
+	start_loading(folders,4)
+	
 # --- Public: start/stop loading ---
 func start_loading(folders_in: Array[String], thread_num: int = 4) -> void:
+	print("start loading")
 	stop()
 	_folders_to_load = folders_in.duplicate()
 	_loaded_count = 0
@@ -200,6 +205,7 @@ func _new_chart_set(files: Array[String]) -> void:
 				if json:
 					json.store_string(JSON.stringify(json_data, "\t"))
 					json.close()
+
 func _load_built_in_maps():
 	var list_path = "res://song/map_list.json"
 	if not FileAccess.file_exists(list_path):

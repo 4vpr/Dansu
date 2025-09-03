@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://d3hb08swexfpk"]
+[gd_scene load_steps=30 format=3 uid="uid://d3hb08swexfpk"]
 
 [ext_resource type="Script" path="res://scripts/Editor/_map_editor.gd" id="1_35pr7"]
 [ext_resource type="Script" path="res://Scene/b_anim.gd" id="2_bwg2g"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/Editor/inspector.gd" id="3_s286n"]
 [ext_resource type="Script" path="res://scripts/Editor/window_song_setup.gd" id="4_f2l3r"]
 [ext_resource type="Script" path="res://Scene/animation_open_folder.gd" id="6_juang"]
+[ext_resource type="Script" path="res://scripts/Editor/bpm_lines.gd" id="7_bpm0g"]
 
 [sub_resource type="InputEventKey" id="InputEventKey_6701s"]
 device = -1
@@ -123,6 +124,17 @@ offset_right = 499.0
 offset_bottom = 902.0
 color = Color(0, 0, 0, 1)
 
+[node name="BPMLines" type="Control" parent="Preview"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("7_bpm0g")
+
 [node name="RailContainer" type="Control" parent="Preview"]
 anchors_preset = 0
 offset_left = 375.0
@@ -223,8 +235,14 @@ layout_mode = 2
 text = "Beat DIvision
 "
 
-[node name="Divis" type="LineEdit" parent="Inspecter/Defaults"]
+[node name="Divis" type="HSlider" parent="Inspecter/Defaults"]
 layout_mode = 2
+max_value = 9.0
+value = 1.0
+
+[node name="DivisLabel" type="Label" parent="Inspecter/Defaults"]
+layout_mode = 2
+text = "1/2 (2)"
 
 [node name="Vbox" type="VBoxContainer" parent="Inspecter"]
 layout_mode = 0
