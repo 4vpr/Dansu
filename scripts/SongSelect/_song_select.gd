@@ -1,7 +1,7 @@
 extends Control
 
 @onready var map_panel = $MapPanel/VBoxContainer
-var chart_scene = load("res://objects/chart_set.tscn")
+var chart_scene = load("res://Scene/Entity/chart_set.tscn")
 func _ready() -> void:
 	CM.connect("chartset_loaded", Callable(self, "_addchart"))
 	CM.connect("loading_finished",Callable(self, "_refresh"))

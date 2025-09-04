@@ -1,13 +1,13 @@
 [gd_scene load_steps=31 format=3 uid="uid://d3hb08swexfpk"]
 
 [ext_resource type="Script" path="res://scripts/Editor/_map_editor.gd" id="1_35pr7"]
-[ext_resource type="Script" path="res://Scene/b_anim.gd" id="2_bwg2g"]
+[ext_resource type="Script" path="res://scripts/simple_buttons/b_anim.gd" id="2_bwg2g"]
 [ext_resource type="Script" path="res://scripts/Editor/b_meta.gd" id="2_f85ny"]
-[ext_resource type="Script" path="res://Scene/animation_editor.gd" id="2_smjvc"]
+[ext_resource type="Script" path="res://scripts/animation_editor.gd" id="2_smjvc"]
 [ext_resource type="Script" path="res://scripts/Editor/b_animationWindow.gd" id="3_krufn"]
 [ext_resource type="Script" path="res://scripts/Editor/inspector.gd" id="3_s286n"]
 [ext_resource type="Script" path="res://scripts/Editor/window_song_setup.gd" id="4_f2l3r"]
-[ext_resource type="Script" path="res://Scene/animation_open_folder.gd" id="6_juang"]
+[ext_resource type="Script" path="res://scripts/simple_buttons/b_animation_open_folder.gd" id="6_juang"]
 [ext_resource type="Script" path="res://scripts/Editor/bpm_lines.gd" id="7_bpm0g"]
 [ext_resource type="Script" path="res://scripts/Editor/b_export.gd" id="8_exptb"]
 

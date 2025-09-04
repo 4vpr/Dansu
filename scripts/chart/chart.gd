@@ -24,10 +24,10 @@ var folder_path: String = ""
 var json_path: String = ""
 var json_file
 
-var rail_scene = load("res://objects/rail.tscn")
-var note_scene = load("res://objects/note.tscn")
-var rail_scene_editor = load("res://objects/editor/rail.tscn")
-var note_scene_editor = load("res://objects/editor/note.tscn")
+var rail_scene = load("res://Scene/Entity/rail.tscn")
+var note_scene = load("res://Scene/Entity/note.tscn")
+var rail_scene_editor = load("res://Scene/Entity/Editor/rail.tscn")
+var note_scene_editor = load("res://Scene/Entity/Editor/note.tscn")
 
 var texture_cache = {}
 

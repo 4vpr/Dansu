@@ -1,8 +1,8 @@
 [gd_scene load_steps=4 format=3 uid="uid://dqyrp3v4bjcuj"]
 
 [ext_resource type="Script" path="res://scripts/SongSelect/_song_select.gd" id="1_mrfqk"]
-[ext_resource type="Script" path="res://Scene/map_panel.gd" id="3_fcmbx"]
-[ext_resource type="Script" path="res://Scene/song_select_music.gd" id="4_uvrsa"]
+[ext_resource type="Script" path="res://scripts/UI/map_panel.gd" id="3_fcmbx"]
+[ext_resource type="Script" path="res://scripts/SongSelect/song_select_music.gd" id="4_uvrsa"]
 
 [node name="SongSelect" type="Control"]
 layout_mode = 3

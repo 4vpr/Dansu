@@ -2,7 +2,7 @@ extends Control
 
 @onready var Title = $Title
 @onready var BG = $BG
-var diff_scene = load("res://objects/diff.tscn")
+var diff_scene = load("res://Scene/Entity/diff.tscn")
 
 var chart_set: ChartSet
 var hovered = false

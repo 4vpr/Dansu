@@ -13,9 +13,9 @@ var animation
 
 @onready var NoteSprite= $NoteSprite
 @onready var ArrowSprite = $ArrowSprite
-var NoteTex = preload("res://Resources/note.png")
-var MoveTex = preload("res://Resources/note2.png")
-var SpikeTex = preload("res://Resources/note3.png")
+var NoteTex = preload("res://Textures/note.png")
+var MoveTex = preload("res://Textures/note2.png")
+var SpikeTex = preload("res://Textures/note3.png")
 func _ready() -> void:
 	if type == 1:
 		NoteSprite.texture = NoteTex

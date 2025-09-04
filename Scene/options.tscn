@@ -1,0 +1,232 @@
+[gd_scene load_steps=6 format=3 uid="uid://bwxxsx3jrkm56"]
+
+[ext_resource type="Script" path="res://scripts/UI/options.gd" id="1_dgl4p"]
+[ext_resource type="Script" path="res://scripts/SongSelect/Hslider_velocity.gd" id="2_pat5m"]
+[ext_resource type="Script" path="res://scripts/simple_buttons/b_open_song_folder.gd" id="3_tbbmq"]
+[ext_resource type="Script" path="res://scripts/simple_buttons/b_reload.gd" id="4_hplq3"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_1bnu6"]
+
+[node name="Options" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2300.0
+offset_right = 1300.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dgl4p")
+
+[node name="Label" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 280.0
+offset_top = 11.0
+offset_right = 342.0
+offset_bottom = 34.0
+text = "Options"
+
+[node name="WindowMode" type="OptionButton" parent="Panel"]
+layout_mode = 0
+offset_left = 342.0
+offset_top = 78.0
+offset_right = 474.0
+offset_bottom = 109.0
+focus_mode = 0
+
+[node name="Master" type="HSlider" parent="Panel"]
+layout_mode = 0
+offset_left = 117.0
+offset_top = 340.0
+offset_right = 596.0
+offset_bottom = 356.0
+focus_mode = 0
+
+[node name="Music" type="HSlider" parent="Panel"]
+layout_mode = 0
+offset_left = 118.0
+offset_top = 372.0
+offset_right = 597.0
+offset_bottom = 388.0
+focus_mode = 0
+
+[node name="SFX" type="HSlider" parent="Panel"]
+layout_mode = 0
+offset_left = 117.0
+offset_top = 396.0
+offset_right = 601.0
+offset_bottom = 435.0
+focus_mode = 0
+
+[node name="Left" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = 130.0
+offset_top = 457.0
+offset_right = 174.0
+offset_bottom = 488.0
+focus_mode = 0
+text = "LEFT"
+
+[node name="Right" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = 130.0
+offset_top = 495.0
+offset_right = 186.0
+offset_bottom = 526.0
+focus_mode = 0
+text = "RIGHT"
+
+[node name="A1" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = 131.0
+offset_top = 536.0
+offset_right = 175.0
+offset_bottom = 567.0
+rotation = -0.00331617
+focus_mode = 0
+text = "Z"
+
+[node name="A2" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = 132.0
+offset_top = 575.0
+offset_right = 176.0
+offset_bottom = 606.0
+focus_mode = 0
+text = "X"
+
+[node name="Res" type="OptionButton" parent="Panel"]
+layout_mode = 0
+offset_left = 42.0
+offset_top = 79.0
+offset_right = 335.0
+offset_bottom = 110.0
+focus_mode = 0
+item_count = 6
+popup/item_0/text = "1280x720"
+popup/item_1/text = "1440x810"
+popup/item_1/id = 1
+popup/item_2/text = "1600x900"
+popup/item_2/id = 2
+popup/item_3/text = "1920x1080"
+popup/item_3/id = 3
+popup/item_4/text = "2560x1440"
+popup/item_4/id = 4
+popup/item_5/text = "3840x2160"
+popup/item_5/id = 5
+
+[node name="Label2" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 33.0
+offset_top = 336.0
+offset_right = 88.0
+offset_bottom = 359.0
+text = "Master"
+horizontal_alignment = 1
+
+[node name="Label3" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 32.0
+offset_top = 404.0
+offset_right = 87.0
+offset_bottom = 427.0
+text = "SFX"
+horizontal_alignment = 1
+
+[node name="Label5" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 23.0
+offset_top = 460.0
+offset_right = 78.0
+offset_bottom = 483.0
+text = "Move Left"
+horizontal_alignment = 1
+
+[node name="Label6" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 23.0
+offset_top = 499.0
+offset_right = 100.0
+offset_bottom = 522.0
+text = "Move Right"
+horizontal_alignment = 1
+
+[node name="Label7" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 23.0
+offset_top = 540.0
+offset_right = 110.0
+offset_bottom = 563.0
+text = "Action 1"
+horizontal_alignment = 1
+
+[node name="Label8" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 22.0
+offset_top = 580.0
+offset_right = 109.0
+offset_bottom = 603.0
+text = "Action 2"
+horizontal_alignment = 1
+
+[node name="Label4" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 31.0
+offset_top = 370.0
+offset_right = 86.0
+offset_bottom = 393.0
+text = "Music"
+horizontal_alignment = 1
+
+[node name="velocity" type="HSlider" parent="."]
+layout_mode = 0
+offset_left = 149.0
+offset_top = 1014.0
+offset_right = 774.0
+offset_bottom = 1030.0
+min_value = 5.0
+max_value = 20.0
+step = 0.5
+value = 5.0
+script = ExtResource("2_pat5m")
+
+[node name="Label" type="Label" parent="velocity"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = -5.19
+anchor_right = 0.5
+anchor_bottom = -2.121
+offset_left = 16.0
+offset_top = 49.04
+offset_right = -144.0
+offset_bottom = 22.936
+text = "notespeed
+"
+label_settings = SubResource("LabelSettings_1bnu6")
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 0
+offset_left = 17.0
+offset_top = 650.0
+offset_right = 233.0
+offset_bottom = 704.0
+text = "open beatmap folder
+"
+script = ExtResource("3_tbbmq")
+
+[node name="Button2" type="Button" parent="."]
+layout_mode = 0
+offset_left = 251.0
+offset_top = 650.0
+offset_right = 467.0
+offset_bottom = 704.0
+text = "reload"
+script = ExtResource("4_hplq3")

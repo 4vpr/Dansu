@@ -23,7 +23,7 @@ config/windows_native_icon="res://Resources/dansu.ico"
 
 [audio]
 
-buses/default_bus_layout="res://audio_bus.tres"
+buses/default_bus_layout="res://Resources/audio_bus.tres"
 
 [autoload]
 

@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3 uid="uid://dugpyedd7s76d"]
+
+[ext_resource type="Script" path="res://scripts/PlayScene/note.gd" id="1_ehwet"]
+[ext_resource type="Texture2D" uid="uid://cw32mke1ro5iv" path="res://Textures/note.png" id="2_4n3a0"]
+[ext_resource type="Texture2D" uid="uid://bfhqco2aq37ys" path="res://Textures/arrow.png" id="2_554vh"]
+[ext_resource type="Script" path="res://scripts/PlayScene/note_arrow.gd" id="3_d41lb"]
+
+[node name="Note" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+script = ExtResource("1_ehwet")
+
+[node name="ArrowSprite" type="Sprite3D" parent="."]
+transform = Transform3D(1.99999, -0.00452218, -0.000757494, 0.0045212, 1.99999, -0.00260054, 0.000763344, 0.00259883, 2, 0, 0.4, 0)
+pixel_size = 0.001
+render_priority = 1
+texture = ExtResource("2_554vh")
+script = ExtResource("3_d41lb")
+
+[node name="NoteSprite" type="Sprite3D" parent="."]
+transform = Transform3D(0.999997, 0.00255881, 0.000208067, -0.00255868, 0.999997, -0.000595898, -0.000209591, 0.000595364, 1, 0, 0.01, 0)
+pixel_size = 0.001
+texture_filter = 5
+render_priority = 1
+texture = ExtResource("2_4n3a0")
