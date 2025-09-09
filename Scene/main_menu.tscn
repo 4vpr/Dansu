@@ -685,6 +685,7 @@ focus_mode = 0
 text = "..."
 
 [node name="pp" type="Label" parent="ScoreBoard"]
+visible = false
 layout_mode = 0
 offset_left = -49.0
 offset_top = 214.0

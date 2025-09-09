@@ -6,18 +6,19 @@ var id
 var start
 var end
 var pos
-var size = 11.3
 var offset = -0.7
 var moves = []
 var move_i = 0
 var RAIL_ACTIVATE_DISTANCE = 85
 var active = false
 var initial_position = Vector3.ZERO
-
+var length = 0
+func get_pos() -> float:
+	return  Game.panelSize -((start - Game.currentTime) * Game.settings["gameplay"]["velocity"] / 1000)
 func _ready() -> void:
 	initial_position = position
-	mesh.scale.z = (end - start) * size / Game.travelTime
-	mesh.position.z = Game.panelSize -((start - Game.currentTime) * Game.settings["gameplay"]["velocity"] / 1000) - mesh.scale.z / 2
+	mesh.scale.z = 0
+	mesh.position.z = get_pos() - mesh.scale.z / 2
 func _process(_delta: float) -> void:
 	if moves.size() > 0:
 		if move_i < moves.size():
@@ -27,7 +28,11 @@ func _process(_delta: float) -> void:
 			elif Game.currentTime >= move["endtime"]:
 				move_i += 1
 				initial_position = position
-	mesh.position.z = Game.panelSize -((start - Game.currentTime) * Game.settings["gameplay"]["velocity"] / 1000) - mesh.scale.z / 2
+	mesh.position.z = get_pos() - mesh.scale.z / 2
+	length = (end - start) * Game.panelSize / Game.travelTime
+	if length > get_pos():
+		length = get_pos()
+	mesh.scale.z = length
 
 	if start - Game.currentTime < RAIL_ACTIVATE_DISTANCE:
 		active = true

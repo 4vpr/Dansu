@@ -73,6 +73,7 @@ material = SubResource("StandardMaterial3D_qgxkp")
 size = Vector2(15, 15)
 
 [sub_resource type="Environment" id="Environment_b6hmy"]
+background_color = Color(0.890196, 0.662745, 0.890196, 1)
 
 [node name="PlayScene" type="Node3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00251871, -0.00147676, 0.00196695)
@@ -237,6 +238,7 @@ offset_bottom = 1080.0
 
 [node name="Background" type="MeshInstance3D" parent="."]
 transform = Transform3D(2.3, 0, 0, 0, 1.294, 0, 0, 0, 1.198, 0, 1, -10)
+visible = false
 mesh = SubResource("QuadMesh_5iy25")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]

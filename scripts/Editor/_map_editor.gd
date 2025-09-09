@@ -16,9 +16,9 @@ var chart = Chart.new()
 @onready var file_dialog: FileDialog = $FileDialog
 var SongIsPlaying = false
 var map_data = {}
-var rail_scene = load("res://objects/editor/rail.tscn")
-var note_scene = load("res://objects/editor/note.tscn")
-var animation_scene = load("res://objects/editor/animation.tscn")
+var rail_scene = load("res://Scene/Entity/Editor/rail.tscn")
+var note_scene = load("res://Scene/Entity/Editor/note.tscn")
+var animation_scene = load("res://Scene/Entity/Editor/animation.tscn")
 var selected = null
 var rails = []; var notes = []
 var rail_scope = null
