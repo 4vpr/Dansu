@@ -213,7 +213,7 @@ pivot_offset = Vector2(400, 0)
 min_value = -1.0
 step = 0.001
 
-[node name="Inspecter" type="Panel" parent="."]
+[node name="Inspector" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = 11
 anchor_left = 1.0
@@ -227,35 +227,35 @@ grow_horizontal = 0
 grow_vertical = 2
 script = ExtResource("3_s286n")
 
-[node name="Label" type="Label" parent="Inspecter"]
+[node name="Label" type="Label" parent="Inspector"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 text = "Inspector
 "
 
-[node name="Defaults" type="VBoxContainer" parent="Inspecter"]
+[node name="Defaults" type="VBoxContainer" parent="Inspector"]
 layout_mode = 0
 offset_left = 1.0
 offset_top = 27.0
 offset_right = 41.0
 offset_bottom = 67.0
 
-[node name="Label" type="Label" parent="Inspecter/Defaults"]
+[node name="Label" type="Label" parent="Inspector/Defaults"]
 layout_mode = 2
 text = "Beat DIvision
 "
 
-[node name="Divis" type="HSlider" parent="Inspecter/Defaults"]
+[node name="Divis" type="HSlider" parent="Inspector/Defaults"]
 layout_mode = 2
 max_value = 9.0
 value = 1.0
 
-[node name="DivisLabel" type="Label" parent="Inspecter/Defaults"]
+[node name="DivisLabel" type="Label" parent="Inspector/Defaults"]
 layout_mode = 2
 text = "1/2 (2)"
 
-[node name="Vbox" type="VBoxContainer" parent="Inspecter"]
+[node name="Vbox" type="VBoxContainer" parent="Inspector"]
 layout_mode = 0
 offset_left = 6.0
 offset_top = 155.0
@@ -341,7 +341,6 @@ gui_embed_subwindows = true
 title = "Animation"
 position = Vector2i(0, 36)
 size = Vector2i(1280, 720)
-visible = false
 unresizable = true
 popup_window = true
 script = ExtResource("3_krufn")
@@ -439,6 +438,13 @@ offset_top = 10.0
 offset_right = 192.0
 offset_bottom = 41.0
 
+[node name="OptionButton2" type="OptionButton" parent="Animation/Panel"]
+layout_mode = 0
+offset_left = 820.0
+offset_top = 100.0
+offset_right = 870.0
+offset_bottom = 131.0
+
 [node name="TextureRect" type="TextureRect" parent="Animation/Panel"]
 layout_mode = 0
 offset_left = 200.0
@@ -453,16 +459,8 @@ layout_mode = 0
 offset_left = 700.0
 offset_top = 570.0
 offset_right = 876.0
-offset_bottom = 601.0
+offset_bottom = 670.0
 text = "Is Idle"
-
-[node name="Default" type="CheckButton" parent="Animation/Panel"]
-layout_mode = 0
-offset_left = 700.0
-offset_top = 600.0
-offset_right = 876.0
-offset_bottom = 631.0
-text = "Is Default Action"
 
 [node name="Label" type="Label" parent="Animation/Panel"]
 layout_mode = 0
@@ -476,6 +474,7 @@ text = "fps"
 title = "Song Setup"
 position = Vector2i(528, 41)
 size = Vector2i(500, 400)
+visible = false
 unresizable = true
 popup_window = true
 script = ExtResource("4_f2l3r")

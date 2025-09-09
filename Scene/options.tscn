@@ -218,7 +218,7 @@ offset_left = 17.0
 offset_top = 650.0
 offset_right = 233.0
 offset_bottom = 704.0
-text = "open beatmap folder
+text = "open chart folder
 "
 script = ExtResource("3_tbbmq")
 

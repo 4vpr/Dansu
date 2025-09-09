@@ -8,8 +8,9 @@ var sprites = []
 var beatsdiv = 2
 var sfx_pool = SfxPool.new()
 var chart = Chart.new()
+var shortcut = [0,0,0,0,0,0,0,0,0,0]
 @onready var SongSlider = $SongSlider
-@onready var Inspecter = $Inspecter;@onready var Song = $AudioStreamPlayer
+@onready var Inspector = $Inspector;@onready var Song = $AudioStreamPlayer
 @onready var RailContainer = $Preview/RailContainer;
 @onready var Win_Animation = $Animation
 @onready var option_button = $Animation/Panel/OptionButton
@@ -389,6 +390,38 @@ func _input(event):
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
 			SongSlider.value = snap_to_bpm(SongSlider.value * 1000) / 1000
 			SongSlider.value -= 60 / chart.song_bpm / beatsdiv
+	elif event is InputEventKey and event.pressed and not event.echo:
+		var idx := -1
+		match event.keycode:
+			KEY_1:
+				idx = 0
+			KEY_2:
+				idx = 1
+			KEY_3:
+				idx = 2
+			KEY_4:
+				idx = 3
+			KEY_5:
+				idx = 4
+			KEY_6:
+				idx = 5
+			KEY_7:
+				idx = 6
+			KEY_8:
+				idx = 7
+			KEY_9:
+				idx = 8
+			KEY_0:
+				idx = 9
+			_:
+				idx = -1
+		if idx != -1 and selected != null and selected in notes:
+			var anim_id := int(shortcut[idx])
+			if anim_id > 0:
+				selected.animation = anim_id
+				# Optionally reflect change in inspector UI
+				if Inspector and Inspector.has_method("_update"):
+					Inspector._update(selected)
 func _on_pause_pressed() -> void:
 	if SongIsPlaying:
 		paused_position = Song.get_playback_position()

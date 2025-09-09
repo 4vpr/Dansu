@@ -121,7 +121,7 @@ func getNextDefaultDance() -> int:
 func playAnimation():
 	if sprites_current_update + sprites_current_update_time * (sprites_current_index + 1) < Game.currentTime:
 		sprites_current_index += 1
-
+	
 	if sprites_current.size() > sprites_current_index:
 		sprite.texture = sprites_current[sprites_current_index]
 	else:

@@ -188,7 +188,7 @@ func write_judge(j: int,note):
 		sfx_pool.play_sound(preload("res://Resources/drum-slidertick.wav"))
 		player.sprites_current = null
 		if note.animation > 0:
-			player.setAnimation(notes[nextnote_i].animation)
+			player.setAnimation(note.animation)
 		else:
 			player.setAnimation(player.getNextDefaultDance())
 	else:

@@ -1,13 +1,15 @@
 extends Node
 @onready var root = $"../.."
 @onready var option = $OptionButton
+@onready var shortcut = $OptionButton2
 @onready var box = $"../ScrollContainer/VBoxContainer"
-@onready var animation_scene = load("res://objects/editor/animation.tscn")
+@onready var animation_scene = load("res://Scene/Entity/Editor/animation.tscn")
 
 func _ready() -> void:
 	option.item_selected.connect(_on_item_selected)
 	if root.selected_animation == null:
 		self.visible = false
+	_init_shortcut_options()
 	$"../New".pressed.connect(_new_animation)
 	$ADD.pressed.connect(_add_frame)
 	$REMOVE.pressed.connect(_remove_frame)
@@ -71,6 +73,7 @@ func _update() -> void:
 		_refresh_frames()
 		updateTexture(0)
 		_update_item_button()
+		_reflect_shortcut_selection()
 	else:
 		self.visible = false
 func _refresh_frames():
@@ -98,3 +101,31 @@ func _on_item_selected(index):
 	root.selected_animation["frames"][root.selected_frame] = root.chart._load_texture(text)
 	root.selected_animation["frame_filenames"][root.selected_frame] = text
 	updateTexture(root.selected_frame)
+
+# --- Shortcut mapping helpers ---
+func _init_shortcut_options() -> void:
+	if not shortcut:
+		return
+	shortcut.clear()
+	var labels = ["1","2","3","4","5","6","7","8","9","0"]
+	for i in range(labels.size()):
+		shortcut.add_item(labels[i], i)
+	if not shortcut.is_connected("item_selected", Callable(self, "_on_shortcut_selected")):
+		shortcut.item_selected.connect(_on_shortcut_selected)
+
+func _on_shortcut_selected(index: int) -> void:
+	if root.selected_animation == null:
+		return
+	# Map number key (1..0) index to current animation id
+	root.shortcut[index] = int(root.selected_animation["id"])
+
+func _reflect_shortcut_selection() -> void:
+	if root.selected_animation == null:
+		return
+	# Select the number key currently mapped to this animation, if any
+	var anim_id = int(root.selected_animation["id"])
+	var idx = root.shortcut.find(anim_id)
+	if idx != -1:
+		shortcut.select(idx)
+	else:
+		shortcut.select(-1)
