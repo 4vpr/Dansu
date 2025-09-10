@@ -2,17 +2,6 @@ extends Node
 const SAVE_PATH := "user://save.json"
 const F11_KEYCODE := 16777265
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_toggle_fullscreen"):
-		var mode: String = settings["graphics"].get("window_mode", "windowed")
-		mode = "windowed" if mode == "fullscreen" else "fullscreen"
-		settings["graphics"]["window_mode"] = mode
-		save_settings()
-		center_window()
-		apply_settings()
-	if event is InputEventScreenTouch:
-		isTouchScreen = true
-
 const FIELD_NAMES = [
 	"score", "note", "perfect_plus", "perfect", "good",
 	"ok", "bad", "miss", "high_combo", "hash"
@@ -205,9 +194,11 @@ func _apply_display_settings() -> void:
 	match mode:
 		"fullscreen":
 			settings["graphics"]["fullscreen"] = true
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 		"borderless":
 			settings["graphics"]["fullscreen"] = false
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
 			settings["graphics"]["resolution"] = str(screen_size.x) + "x" + str(screen_size.y)
 			DisplayServer.window_set_position(screen_position)
@@ -232,6 +223,7 @@ func save_setting(section: String, key: String, value):
 	config.save(config_file_path)
 
 func apply_settings():
+	print("apply_setting")
 	_apply_display_settings()
 	# 해상도 적용
 	var res_parts = settings["graphics"]["resolution"].split("x")
@@ -255,15 +247,13 @@ func apply_settings():
 	var __screen_size = DisplayServer.screen_get_size(__primary)
 	if __mode == "fullscreen":
 		# Use exclusive fullscreen to actually switch to selected resolution
-		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN)
+		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 		DisplayServer.window_set_size(__size)
 	elif __mode == "borderless":
 		# Borderless should cover the entire screen and be visible
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
-		DisplayServer.window_set_size(__screen_size)
-		DisplayServer.window_set_position(__screen_pos)
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	else:
 		# Windowed
 		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
@@ -308,8 +298,6 @@ func apply_settings():
 	var sfx_bus_index = AudioServer.get_bus_index("SFX")
 	if sfx_bus_index != -1:
 		AudioServer.set_bus_volume_db(sfx_bus_index, sfx_db)
-
-
 
 func save_settings():
 	var config = ConfigFile.new()

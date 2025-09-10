@@ -1,11 +1,11 @@
 extends RefCounted
 class_name BeatmapDifficultyAnalyzer
 
-const SEGMENT_DURATION_MS := 3000
+const SEGMENT_DURATION_MS := 2000
 # 세그먼트 나누는 시간;
-const POWER := 10
+const POWER := 10.5
 # powermean의 power
-const WEIGHT := 2.3
+const WEIGHT := 2.15
 # 배수
 
 static func calculate_difficulty(json_data: Dictionary) -> float:

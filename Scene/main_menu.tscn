@@ -396,6 +396,7 @@ label_settings = SubResource("LabelSettings_tbysm")
 vertical_alignment = 1
 
 [node name="FC" type="Label" parent="ScoreBoard"]
+visible = false
 modulate = Color(1, 1, 0.670588, 1)
 material = SubResource("ShaderMaterial_krqdd")
 layout_mode = 1
@@ -406,6 +407,7 @@ offset_left = 268.221
 offset_top = 153.0
 offset_right = 390.221
 offset_bottom = 174.0
+text = "FULL COMBO!"
 label_settings = SubResource("LabelSettings_ug1nb")
 horizontal_alignment = 2
 

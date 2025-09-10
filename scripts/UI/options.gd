@@ -101,7 +101,7 @@ func _setup_window_mode_and_resolution() -> void:
 				m = "borderless"
 			Game.settings["graphics"]["window_mode"] = m
 			if res_button:
-				if m == "borderless":
+				if m != "windowed":
 					var s = str(screen_size.x) + "x" + str(screen_size.y)
 					Game.settings["graphics"]["resolution"] = s
 					res_button.disabled = true
@@ -143,7 +143,7 @@ func _setup_window_mode_and_resolution() -> void:
 				sel_idx = i
 		res_button.select(sel_idx)
 		# Disable if current mode is borderless
-		res_button.disabled = Game.settings["graphics"].get("window_mode", "windowed") == "borderless"
+		res_button.disabled = Game.settings["graphics"].get("window_mode", "windowed") != "windowed"
 		res_button.item_selected.connect(func(i):
 			if res_button.disabled:
 				return
