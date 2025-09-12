@@ -5,6 +5,7 @@ var chart_scene = load("res://Scene/Entity/chart_set.tscn")
 func _ready() -> void:
 	CM.connect("chartset_loaded", Callable(self, "_addchart"))
 	CM.connect("loading_finished",Callable(self, "_refresh"))
+	$Edit/AddDifficulty.connect("pressed", _on_pressed)
 	DisplayServer.window_set_drop_files_callback(Callable(self, "_on_files_dropped"))
 	await get_tree().process_frame
 	#$Edit/AddDifficulty.connect("pressed",_add_new_difficulty)
@@ -14,6 +15,9 @@ func _ready() -> void:
 		var new_chart = chart_scene.instantiate()
 		new_chart.chart_set = chart
 		map_panel.add_child(new_chart)
+func _on_pressed():
+	CM._add_new_difficulty()
+	get_chartset_scene(CM.ss).reload()
 func _addchart(c) -> void:
 	var new_chart = chart_scene.instantiate()
 	new_chart.chart_set = c
@@ -29,7 +33,6 @@ func _on_files_dropped(files: Array[String]) -> void:
 			audio_files.append(f)
 	if audio_files.size() > 0:
 		CM._new_chart_set(audio_files)
-
 func _process(_delta: float) -> void:
 	for child in map_panel.get_children():
 		var childpos = child.position.y + map_panel.position.y
@@ -41,3 +44,7 @@ func _process(_delta: float) -> void:
 			print("unload")
 			child.BG.texture = null
 			child.has_BG = false
+func get_chartset_scene(chartset):
+	for child in map_panel.get_children():
+		if child.chart_set == chartset:
+			return child

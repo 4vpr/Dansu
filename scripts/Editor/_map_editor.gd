@@ -204,7 +204,6 @@ func _on_file_selected(file_path: String):
 		if dst_file:
 			dst_file.store_buffer(_data)
 			dst_file.close()
-	CM.sc._load_cover_image()
 func _ready() -> void:
 	chart = CM.sc
 	Game.currentTime = 0

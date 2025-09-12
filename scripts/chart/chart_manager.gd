@@ -15,6 +15,12 @@ signal loading_finished()
 signal chart_selected(chart)
 
 @warning_ignore("unused_signal")
+signal chart_reload()
+
+@warning_ignore("unused_signal")
+signal chart_update(chart_set)
+
+@warning_ignore("unused_signal")
 signal chartset_selected(chart_set)
 
 @warning_ignore("unused_signal")
@@ -24,7 +30,9 @@ signal chart_loaded()
 var charts: Array = []
 var sc : Chart # selected chart
 var ss : ChartSet # selected set
-var folders: Array[String] = []
+var all_folders: Array[String] = []
+var unloaded_folders: Array[String] = []
+var loaded_folders: Array[String] = []
 var lastSelectedDiff := 0
 
 # ===== Loader internals =====
@@ -36,12 +44,15 @@ var _stop := false
 var _mutex := Mutex.new()
 
 func _ready() -> void:
-	folders = get_folders_in_path("user://Songs")
-	start_loading(folders, 4)
+	all_folders = get_folders_in_path("user://Songs")
+	unloaded_folders = all_folders
+	start_loading(unloaded_folders, 4)
 
 func reload() -> void:
-	folders = get_folders_in_path("user://Songs")
-	start_loading(folders,4)
+	all_folders = get_folders_in_path("user://Songs")
+	unloaded_folders = all_folders.filter(func(x): return not loaded_folders.has(x))
+	start_loading(unloaded_folders,4)
+	_emit_reload()
 	
 # --- Public: start/stop loading ---
 func start_loading(folders_in: Array[String], thread_num: int = 4) -> void:
@@ -215,6 +226,7 @@ func import_dansu(archive_path: String) -> void:
 	# No matched set -> treat as new set
 	charts.append(new_set)
 	call_deferred("_emit_loaded", new_set)
+	emit_signal("chartset_selected",new_set)
 	print("[Import] Imported to:", unique_root)
 
 # Internal: zip a directory so that the root folder in the archive is `root_name`
@@ -332,6 +344,7 @@ func _thread_func() -> void:
 		if _folders_to_load.size() > 0:
 			folder = _folders_to_load[0]
 			_folders_to_load.remove_at(0)
+			loaded_folders.append(folder)
 		_mutex.unlock()
 
 		if folder == "":
@@ -365,6 +378,8 @@ func _emit_finished() -> void:
 	if charts.size() > 0:
 		ss = charts[0]
 		emit_signal("chart_loaded")
+func _emit_reload() -> void:
+	emit_signal("chart_reload")
 
 # ===== Manager helpers =====
 func get_folders_in_path(path: String) -> Array[String]:
@@ -418,13 +433,8 @@ func _add_new_difficulty() -> void:
 			var new_chart := Chart.new()
 			new_chart.load_from_json(target_path)
 			new_chart.folder_path = ss.folder_path
-			for child in $MapPanel/VBoxContainer.get_children():
-				if "chart_set" in child and child.chart_set == ss:
-					child.chart_set.charts.append(new_chart)
-					sc = new_chart
-					if "reload" in child:
-						child.reload()
-					break
+			ss.charts.append(new_chart)
+
 
 # 새 차트셋 폴더 생성
 func _new_chart_set(files: Array[String]) -> void:

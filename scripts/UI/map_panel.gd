@@ -17,13 +17,16 @@ func _gui_input(event):
 @export var preload_margin: int = 64
 var _last_scroll := Vector2i(-1, -1)
 
+func _ready() -> void:
+	CM.connect("chart_reload",Callable(self, "_reload"))
 func _process(_dt: float) -> void:
 	var cur := Vector2i(scroll_horizontal, scroll_vertical)
 	if cur == _last_scroll:
 		return
 	_last_scroll = cur
 	_update_visible_items()
-
+func _reload() -> void:
+	pass
 func _update_visible_items() -> void:
 	var vp := get_global_rect().grow(preload_margin)
 	for child in $VBoxContainer.get_children():
