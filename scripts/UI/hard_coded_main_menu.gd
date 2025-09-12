@@ -14,6 +14,8 @@ var SS_SongSelect = 0.0
 var SS_ScoreBoard = 50.0
 var is_option_window = false
 func _ready() -> void:
+	Engine.max_fps = DisplayServer.screen_get_refresh_rate()
+	Engine.physics_ticks_per_second = 10
 	if Game.scene == Game.Scene.Play or Game.scene == Game.Scene.Edit:
 		$BG.position.x = -2500.0
 		$Menu.position.x = SS_Menu

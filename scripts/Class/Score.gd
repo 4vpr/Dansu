@@ -1,30 +1,19 @@
 extends Node
 class_name Score
 
-var http_request: HTTPRequest
-
-func _ready():
-	# HTTPRequest 노드 추가(없으면) ㅇ
-	if not has_node("HTTPRequest"):
-		http_request = HTTPRequest.new()
-		add_child(http_request)
-		http_request.connect("request_completed", Callable(self, "_on_request_completed"))
-	else:
-		http_request = get_node("HTTPRequest")
-
 # timing of each judgements (ms)
-const t_perfect_plus: float = 18
-const t_perfect: float = 48
-const t_great: float = 72
-const t_ok: float = 144
-const t_bad: float = 288
+const t_perfect_plus: float = 21
+const t_perfect: float = 42
+const t_great: float = 63
+const t_ok: float = 84
+const t_bad: float = 105
 
 # score of each judgements
 const s_perfect_plus: float = 100
 const s_perfect = 99
 const s_great = 50
-const s_ok = 25
-const s_bad = 0
+const s_ok = 30
+const s_bad = 15
 
 # count of judgement for result
 var c_note :int = 0

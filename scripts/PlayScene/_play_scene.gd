@@ -13,6 +13,7 @@ var score = Score.new()
 var combo = 0
 var judgeDisplayDuration = 1
 var song_end = 0
+var paused = false
 const DifficultyAnalyzer = preload("res://scripts/Class/difficulty_analyzer.gd")
 @onready var player = $Player
 @onready var rail_container = $Ground/RailContainor
@@ -35,10 +36,42 @@ func _input(event: InputEvent) -> void:
 		else:
 			playerAction(Game.currentTime)
 func _ready() -> void:
+
+	Engine.max_fps = Game.settings["graphics"]["MaxFPS"]
+	Engine.physics_ticks_per_second = Game.settings["gameplay"]["pollingRate"]
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	$UI/TouchScreen.visible = Game.isTouchScreen
+	%Resume.connect("button_down",pause)
+	%Retry.connect("button_down",retry)
+	%Exit.connect("button_down",exit)
 	load_background()
 	add_child(sfx_pool)
+	reset()
+
+var start_time = 0
+var song_playing = false
+var wait = true
+
+var lerping = 1.5 + abs(Game.settings["audio"]["offset"] * 1000)
+func reset() -> void:
+	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	$AnimationPlayer.play("camera_intro")
+	for child in rail_container.get_children():
+		rail_container.remove_child(child)
+	rails = []
+	rails_i = 0
+	notes = []
+	notes_i = 0
+	nextnote_i = -1
+	hitnotes = []
+	score = Score.new()
+	combo = 0
+	judgeDisplayDuration = 1
+	song_end = 0
+	start_time = 0
+	song_playing = false
+	wait = true
+	lerping = 1.5 + abs(Game.settings["audio"]["offset"] * 1000)
 	Game.currentTime = 0
 	chart = CM.sc
 	chart.parse_objects()
@@ -50,31 +83,60 @@ func _ready() -> void:
 			score.hash = chart.get_hash()
 			current_time_msec = Time.get_ticks_msec()
 			setNextNote()
-var start_time = 0
-var song_playing = false
-var wait = true
-var lerping = 1.5 + abs(Game.settings["audio"]["offset"] * 1000)
 
 func _process(delta: float) -> void:
-	if lerping < 0 and wait:
-		songplayer.play()
-		wait = false
-	elif wait:
-		lerping -= delta
-		Game.currentTime = lerping * -1000
-	if Game.currentTime > song_end:
-		songplayer.volume_db -= delta * 30
-		if Game.currentTime > song_end + 2000:
-			Game.score = score
-			get_tree().change_scene_to_file("res://Scene/result_scene.tscn")
-	check_objects()
-	comboDisplayer.text = str(combo)
-	if not song_playing and songplayer.playing:
-		start_time = Time.get_ticks_msec() - songplayer.get_playback_position() * 1000
-		song_playing = true
-	if Input.is_action_just_pressed("ui_cancel"):
-		get_tree().change_scene_to_file("res://Scene/main_menu.tscn")
+	if !paused:
+		if lerping < 0 and wait:
+			songplayer.play()
+			wait = false
+		elif wait:
+			lerping -= delta
+			Game.currentTime = lerping * -1000
+		if Game.currentTime > song_end:
+			songplayer.volume_db -= delta * 30
+			if Game.currentTime > song_end + 2000:
+				Game.score = score
+				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+				get_tree().change_scene_to_file("res://Scene/result_scene.tscn")
+		check_objects()
+		comboDisplayer.text = str(combo)
+		if not song_playing and songplayer.playing:
+			start_time = Time.get_ticks_msec() - songplayer.get_playback_position() * 1000
+			song_playing = true
+		if Input.is_action_just_pressed("ui_cancel"):
+			%Pause.visible = true
+			pause()
+var paused_time = 0
 
+func pause():
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	paused = !paused
+	if paused:
+		paused_time = Time.get_ticks_msec()
+		if song_playing:
+			songplayer.stop()
+	else:
+		start_time += Time.get_ticks_msec() - paused_time
+		if song_playing:
+			songplayer.play()
+			songplayer.seek((Time.get_ticks_msec() - start_time) / 1000.0)
+		%Pause.visible = false
+		Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
+	pass
+
+func retry():
+	reset()
+	paused = false
+	%Pause.visible = false
+	player.reset()
+	
+	
+	pass
+
+func exit():
+	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	get_tree().change_scene_to_file("res://Scene/main_menu.tscn")
+	
 func parse_objects(chart: Chart):
 	rails = chart.rails
 	notes = chart.notes
@@ -111,20 +173,21 @@ func check_objects():
 		notes_i += 1
 var current_time_msec = 0
 func _physics_process(delta:float) -> void:
-	if song_playing:
-		Game.currentTime = Time.get_ticks_msec() - start_time - Game.offset_recom + Game.settings["audio"]["offset"]
-	check_judge()
-	if Input.is_action_just_pressed("move_left"):
-		playerMove(2, Game.currentTime)
-		player.move(-1)
-	if Input.is_action_just_pressed("move_right"):
-		playerMove(4, Game.currentTime)
-		player.move(1)
-	#if Input.is_action_just_pressed("move_up") and !isJumping:
-	#	isJumping = true
-	#	jumpDurationCurrent = jumpDuration
-	if Input.is_action_just_pressed("action_1") or Input.is_action_just_pressed("action_2"):
-		playerAction(Game.currentTime)
+	if !paused:
+		if song_playing:
+			Game.currentTime = Time.get_ticks_msec() - start_time - Game.offset_recom + Game.settings["audio"]["offset"]
+		check_judge()
+		if Input.is_action_just_pressed("move_left"):
+			playerMove(2, Game.currentTime)
+			player.move(-1)
+		if Input.is_action_just_pressed("move_right"):
+			playerMove(4, Game.currentTime)
+			player.move(1)
+		#if Input.is_action_just_pressed("move_up") and !isJumping:
+		#	isJumping = true
+		#	jumpDurationCurrent = jumpDuration
+		if Input.is_action_just_pressed("action_1") or Input.is_action_just_pressed("action_2"):
+			playerAction(Game.currentTime)
 func check_judge():
 	if nextnote_i < notes.size() && nextnote_i > -1:
 		if notes[nextnote_i].time + score.t_ok < Game.currentTime:

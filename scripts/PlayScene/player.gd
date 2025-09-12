@@ -43,6 +43,13 @@ func _ready() -> void:
 	var world_height = tex_size.y * sprite.pixel_size
 	sprite.position.y = world_height * scale_factor.y / (target_size.y / texture_size.y) / 2
 	scaleVel = scale
+func reset() -> void:
+	default_dance_i = 0
+	setPlayerIdle()
+	rails = []
+	position.x = 0
+	standRail = null
+	pass
 func _process(delta: float) -> void:
 	rails = railContainer.get_children()
 	playAnimation()

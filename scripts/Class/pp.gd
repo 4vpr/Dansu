@@ -3,17 +3,17 @@ class_name PP
 static func calculate_pp(score: float, difficulty: float) -> float:
 	var pp_max := 0.0
 	if difficulty <= 10.0:
-		pp_max = lerp(0.0, 50.0, difficulty / 10.0)
+		pp_max = lerp(0.0, 80.0, difficulty / 10.0)
 	elif difficulty <= 20.0:
-		pp_max = lerp(50.0, 150.0, (difficulty - 10.0) / 10.0)
+		pp_max = lerp(80.0, 160.0, (difficulty - 10.0) / 10.0)
 	elif difficulty <= 30.0:
-		pp_max = lerp(150.0, 400.0, (difficulty - 20.0) / 10.0)
+		pp_max = lerp(160.0, 290.0, (difficulty - 20.0) / 10.0)
 	elif difficulty <= 40.0:
-		pp_max = lerp(400.0, 1000.0, (difficulty - 30.0) / 10.0)
+		pp_max = lerp(290.0, 500.0, (difficulty - 30.0) / 10.0)
 	else:
-		pp_max = 1000.0 + (difficulty - 40.0) * 20.0 
+		pp_max = 500.0 + (difficulty - 40.0) * 20.0
 	var multiplier := 0.0
-	if score <= 90.0:
+	if score <= 8.0:
 		multiplier = lerp(0.0, 0.1, score / 80.0)
 	elif score <= 93.0:
 		multiplier = lerp(0.1, 0.3, (score - 80.0) / 10.0)
@@ -24,7 +24,7 @@ static func calculate_pp(score: float, difficulty: float) -> float:
 	elif score <= 100.0:
 		multiplier = lerp(1.0, 1.1, (score - 99.0))
 	elif score <= 101.0:
-		multiplier = lerp(1.1, 1.3, (score - 100.0))
+		multiplier = lerp(1.1, 1.2, (score - 100.0))
 	else:
 		multiplier = 1.3
 	return snappedf(pp_max * multiplier, 0.01)

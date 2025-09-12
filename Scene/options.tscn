@@ -1,9 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://bwxxsx3jrkm56"]
+[gd_scene load_steps=7 format=3 uid="uid://bwxxsx3jrkm56"]
 
 [ext_resource type="Script" path="res://scripts/UI/options.gd" id="1_dgl4p"]
 [ext_resource type="Script" path="res://scripts/SongSelect/Hslider_velocity.gd" id="2_pat5m"]
 [ext_resource type="Script" path="res://scripts/simple_buttons/b_open_song_folder.gd" id="3_tbbmq"]
 [ext_resource type="Script" path="res://scripts/simple_buttons/b_reload.gd" id="4_hplq3"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_dg2hk"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_1bnu6"]
 
@@ -12,16 +14,20 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 2300.0
+offset_left = 2495.0
 offset_right = 1300.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="Panel" parent="."]
+material = SubResource("CanvasItemMaterial_dg2hk")
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = -1
+anchor_left = 0.07
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 7.25
+offset_right = 3.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_dgl4p")
@@ -69,27 +75,55 @@ focus_mode = 0
 [node name="Left" type="Button" parent="Panel"]
 layout_mode = 0
 offset_left = 130.0
-offset_top = 457.0
+offset_top = 590.0
 offset_right = 174.0
-offset_bottom = 488.0
+offset_bottom = 621.0
 focus_mode = 0
 text = "LEFT"
 
 [node name="Right" type="Button" parent="Panel"]
 layout_mode = 0
 offset_left = 130.0
-offset_top = 495.0
+offset_top = 628.0
 offset_right = 186.0
-offset_bottom = 526.0
+offset_bottom = 659.0
 focus_mode = 0
 text = "RIGHT"
+
+[node name="velocity" type="HSlider" parent="Panel"]
+layout_mode = 0
+offset_left = 37.0
+offset_top = 553.0
+offset_right = 591.0
+offset_bottom = 569.0
+min_value = 5.0
+max_value = 20.0
+step = 0.5
+value = 5.0
+tick_count = 16
+ticks_on_borders = true
+script = ExtResource("2_pat5m")
+
+[node name="Label" type="Label" parent="Panel/velocity"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.014
+anchor_top = -1.937
+anchor_right = 1.039
+anchor_bottom = -0.5
+offset_left = 28.756
+offset_top = -0.00799942
+offset_right = -441.606
+text = "notespeed : 10"
+label_settings = SubResource("LabelSettings_1bnu6")
+horizontal_alignment = 1
 
 [node name="A1" type="Button" parent="Panel"]
 layout_mode = 0
 offset_left = 131.0
-offset_top = 536.0
+offset_top = 669.0
 offset_right = 175.0
-offset_bottom = 567.0
+offset_bottom = 700.0
 rotation = -0.00331617
 focus_mode = 0
 text = "Z"
@@ -97,9 +131,9 @@ text = "Z"
 [node name="A2" type="Button" parent="Panel"]
 layout_mode = 0
 offset_left = 132.0
-offset_top = 575.0
+offset_top = 708.0
 offset_right = 176.0
-offset_bottom = 606.0
+offset_bottom = 739.0
 focus_mode = 0
 text = "X"
 
@@ -144,36 +178,36 @@ horizontal_alignment = 1
 [node name="Label5" type="Label" parent="Panel"]
 layout_mode = 0
 offset_left = 23.0
-offset_top = 460.0
-offset_right = 78.0
-offset_bottom = 483.0
+offset_top = 593.0
+offset_right = 100.0
+offset_bottom = 616.0
 text = "Move Left"
 horizontal_alignment = 1
 
 [node name="Label6" type="Label" parent="Panel"]
 layout_mode = 0
 offset_left = 23.0
-offset_top = 499.0
-offset_right = 100.0
-offset_bottom = 522.0
+offset_top = 632.0
+offset_right = 110.0
+offset_bottom = 655.0
 text = "Move Right"
 horizontal_alignment = 1
 
 [node name="Label7" type="Label" parent="Panel"]
 layout_mode = 0
 offset_left = 23.0
-offset_top = 540.0
+offset_top = 673.0
 offset_right = 110.0
-offset_bottom = 563.0
+offset_bottom = 696.0
 text = "Action 1"
 horizontal_alignment = 1
 
 [node name="Label8" type="Label" parent="Panel"]
 layout_mode = 0
 offset_left = 22.0
-offset_top = 580.0
+offset_top = 713.0
 offset_right = 109.0
-offset_bottom = 603.0
+offset_bottom = 736.0
 text = "Action 2"
 horizontal_alignment = 1
 
@@ -186,47 +220,66 @@ offset_bottom = 393.0
 text = "Music"
 horizontal_alignment = 1
 
-[node name="velocity" type="HSlider" parent="."]
+[node name="ShowFps" type="CheckBox" parent="Panel"]
 layout_mode = 0
-offset_left = 149.0
-offset_top = 1014.0
-offset_right = 774.0
-offset_bottom = 1030.0
-min_value = 5.0
-max_value = 20.0
-step = 0.5
-value = 5.0
-script = ExtResource("2_pat5m")
+offset_left = 44.0
+offset_top = 195.0
+offset_right = 146.0
+offset_bottom = 226.0
+text = "Show FPS"
 
-[node name="Label" type="Label" parent="velocity"]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = -5.19
-anchor_right = 0.5
-anchor_bottom = -2.121
-offset_left = 16.0
-offset_top = 49.04
-offset_right = -144.0
-offset_bottom = 22.936
-text = "notespeed
-"
-label_settings = SubResource("LabelSettings_1bnu6")
-
-[node name="Button" type="Button" parent="."]
+[node name="Button" type="Button" parent="Panel"]
 layout_mode = 0
-offset_left = 17.0
-offset_top = 650.0
-offset_right = 233.0
-offset_bottom = 704.0
+offset_left = 73.0
+offset_top = 993.0
+offset_right = 289.0
+offset_bottom = 1047.0
 text = "open chart folder
 "
 script = ExtResource("3_tbbmq")
 
-[node name="Button2" type="Button" parent="."]
+[node name="FPS" type="HSlider" parent="Panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.355
+anchor_right = 0.355
+offset_left = -198.945
+offset_top = 164.0
+offset_right = 355.055
+offset_bottom = 180.0
+max_value = 1000.0
+step = 10.0
+value = 30.0
+
+[node name="value" type="Label" parent="Panel/FPS"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.032
+anchor_top = -1.687
+anchor_right = 0.032
+anchor_bottom = -1.687
+offset_left = 0.0880604
+offset_top = -0.00799942
+offset_right = 68.0881
+offset_bottom = 22.992
+text = "FPS : 500
+"
+label_settings = SubResource("LabelSettings_1bnu6")
+horizontal_alignment = 1
+
+[node name="Button2" type="Button" parent="Panel"]
 layout_mode = 0
-offset_left = 251.0
-offset_top = 650.0
-offset_right = 467.0
-offset_bottom = 704.0
+offset_left = 368.0
+offset_top = 993.0
+offset_right = 584.0
+offset_bottom = 1047.0
 text = "reload"
 script = ExtResource("4_hplq3")
+
+[node name="v-sync" type="CheckBox" parent="Panel"]
+layout_mode = 0
+offset_left = 162.0
+offset_top = 195.0
+offset_right = 264.0
+offset_bottom = 226.0
+text = "V-Sync"

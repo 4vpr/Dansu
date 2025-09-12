@@ -1,13 +1,23 @@
 extends Node
 const SAVE_PATH := "user://save.json"
-const F11_KEYCODE := 16777265
 
 const FIELD_NAMES = [
 	"score", "note", "perfect_plus", "perfect", "good",
 	"ok", "bad", "miss", "high_combo", "hash"
 ]
-
 var save_data: Dictionary = {}
+
+
+
+
+
+
+
+
+#------------------------------------------------------
+"                      [SAVE]                         "
+#------------------------------------------------------
+
 
 func load_data():
 	var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
@@ -119,23 +129,31 @@ func check_folders():
 					print(dir_name + " failed to create :", full_path)
 			else:
 				print(" failed to open :", base_path)
+
+
+#------------------------------------------------------
+"                      [Settings]                    "
+#------------------------------------------------------
+
+
 var config_file_path = "user://settings.cfg"
+var monitor_res = str(DisplayServer.screen_get_size()[0]) + "x" + str(DisplayServer.screen_get_size()[1])
 var settings = {
 	"graphics": {
-		"resolution": "1920x1080",
+		"resolution": monitor_res,
 		"window_mode": "fullscreen", # windowed | fullscreen | borderless
 		"fullscreen": true, # legacy toggle for migration
-		"MaxFPS": 1000,
+		"MaxFPS": DisplayServer.screen_get_refresh_rate(),
 		"VSync": true,
 	},
 	"audio": {
 		"volume_master": 0.5,
-		"volume_song": 0.25,
+		"volume_song": 0.5,
 		"volume_sfx": 0.5,
 		"offset": 0.0
 	},
 	"gameplay": {
-		"velocity": 8.0,
+		"velocity": 7.5,
 		"playerheight": 450,
 		"pollingRate": 1000,
 		"playerSpeed": 10,
@@ -149,7 +167,9 @@ var settings = {
 	}
 }
 
+
 func load_settings():
+	print(monitor_res)
 	var config = ConfigFile.new()
 	if config.load(config_file_path) == OK:
 		for section in settings.keys():
@@ -162,6 +182,8 @@ func load_settings():
 			var legacy_full = bool(settings["graphics"].get("fullscreen", false))
 			settings["graphics"]["window_mode"] = "fullscreen" if legacy_full else "windowed"
 	save_settings()
+
+
 func center_window():
 	# 주 모니터 인덱스
 	var primary_screen_index = DisplayServer.get_primary_screen()
@@ -176,21 +198,25 @@ func center_window():
 	# 위치 설정
 	DisplayServer.window_set_position(centered_position)
 
+
 func _apply_display_settings() -> void:
+	
 	var primary_screen_index = DisplayServer.get_primary_screen()
 	var screen_position = DisplayServer.screen_get_position(primary_screen_index)
 	var screen_size = DisplayServer.screen_get_size(primary_screen_index)
-
+	
 	var mode: String = settings["graphics"].get("window_mode", "windowed")
 	var res_parts = settings["graphics"]["resolution"].split("x")
 	var req_size := Vector2i(1920, 1080)
+	
 	if res_parts.size() == 2:
 		req_size = Vector2i(int(res_parts[0]), int(res_parts[1]))
 	var final_size := req_size
+	
 	if mode != "fullscreen":
 		final_size.x = min(final_size.x, screen_size.x)
 		final_size.y = min(final_size.y, screen_size.y)
-
+	
 	match mode:
 		"fullscreen":
 			settings["graphics"]["fullscreen"] = true
@@ -207,6 +233,7 @@ func _apply_display_settings() -> void:
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 			settings["graphics"]["resolution"] = str(final_size.x) + "x" + str(final_size.y)
 
+
 func save_setting(section: String, key: String, value):
 	var config = ConfigFile.new()
 	# 키 설정 저장;
@@ -222,6 +249,7 @@ func save_setting(section: String, key: String, value):
 	config.set_value(section, key, value)
 	config.save(config_file_path)
 
+
 func apply_settings():
 	print("apply_setting")
 	_apply_display_settings()
@@ -233,9 +261,8 @@ func apply_settings():
 		DisplayServer.window_set_size(Vector2i(width, height))
 	# 전체화면 적용
 	DisplayServer.window_set_mode(
-	DisplayServer.WINDOW_MODE_FULLSCREEN if settings["graphics"]["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED
-)
-
+	DisplayServer.WINDOW_MODE_FULLSCREEN if settings["graphics"]["fullscreen"]
+	else DisplayServer.WINDOW_MODE_WINDOWED)
 	# Enforce specific handling for selected window_mode
 	var __mode: String = settings["graphics"].get("window_mode", "windowed")
 	var __parts = settings["graphics"]["resolution"].split("x")
@@ -264,9 +291,6 @@ func apply_settings():
 	var ____mode = settings["graphics"].get("window_mode", "windowed")
 	if ____mode == "windowed":
 		center_window()
-	#fps 적용
-	Engine.max_fps = settings["graphics"]["MaxFPS"]
-	Engine.physics_ticks_per_second = settings["gameplay"]["pollingRate"]
 	#키설정 적용
 	for action in settings["key"].keys():
 		var key_str = settings["key"][action]
@@ -317,11 +341,12 @@ func _use_default_skin() -> PlayerSkin:
 var editor_velocity: float = 1
 var offset_recom = AudioServer.get_output_latency()
 var currentTime: float = 0.0
+
 func setVelocity(v:float) -> void:
 	settings["gameplay"]["velocity"] = v
 	travelTime = panelSize * 1000 / settings["gameplay"]["velocity"]
 	save_settings()
-	pass
+
 var SongSlider
 var lastSelectDiff = 0
 

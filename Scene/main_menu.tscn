@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://dxfmwdq83fxan"]
+[gd_scene load_steps=35 format=3 uid="uid://dxfmwdq83fxan"]
 
 [ext_resource type="Script" path="res://scripts/UI/hard_coded_main_menu.gd" id="1_8jwjo"]
 [ext_resource type="Texture2D" uid="uid://bbtnd1giiabmu" path="res://Resources/font/dansu.png" id="1_efvlb"]
@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://scripts/SongSelect/score_board.gd" id="10_hp6ec"]
 [ext_resource type="Texture2D" uid="uid://clo46ei6lyban" path="res://Textures/scoreboard.png" id="11_jrlw2"]
 [ext_resource type="Shader" path="res://Resources/wave.gdshader" id="12_jpbaa"]
+[ext_resource type="Script" path="res://scripts/PlayScene/UI/fps.gd" id="16_p7dvb"]
 [ext_resource type="Script" path="res://scripts/UI/user.gd" id="18_xbuua"]
 [ext_resource type="Script" path="res://scripts/dump/dump_login.gd" id="20_4yqsr"]
 
@@ -59,6 +60,8 @@ font = ExtResource("3_3fvc3")
 font_size = 20
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_rdyq5"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_74rsn"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -523,3 +526,11 @@ offset_bottom = 94.0
 theme_override_fonts/font = ExtResource("3_3fvc3")
 theme_override_font_sizes/font_size = 20
 text = "0000 sp"
+
+[node name="Fps" type="Label" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "123123"
+label_settings = SubResource("LabelSettings_74rsn")
+script = ExtResource("16_p7dvb")

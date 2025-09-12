@@ -10,6 +10,9 @@ func _ready() -> void:
 	$Music.value = Game.settings["audio"]["volume_song"] * 100
 	$SFX.value_changed.connect(_sfx)
 	$SFX.value = Game.settings["audio"]["volume_sfx"] * 100
+	$FPS.value_changed.connect(_fps)
+	$FPS.value = Game.settings["graphics"]["MaxFPS"]
+	$FPS/value.text = "FPS: "+ str(Game.settings["graphics"]["MaxFPS"])
 	$Left.pressed.connect(_left)
 	$Left.text = Game.settings["key"]["move_left"]
 	$Right.pressed.connect(_right)
@@ -18,7 +21,9 @@ func _ready() -> void:
 	$A1.text = Game.settings["key"]["action_1"]
 	$A2.pressed.connect(_a2)
 	$A2.text = Game.settings["key"]["action_2"]
-
+	$ShowFps.toggled.connect(_show_fps)
+	$ShowFps.button_pressed = Game.settings["gameplay"]["showFPS"]
+	
 	_setup_window_mode_and_resolution()
 func _master(value):
 	Game.settings["audio"]["volume_master"] = value / 100
@@ -35,6 +40,7 @@ func _sfx(value):
 	var db = linear_to_db(Game.settings["audio"]["volume_sfx"])
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("SFX"), db)
 var selected_button
+
 func _left() -> void:
 	is_key_assign_mode = true
 	key_assign_action = "move_left"
@@ -153,6 +159,16 @@ func _setup_window_mode_and_resolution() -> void:
 			Game.save_settings()
 			Game.apply_settings()
 		)
+
+func _fps(value):
+	Game.settings["graphics"]["MaxFPS"] = value
+	if value != 0:
+		$FPS/value.text = "FPS: "+ str(Game.settings["graphics"]["MaxFPS"])
+	else:
+		$FPS/value.text = "FPS: infinite"
+
+func _show_fps():
+	Game.settings["gameplay"]["showFPS"] = not Game.settings["gameplay"]["showFPS"]
 
 func _select_or_insert_resolution(btn: OptionButton, size: Vector2i) -> void:
 	var text := str(size.x) + "x" + str(size.y)
