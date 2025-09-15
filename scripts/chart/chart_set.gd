@@ -46,7 +46,7 @@ func _load_cover_image() -> Texture2D:
 	return cover_image
 
 func _get_bg_path() -> String:
-	var image_extensions = [".jpg", ".jpeg", ".png"]
+	var image_extensions = [".jpg", ".jpeg", ".png" , ".webp"]
 	var dir = DirAccess.open(folder_path)
 	if not dir:
 		return ""

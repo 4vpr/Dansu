@@ -150,7 +150,7 @@ var settings = {
 		"volume_master": 0.5,
 		"volume_song": 0.5,
 		"volume_sfx": 0.5,
-		"offset": 0.0
+		"offset": 0,
 	},
 	"gameplay": {
 		"velocity": 7.5,

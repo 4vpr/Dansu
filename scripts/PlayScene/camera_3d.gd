@@ -9,5 +9,4 @@ func _ready() -> void:
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	position.x = lerp(position.x, ($"../Player".position.x), delta * 10)
-	$"../Background".position.x = position.x
 	pass

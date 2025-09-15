@@ -145,7 +145,7 @@ func parse_objects(chart: Chart):
 	song_end = notes[-1].time + 1000 if notes.size() > 0 else 0
 
 func load_background():
-	var material = $Background.mesh.surface_get_material(0)
+	var material = %BG.mesh.surface_get_material(0)
 	material.albedo_texture = CM.ss._load_cover_image()
 
 func check_objects():
@@ -175,7 +175,7 @@ var current_time_msec = 0
 func _physics_process(delta:float) -> void:
 	if !paused:
 		if song_playing:
-			Game.currentTime = Time.get_ticks_msec() - start_time - Game.offset_recom + Game.settings["audio"]["offset"]
+			Game.currentTime = Time.get_ticks_msec() - start_time + Game.settings["audio"]["offset"] + Game.offset_recom
 		check_judge()
 		if Input.is_action_just_pressed("move_left"):
 			playerMove(2, Game.currentTime)

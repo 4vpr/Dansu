@@ -33,7 +33,7 @@ func _ready() -> void:
 			ArrowSprite.visible = false
 			scale.x = 0.5
 		4: #Spike
-			position.y = 0.15
+			position.y = 0.13
 			NoteSprite.texture = SpikeTex
 			ArrowSprite.visible = false
 		5: #Long
