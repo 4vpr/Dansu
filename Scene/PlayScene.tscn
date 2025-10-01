@@ -1,9 +1,8 @@
-[gd_scene load_steps=43 format=3 uid="uid://b8in7w7bfex2h"]
+[gd_scene load_steps=41 format=3 uid="uid://b8in7w7bfex2h"]
 
 [ext_resource type="Script" path="res://scripts/PlayScene/_play_scene.gd" id="1_rq5yt"]
 [ext_resource type="Script" path="res://scripts/PlayScene/player.gd" id="2_pb52u"]
 [ext_resource type="Script" path="res://scripts/PlayScene/camera_3d.gd" id="4_6a102"]
-[ext_resource type="Texture2D" uid="uid://c6la50bo8j50k" path="res://10491.jpg" id="4_x7oiy"]
 [ext_resource type="Texture2D" uid="uid://cutwk4vtb2r6w" path="res://Textures/panel.png" id="5_5nxeb"]
 [ext_resource type="FontFile" uid="uid://dyqkpg5wawdxu" path="res://Resources/font/Next Bravo.ttf" id="6_qkpip"]
 [ext_resource type="Script" path="res://scripts/PlayScene/UI/combo.gd" id="6_ws3s7"]
@@ -13,16 +12,7 @@
 [ext_resource type="Script" path="res://scripts/button_animation.gd" id="11_le61d"]
 [ext_resource type="Texture2D" uid="uid://djkfue30pv52n" path="res://Textures/Buttons/pause.png" id="11_q1tko"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qgxkp"]
-shading_mode = 0
-albedo_color = Color(0.266667, 0.266667, 0.266667, 1)
-albedo_texture = ExtResource("4_x7oiy")
-albedo_texture_force_srgb = true
-texture_filter = 5
-texture_repeat = false
-
 [sub_resource type="QuadMesh" id="QuadMesh_5iy25"]
-material = SubResource("StandardMaterial3D_qgxkp")
 size = Vector2(15, 15)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0es7k"]

@@ -582,10 +582,10 @@ vertical_alignment = 1
 
 [node name="Label2" type="Label" parent="."]
 layout_mode = 0
-offset_left = -896.0
-offset_top = 118.0
-offset_right = -460.0
-offset_bottom = 358.0
+offset_left = -676.0
+offset_top = 291.0
+offset_right = -240.0
+offset_bottom = 531.0
 text = "4. playerState (idle 등) 토글버튼
 5. Inspector 에 노트선택시 애니메이션 선택기능
 6. 애니메이션 미리보기 기능

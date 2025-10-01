@@ -1,7 +1,7 @@
 extends TextureRect
 class_name LazyImage
 
-@export_file("*.png", "*.jpg", "*.jpeg") var image_path: String
+@export_file("*.png", "*.jpg", "*.jpeg", "*.webp") var image_path: String
 var _loaded := false
 
 func ensure_loaded() -> void:

@@ -10,36 +10,33 @@ const t_bad: float = 105
 
 # score of each judgements
 const s_perfect_plus: float = 100
-const s_perfect = 99
-const s_great = 50
-const s_ok = 30
-const s_bad = 15
+const s_perfect: float = 99
+const s_great: float = 50
+const s_ok: float = 30
+const s_bad: float = 15
 
 # count of judgement for result
-var c_note :int = 0
-var c_perfect_plus = 0
-var c_perfect = 0 
-var c_great = 0
-var c_ok = 0
-var c_bad = 0
-var c_miss = 0
+var c_note: int = 0
+var c_perfect_plus: int = 0
+var c_perfect: int = 0 
+var c_great: int = 0
+var c_ok: int = 0
+var c_bad: int = 0
+var c_miss: int = 0
 
 # current score
 var score :float = 0
 # max score for the map
 var max_score :float = 0
-var high_combo = 0
+var high_combo: int = 0
 
 
 var uuid = 0
-
 # hash for the score
 var hash = 0
 # 맵 실행시 맵파일로 해시를 생성, 비교해서 맵이 되었을시 uuid만으로 상호호환이 안되기 하기 위함.
 # 예시상황) 유저가 맵을 배포함 -> 다른유저가 플레이하여 기록 남김 -> 맵이 업데이트 됨
 # -> 해당 기록은 해시값의 비교로 맵의 다른버전에서 기록된 점수라는 사실을 알 수 있음.
-
-
 
 func getJudge(i) -> int:
 	var j:int = -1

@@ -18,7 +18,6 @@ var NoteTex = preload("res://Textures/note.png")
 var MoveTex = preload("res://Textures/note2.png")
 var SpikeTex = preload("res://Textures/note3.png")
 func _ready() -> void:
-	
 	NoteSprite.modulate.a = 0.0
 	ArrowSprite.modulate.a = 0.0
 	match type:
