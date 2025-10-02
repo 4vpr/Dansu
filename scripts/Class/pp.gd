@@ -28,7 +28,7 @@ static func calculate_pp(score: float, difficulty: float) -> float:
 	else:
 		multiplier = 1.3
 	return snappedf(pp_max * multiplier, 0.01)
-
+"""
 static func calculate_total_pp(max_count: int = 30) -> float:
 	var pp_list = get_pp_list_from_saved_scores()
 	pp_list.sort_custom(func(a, b): return b > a)
@@ -56,26 +56,4 @@ static func get_rank_from_pp(pp: float) -> int:
 		if pp < thresholds[i]:
 			return i
 	return thresholds.size()
-	
-static func get_pp_list_from_saved_scores() -> Array[float]:
-	var pp_list: Array[float] = []
-
-	for uuid in Game.save_data.keys():
-		var entries = Game.save_data[uuid]
-		if typeof(entries) != TYPE_ARRAY or entries.is_empty():
-			continue
-
-		var max_score := -1.0
-		for entry in entries:
-			if typeof(entry) == TYPE_DICTIONARY and entry.has("score"):
-				max_score = max(max_score, entry["score"])
-
-		if max_score < 0:
-			continue
-		for chart_set in CM.charts:
-			for chart in chart_set.charts:
-				if chart.map_uuid == uuid:
-					var diff_value = chart.diff_value
-					var pp = calculate_pp(max_score, diff_value)
-					pp_list.append(pp)
-	return pp_list
+"""

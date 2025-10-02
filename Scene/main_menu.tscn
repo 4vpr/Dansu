@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://dxfmwdq83fxan"]
+[gd_scene load_steps=34 format=3 uid="uid://dxfmwdq83fxan"]
 
 [ext_resource type="Script" path="res://scripts/UI/hard_coded_main_menu.gd" id="1_8jwjo"]
 [ext_resource type="Texture2D" uid="uid://bbtnd1giiabmu" path="res://Resources/font/dansu.png" id="1_efvlb"]
@@ -15,7 +15,6 @@
 [ext_resource type="Shader" path="res://Resources/wave.gdshader" id="12_jpbaa"]
 [ext_resource type="Script" path="res://scripts/PlayScene/UI/fps.gd" id="16_p7dvb"]
 [ext_resource type="Script" path="res://scripts/UI/user.gd" id="18_xbuua"]
-[ext_resource type="Script" path="res://scripts/dump/dump_login.gd" id="20_4yqsr"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_knxge"]
 
@@ -488,7 +487,6 @@ offset_top = -68.0
 offset_right = 165.0
 offset_bottom = -15.0
 text = "login"
-script = ExtResource("20_4yqsr")
 
 [node name="Panel" type="Panel" parent="ScoreBoard/User"]
 layout_mode = 0

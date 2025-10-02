@@ -15,6 +15,7 @@ var shortcut = [0,0,0,0,0,0,0,0,0,0]
 @onready var Win_Animation = $Animation
 @onready var option_button = $Animation/Panel/OptionButton
 @onready var file_dialog: FileDialog = $FileDialog
+@onready var chartsaver = load("res://scripts/Editor/chart/chart_save.gd")
 var SongIsPlaying = false
 var map_data = {}
 var rail_scene = load("res://Scene/Entity/Editor/rail.tscn")
@@ -204,6 +205,7 @@ func _on_file_selected(file_path: String):
 		if dst_file:
 			dst_file.store_buffer(_data)
 			dst_file.close()
+
 func _ready() -> void:
 	chart = CM.sc
 	Game.currentTime = 0
@@ -391,36 +393,25 @@ func _input(event):
 			SongSlider.value -= 60 / chart.song_bpm / beatsdiv
 	elif event is InputEventKey and event.pressed and not event.echo:
 		var idx := -1
-		match event.keycode:
-			KEY_1:
-				idx = 0
-			KEY_2:
-				idx = 1
-			KEY_3:
-				idx = 2
-			KEY_4:
-				idx = 3
-			KEY_5:
-				idx = 4
-			KEY_6:
-				idx = 5
-			KEY_7:
-				idx = 6
-			KEY_8:
-				idx = 7
-			KEY_9:
-				idx = 8
-			KEY_0:
-				idx = 9
-			_:
-				idx = -1
-		if idx != -1 and selected != null and selected in notes:
-			var anim_id := int(shortcut[idx])
-			if anim_id > 0:
-				selected.animation = anim_id
-				# Optionally reflect change in inspector UI
-				if Inspector and Inspector.has_method("_update"):
-					Inspector._update(selected)
+		if event.alt_pressed:
+			match event.keycode:
+				KEY_1: idx = 0
+				KEY_2: idx = 1
+				KEY_3: idx = 2
+				KEY_4: idx = 3
+				KEY_5: idx = 4
+				KEY_6: idx = 5
+				KEY_7: idx = 6
+				KEY_8: idx = 7
+				KEY_9: idx = 8
+				KEY_0: idx = 9
+				_: idx = -1
+			if idx != -1 and selected != null and selected in notes:
+				var anim_id := int(shortcut[idx])
+				if anim_id > 0:
+					selected.animation = anim_id
+					if Inspector and Inspector.has_method("_update"):
+						Inspector._update(selected)
 func _on_pause_pressed() -> void:
 	if SongIsPlaying:
 		paused_position = Song.get_playback_position()

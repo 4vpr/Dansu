@@ -97,6 +97,8 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_35pr7")
 
+[node name="ChartSave" type="Node" parent="."]
+
 [node name="Preview" type="Control" parent="."]
 anchors_preset = 0
 offset_left = 235.0
@@ -636,3 +638,5 @@ custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 text = "Save Changes
 And Quit"
+
+[node name="Node" type="Node" parent="."]

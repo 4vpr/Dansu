@@ -194,11 +194,11 @@ func import_dansu(archive_path: String) -> void:
 			if typeof(new_json) != TYPE_DICTIONARY:
 				continue
 			var new_uuid: String = new_json.get("uuid", "0")
-			var new_hash := Chart.compute_hash_from_json(new_json)
+			var new_hash := hash_from_json(new_json)
 			if uuid_to_chart.has(new_uuid):
 				var ec: Chart = uuid_to_chart[new_uuid]
 				var existing_json = _read_json(ec.json_path)
-				var existing_hash := Chart.compute_hash_from_json(existing_json) if typeof(existing_json) == TYPE_DICTIONARY else ""
+				var existing_hash := hash_from_json(existing_json) if typeof(existing_json) == TYPE_DICTIONARY else ""
 				if existing_hash == new_hash and existing_hash != "":
 					# identical -> skip
 					continue
@@ -487,3 +487,34 @@ func _load_built_in_maps():
 			var folder = map_path.get_base_dir()
 			if not loaded_folders.has(folder):
 				loaded_folders[folder] = true
+
+static func hash_from_json(json: Dictionary) -> String:
+	var hash_data := ""
+	var rails_arr: Array = json.get("rails", [])
+	var notes_arr: Array = json.get("notes", [])
+
+	# Sort deterministically like parse_rails/notes would do
+	rails_arr.sort_custom(func(a, b):
+		return (a.get("start", -1) < b.get("start", -1))
+	)
+	notes_arr.sort_custom(func(a, b):
+		return (a.get("time", 0) < b.get("time", 0))
+	)
+
+	for rail in rails_arr:
+		hash_data += str(rail.get("id", -1))
+		hash_data += str(rail.get("start", -1))
+		hash_data += str(rail.get("end", -1))
+
+	for note in notes_arr:
+		hash_data += str(note.get("type", 0))
+		hash_data += str(note.get("time", 0))
+		hash_data += str(note.get("dir", 0))
+		hash_data += str(note.get("rail", 0))
+
+	var context := HashingContext.new()
+	context.start(HashingContext.HASH_MD5)
+	context.update(hash_data.to_utf8_buffer())
+	var hash_result := context.finish()
+	var hex_str := hash_result.hex_encode()
+	return hex_str.substr(0, 32)

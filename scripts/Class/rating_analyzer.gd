@@ -1,5 +1,5 @@
 extends RefCounted
-class_name DifficultyAnalyzer
+class_name Rating
 
 const SEGMENT_DURATION_MS := 2000
 # 세그먼트 나누는 시간;
@@ -8,7 +8,7 @@ const POWER := 10.5
 const WEIGHT := 2.15
 # 배수
 
-static func calculate_difficulty(json_data: Dictionary) -> float:
+static func calculate(json_data: Dictionary) -> float:
 	var notes = json_data.get("notes", [])
 	var rails = json_data.get("rails", [])
 	if notes.size() == 0:
@@ -73,7 +73,7 @@ static func calculate_difficulty(json_data: Dictionary) -> float:
 const FAST_INPUT_THRESHOLD := 180.0  # ms
 const FAST_INPUT_WEIGHT := 1.25
 
-static func calculate_difficulty2(json_data: Dictionary) -> float:
+static func calculate_ver2(json_data: Dictionary) -> float:
 	var notes: Array = json_data.get("notes", [])
 	var rails: Array = json_data.get("rails", [])
 	if notes.is_empty():

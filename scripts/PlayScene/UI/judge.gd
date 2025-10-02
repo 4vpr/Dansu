@@ -19,7 +19,7 @@ func _ready() -> void:
 	position.y = 1
 
 func _reset():
-	if judge == 0:
+	if judge == 5:
 		texture = miss
 	elif judge == 1:
 		texture = just
@@ -29,7 +29,7 @@ func _reset():
 		texture = ok
 	elif judge == 4:
 		texture = nah
-	elif judge == 5:
+	elif judge == 0:
 		texture = justplus
 # Called every frame. 'delta' is the elapsed time since the previous frame
 func _process(delta: float) -> void:

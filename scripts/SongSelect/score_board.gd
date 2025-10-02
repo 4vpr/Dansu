@@ -4,7 +4,7 @@ func _ready():
 	CM.connect("chart_selected", Callable(self,"_update"))
 func _update(chart):
 	var diff = chart.get_difficulty()
-	scores = Game.get_sorted_scores_for_uuid(chart.map_uuid)
+	# scores = Game.get_sorted_scores_for_uuid(chart.map_uuid)
 	$Title.text = chart.meta_title
 	$Artist.text = chart.meta_artist
 	$BPM.text = "BPM " + str(chart.song_bpm)

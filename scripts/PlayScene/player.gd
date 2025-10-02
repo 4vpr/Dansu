@@ -2,36 +2,41 @@ extends Node3D
 
 @onready var railContainer: Node3D = $"../Ground/RailContainor"
 @onready var sprite = $Sprite
+
 var chart
-var standRail: Node3D
-var isJumping: bool = false
-var jumpDuration: float = 0.3
-var jumpDurationCurrent: float = 0.0
-var jumpHeight: float = 0.3
-var groundHeight: float
+var stand_rail: Node3D
+# 점프관련 , 안씀
+var is_jumping: bool = false
+var jump_duration: float = 0.3
+var jump_duration_current: float = 0.0
+var jump_height: float = 0.3
+var ground_height: float
+
+# 기본 애니메이션 효과
 var groove: float = 0.2
-var scaleVel
+var scale_value
 var groove_rst: float = 0.2
-var default_dance_i = 0
+
+var default_dance_i = 0 # 기본 춤 재생 인덱스
 var scene
 var rails = []
-var sprites_current = []
-var sprites_current_index = 0
-var sprites_current_update_time = 0
-var sprites_current_update = 0
+var sprites_current = [] # 재생중인 스프라이트 목록
+var sprites_current_index = 0 # 재생중인 스프라이트 현재 인덱스
+var sprites_current_update_time = 0 # 재생중인 스프라이트 다음 업데이트 시간
+var sprites_current_update = 0 # 재생중인 스프라이트 업데이트
 
 func _ready() -> void:
 	await get_parent().ready
 	chart = CM.sc
 	if chart.use_default_skin:
 		chart = Game._use_default_skin()
-	setPlayerIdle()
-	playAnimation()
+	set_idle()
+	play_animation()
 	scene = get_parent()
-	groundHeight = position.y
+	ground_height = position.y
 	rails = railContainer.get_children()
 	if rails.size() > 0:
-		standRail = closest_rail()
+		stand_rail = closest_rail()
 	var texture_size = sprite.texture.get_size()
 	var target_size = Vector2(200,Game.settings["gameplay"]["playerheight"])
 	var scale_factor = Vector2(
@@ -42,38 +47,41 @@ func _ready() -> void:
 	var tex_size = sprite.texture.get_size()
 	var world_height = tex_size.y * sprite.pixel_size
 	sprite.position.y = world_height * scale_factor.y / (target_size.y / texture_size.y) / 2
-	scaleVel = scale
+	scale_value = scale
+
 func reset() -> void:
 	default_dance_i = 0
-	setPlayerIdle()
+	set_idle()
 	rails = []
 	position.x = 0
-	standRail = null
+	stand_rail = null
 	pass
+
 func _process(delta: float) -> void:
 	rails = railContainer.get_children()
-	playAnimation()
-	if standRail == null or !standRail.active:
-		standRail = closest_rail()
+	play_animation()
+	if stand_rail == null or !stand_rail.active:
+		stand_rail = closest_rail()
 
 	if groove < groove_rst:
-		scale.y = scaleVel.y + (groove_rst - groove) / groove_rst / 6 * scaleVel.y
+		scale.y = scale_value.y + (groove_rst - groove) / groove_rst / 6 * scale_value.y
 		groove += delta
 	else:
-		scale = scaleVel
+		scale = scale_value
 		pass
-	if isJumping:
-		jumpDurationCurrent -= delta
-		if Input.is_action_just_pressed("move_down") or jumpDurationCurrent < 0:
-			isJumping = false
-		position.y = lerp(position.y, jumpHeight + groundHeight, delta * 20)
+	if is_jumping:
+		jump_duration_current -= delta
+		if Input.is_action_just_pressed("move_down") or jump_duration_current < 0:
+			is_jumping = false
+		position.y = lerp(position.y, jump_height + ground_height, delta * 20)
 	else:
-		position.y = lerp(position.y, groundHeight, delta * 20)
-	if standRail != null:
-		position.x = lerp(position.x, standRail.position.x, delta * 20)
+		position.y = lerp(position.y, ground_height, delta * 20)
+	if stand_rail != null:
+		position.x = lerp(position.x, stand_rail.position.x, delta * 20)
+
 func closest_rail() -> Node3D:
 	if rails.is_empty():
-		return standRail
+		return stand_rail
 	var current_x = position.x
 	var c_rail
 	var min_distance = INF
@@ -84,14 +92,16 @@ func closest_rail() -> Node3D:
 				min_distance = distance
 				c_rail = rail
 	return c_rail
+
 func move(direction: int):
-	standRail = move_rail(direction)
+	stand_rail = move_rail(direction)
+
 func move_rail(direction: int) -> Node3D:
 	if rails.is_empty():
-		return standRail
-	if standRail != null:
-		var current_x = standRail.position.x
-		var c_rail = standRail
+		return stand_rail
+	if stand_rail != null:
+		var current_x = stand_rail.position.x
+		var c_rail = stand_rail
 		var min_distance = INF
 		for rail in rails:
 			if (rail.position.x - current_x) * direction > 0 and rail.active:
@@ -100,12 +110,12 @@ func move_rail(direction: int) -> Node3D:
 					min_distance = distance
 					c_rail = rail
 		return c_rail
-	return standRail
+	return stand_rail
 
-func setPlayerIdle():
-	setAnimation(chart.player_animation.get("idle", 0))
+func set_idle():
+	set_animation(chart.player_animation.get("idle", 0))
 
-func setAnimation(id):
+func set_animation(id):
 	for animation in chart.animations:
 		if animation["id"] == id:
 			sprites_current = animation["frames"]
@@ -113,7 +123,7 @@ func setAnimation(id):
 			sprites_current_update = Game.currentTime
 			sprites_current_update_time = 1000 / animation["fps"]
 
-func getNextDefaultDance() -> int:
+func next_default_dance() -> int:
 	var default_dances = chart.player_animation.get("defaultdance", [])
 	if default_dances.is_empty():
 		return 0
@@ -125,11 +135,11 @@ func getNextDefaultDance() -> int:
 	default_dance_i += 1
 	return id
 
-func playAnimation():
+func play_animation():
 	if sprites_current_update + sprites_current_update_time * (sprites_current_index + 1) < Game.currentTime:
 		sprites_current_index += 1
 	
 	if sprites_current.size() > sprites_current_index:
 		sprite.texture = sprites_current[sprites_current_index]
 	else:
-		setPlayerIdle()
+		set_idle()

@@ -6,7 +6,6 @@ var rails = []
 var animations = []
 var player_animation = {}
 
-var map_uuid: String = "0"
 var meta_title: String = "?"
 var meta_artist: String = "unknown"
 var meta_creator: String = "unknown"
@@ -39,17 +38,15 @@ func get_json():
 	return json
 func get_difficulty() -> float:
 	var json = get_json()
-	return BeatmapDifficultyAnalyzer.calculate_difficulty(json)
+	return DifficultyAnalyzer.calculate_difficulty(json)
 func parse_meta():
 	var fields = {
-		"map_uuid": ["uuid", map_uuid],
 		"meta_title": ["title", ""],
 		"meta_artist": ["artist", "unknown"],
 		"meta_creator": ["creator", "unknown"],
 		"song_bpm": ["bpm", 100],
 		"song_bpmstart": ["bpmstart", 0],
 		"diff_name": ["difficulty_name", "new"],
-		"diff_value": ["difficulty_value", 0],
 		"use_default_skin": ["use_default_skin", true],
 		"file_audio": ["file_audio","song.mp3"]
 	}
@@ -99,10 +96,7 @@ func load_from_json(path: String) -> bool:
 	var json = JSON.parse_string(file.get_as_text())
 	if typeof(json) != TYPE_DICTIONARY:
 		return false
-	if map_uuid == "0":
-		pass
 	var fields = {
-		"map_uuid": ["uuid", "0"],
 		"meta_title": ["title", "?"],
 		"meta_artist": ["artist", "unknown"],
 		"meta_creator": ["creator", "unknown"],
@@ -265,7 +259,9 @@ func _load_texture(file_name: String) -> Texture2D:
 	if texture:
 		texture_cache[file_name] = texture
 	return texture
-	
+
+# 파싱된 맵에서 해시 생성
+
 func get_hash() -> String:
 	var hash_data = ""
 	for rail in rails:
@@ -283,41 +279,9 @@ func get_hash() -> String:
 	context.update(hash_data.to_utf8_buffer())
 	var hash_result = context.finish()
 	var hex_str = hash_result.hex_encode()
-	var integrity_id = hex_str.substr(0, 8)
+	var integrity_id = hex_str.substr(0, 32)
 	return integrity_id
 
-# Compute chart hash directly from a JSON dictionary without instancing nodes.
-# Ensures order-stable hashing by sorting rails by start and notes by time.
-static func compute_hash_from_json(json: Dictionary) -> String:
-	var hash_data := ""
-	var rails_arr: Array = json.get("rails", [])
-	var notes_arr: Array = json.get("notes", [])
-
-	# Sort deterministically like parse_rails/notes would do
-	rails_arr.sort_custom(func(a, b):
-		return (a.get("start", -1) < b.get("start", -1))
-	)
-	notes_arr.sort_custom(func(a, b):
-		return (a.get("time", 0) < b.get("time", 0))
-	)
-
-	for rail in rails_arr:
-		hash_data += str(rail.get("id", -1))
-		hash_data += str(rail.get("start", -1))
-		hash_data += str(rail.get("end", -1))
-
-	for note in notes_arr:
-		hash_data += str(note.get("type", 0))
-		hash_data += str(note.get("time", 0))
-		hash_data += str(note.get("dir", 0))
-		hash_data += str(note.get("rail", 0))
-
-	var context := HashingContext.new()
-	context.start(HashingContext.HASH_MD5)
-	context.update(hash_data.to_utf8_buffer())
-	var hash_result := context.finish()
-	var hex_str := hash_result.hex_encode()
-	return hex_str.substr(0, 8)
 func generate_uuid() -> String:
 	var hex_chars = "0123456789abcdef"
 	var uuid = ""

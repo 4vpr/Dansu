@@ -9,7 +9,7 @@ var rail_scene = preload("res://Scene/Entity/rail.tscn")
 var note_scene = preload("res://Scene/Entity/note.tscn")
 var judge_scene = preload("res://Scene/Entity/judge.tscn")
 var sfx_pool = SfxPool.new()
-var score = Score.new()
+var score:Score = Score.new()
 var combo = 0
 var judgeDisplayDuration = 1
 var song_end = 0
@@ -28,15 +28,14 @@ var chart: Chart
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch && event.pressed:
 		if event.position.x > tc_left_position && event.position.x < tc_left_position + tc_size:
-			playerMove(2, Game.currentTime)
+			player_move(2, Game.currentTime)
 			player.move(-1)
 		elif event.position.x > tc_right_position && event.position.x < tc_right_position + tc_size:
-			playerMove(4, Game.currentTime)
+			player_move(4, Game.currentTime)
 			player.move(1)
 		else:
-			playerAction(Game.currentTime)
-func _ready() -> void:
-
+			player_action(Game.currentTime)
+func _enter_tree() -> void:
 	Engine.max_fps = Game.settings["graphics"]["MaxFPS"]
 	Engine.physics_ticks_per_second = Game.settings["gameplay"]["pollingRate"]
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
@@ -46,12 +45,11 @@ func _ready() -> void:
 	%Exit.connect("button_down",exit)
 	load_background()
 	add_child(sfx_pool)
-	reset()
-
 var start_time = 0
 var song_playing = false
 var wait = true
-
+func _ready() -> void:
+	reset()
 var lerping = 1.5 + abs(Game.settings["audio"]["offset"] * 1000)
 func reset() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
@@ -79,10 +77,9 @@ func reset() -> void:
 	if chart:
 		if chart.load_song(songplayer):
 			parse_objects(chart)
-			score.uuid = chart.map_uuid
 			score.hash = chart.get_hash()
 			current_time_msec = Time.get_ticks_msec()
-			setNextNote()
+			set_next_note()
 
 func _process(delta: float) -> void:
 	if !paused:
@@ -129,8 +126,6 @@ func retry():
 	paused = false
 	%Pause.visible = false
 	player.reset()
-	
-	
 	pass
 
 func exit():
@@ -179,85 +174,86 @@ func _physics_process(delta:float) -> void:
 			Game.currentTime = Time.get_ticks_msec() - start_time + Game.settings["audio"]["offset"] + Game.offset_recom
 		check_judge()
 		if Input.is_action_just_pressed("move_left"):
-			playerMove(2, Game.currentTime)
+			player_move(2, Game.currentTime)
 			player.move(-1)
 		if Input.is_action_just_pressed("move_right"):
-			playerMove(4, Game.currentTime)
+			player_move(4, Game.currentTime)
 			player.move(1)
 		#if Input.is_action_just_pressed("move_up") and !isJumping:
 		#	isJumping = true
 		#	jumpDurationCurrent = jumpDuration
 		if Input.is_action_just_pressed("action_1") or Input.is_action_just_pressed("action_2"):
-			playerAction(Game.currentTime)
+			player_action(Game.currentTime)
 func check_judge():
 	if nextnote_i < notes.size() && nextnote_i > -1:
-		if notes[nextnote_i].time + score.t_ok < Game.currentTime:
-			write_judge(0,notes[nextnote_i])
-			setNextNote()
+		if notes[nextnote_i].time + score.timings[3] < Game.currentTime:
+			write_judge(5,notes[nextnote_i])
+			set_next_note()
 	for note in hitnotes:
 		if note != null:
 			if note.time <= Game.currentTime:
 				if note.type == 3:
-					if note.rail == player.standRail.id:
+					if note.rail == player.stand_rail.id:
+						write_judge(0,note)
+						note.queue_free()
+						hitnotes.erase(note)
+					elif note.time + score.timings[3] < Game.currentTime:
 						write_judge(5,note)
 						note.queue_free()
 						hitnotes.erase(note)
-					elif note.time + score.t_ok < Game.currentTime:
-						write_judge(0,note)
-						note.queue_free()
-						hitnotes.erase(note)
 				if note.type == 4:
-					if note.rail == player.standRail.id:
-						write_judge(0,note)
+					if note.rail == player.stand_rail.id:
+						write_judge(5,note)
 						note.type = -1
 					else:
 						note.type = -1
 				if note.type == -1 && note.time + 300 < Game.currentTime:
 					hitnotes.erase(note)
 					note.queue_free()
-func playerAction(time):
+func player_action(time):
 	if nextnote_i < notes.size():
 		var note = notes[nextnote_i]
-		var acc = note.time - time
-		if player.standRail != null:
-			if player.standRail.id == note.rail and note.type == 1:
-				var j = score.getJudge(acc)
+		if player.stand_rail != null:
+			if player.stand_rail.id == note.rail and note.type == 1:
+				var j = score.getJudge(note.time - time)
 				if j != -1:
 					write_judge(j, notes[nextnote_i])
-					setNextNote()
-func playerMove(dir: int, time):
+					set_next_note()
+
+func player_move(dir: int, time):
 	if nextnote_i < notes.size():
 		var note = notes[nextnote_i]
-		if player.standRail != null:
-			if note.type == 2 and note.rail == player.standRail.id and note.dir == dir:
+		if player.stand_rail != null:
+			if note.type == 2 and note.rail == player.stand_rail.id and note.dir == dir:
 				var acc = note.time - time
 				var j = score.getJudge(acc)
 				if j != -1:
 					write_judge(j, notes[nextnote_i])
-					setNextNote()
-func write_judge(j: int,note):
+					set_next_note()
+func write_judge(i: int, note):
 	player.groove = 0
 	var new_judge = judge_scene.instantiate()
-	new_judge.judge = j
+	new_judge.judge = i
 	new_judge.position.x = player.position.x
 	add_child(new_judge)
-	score.addScore(j)
+	score.score += score.scores[i]
+	score.notes += 1
 	comboVbox._play()
 	accDisplayer.text = str(snapped(score.getScore(), 0.01)) + "%"
-	if j != 0:
-		if j != 4:
+	if i != 5:
+		if i != 4:
 			combo += 1
 			if score.high_combo < combo:
 				score.high_combo = combo
 		sfx_pool.play_sound(preload("res://Resources/drum-slidertick.wav"))
 		player.sprites_current = null
 		if note.animation > 0:
-			player.setAnimation(note.animation)
+			player.set_animation(note.animation)
 		else:
-			player.setAnimation(player.getNextDefaultDance())
+			player.set_animation(player.next_default_dance())
 	else:
 		combo = 0
-func setNextNote():
+func set_next_note():
 	if nextnote_i != -1:
 		notes[nextnote_i].queue_free()
 	for note in notes:

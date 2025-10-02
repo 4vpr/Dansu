@@ -6,7 +6,6 @@ extends Panel
 @onready var divis_label: Label = $Defaults/DivisLabel
 var allowed_divis := [1, 2, 3, 4, 5, 6, 7, 8, 12, 16]
 var selected
-
 func _ready() -> void:
 	# Configure the slider to discrete indices 0..allowed_divis.size()-1
 	divis.min_value = 0

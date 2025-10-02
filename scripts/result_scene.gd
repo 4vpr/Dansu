@@ -21,12 +21,12 @@ func _ready() -> void:
 	ScoreLabel.text = str(int(score.getScore() * 10000))
 	RankLabel.text = Game.getRank(score.getScore())
 	JudgeLabel.text = "%d\n%d\n%d\n%d\n%d\n%d\n" % [
-		score.c_perfect_plus,
-		score.c_perfect,
-		score.c_great,
-		score.c_ok,
-		score.c_bad,
-		score.c_miss
+		score.counts[0],
+		score.counts[1],
+		score.counts[2],
+		score.counts[3],
+		score.counts[4],
+		score.counts[5]
 	]
 
 func _load_background_image():
