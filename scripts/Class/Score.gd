@@ -54,14 +54,12 @@ func getScore() -> float:
 	if notes == 0:
 		return 0
 	if notes <= counts[0] + counts[1]:
-		f = (float(counts[0]) / float(counts[1])) + 100
+		f = (counts[0] * 1.01 + counts[1] * 1.0) / notes * 100
 	else:
 		f = score / (notes * 100) * 100
 	return f
 func save_current_score():
-	if uuid == null or uuid == "0":
-		print("no uuid found")
-		return
+	return
 	var data: Dictionary = {
 		"score": getScore(),
 		"note": notes,

@@ -237,6 +237,7 @@ func write_judge(i: int, note):
 	new_judge.position.x = player.position.x
 	add_child(new_judge)
 	score.score += score.scores[i]
+	score.counts[i] += 1
 	score.notes += 1
 	comboVbox._play()
 	accDisplayer.text = str(snapped(score.getScore(), 0.01)) + "%"

@@ -1,6 +1,5 @@
 # 예: res://scripts/auth.gd
 extends Node
-class_name AuthService
 
 const API_BASE := "http://127.0.0.1:8000"
 
