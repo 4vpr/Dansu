@@ -19,8 +19,6 @@ func _ready():
 var all_charts: Array = []
 var result_charts: Array = []
 
-
-
 func get_all_charts():
 	db = SQLite.new()
 	db.path = DB_PATH
