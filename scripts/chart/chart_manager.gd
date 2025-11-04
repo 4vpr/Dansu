@@ -1,4 +1,5 @@
-extends Node
+extends RefCounted
+class_name CM # ChartManager
 
 # ===== Signals =====
 
@@ -76,7 +77,7 @@ func stop() -> void:
 	_threads.clear()
 
 # ===== Export / Import =====
-# Export currently selected ChartSet (ss) to user://Songs/Export as .dansu (zip)
+# Export currently selected ChartSet (ss) to user://Songs/Export as .dansu (its actually zip)
 func export_selected_chartset() -> void:
 	if ss == null:
 		print("[Export] No chart set selected.")
@@ -405,7 +406,7 @@ func select_chart(chart) -> void:
 	sc = chart
 	emit_signal("chart_selected", chart)
 
-# 새 난이도 파일 추가
+# add new difficulty
 func _add_new_difficulty() -> void:
 	if sc == null or ss == null:
 		return
@@ -477,7 +478,7 @@ func _new_chart_set(files: Array[String]) -> void:
 func _load_built_in_maps():
 	var list_path = "res://song/map_list.json"
 	if not FileAccess.file_exists(list_path):
-		print("내장 맵 목록 파일 없음: ", list_path)
+		print("no res maps: ", list_path)
 		return
 	var file = FileAccess.open(list_path, FileAccess.READ)
 	var json = JSON.parse_string(file.get_as_text())
@@ -518,3 +519,23 @@ static func hash_from_json(json: Dictionary) -> String:
 	var hash_result := context.finish()
 	var hex_str := hash_result.hex_encode()
 	return hex_str.substr(0, 32)
+
+static func bpm_max(chart:Dictionary):
+	if not chart["Timings"]:
+		return 100.0
+
+	var bpm:float = -INF
+	for timing in chart["Timings"]:
+		timing["bpm"] > bpm
+		bpm = timing["bpm"]
+	return bpm
+
+static func bpm_min(chart:Dictionary):
+	if not chart["Timings"]:
+		return 100.0
+
+	var bpm:float = INF
+	for timing in chart["Timings"]:
+		timing["bpm"] < bpm
+		bpm = timing["bpm"]
+	return bpm

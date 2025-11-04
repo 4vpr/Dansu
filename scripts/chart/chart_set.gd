@@ -2,24 +2,12 @@ extends RefCounted
 class_name ChartSet
 
 var folder_path: String = ""
-var meta_title: String = "?"
 var image_path: String = ""
 var charts: Array[Chart] = []
 
 func _clear():
 	for chart in charts:
 		chart._clear()
-func load_from_folder(path: String):
-	folder_path = path
-	var json_files = get_json_files_in_path(path)
-	for json_file in json_files:
-		var chart = Chart.new()
-		chart.folder_path = path
-		if chart.load_from_json(path.path_join(json_file)):
-			charts.append(chart)
-	if charts.size() > 0:
-		meta_title = charts[0].meta_title
-	image_path = _get_bg_path()
 
 func _load_cover_image() -> Texture2D:
 	var cover_image: Texture2D = null
@@ -60,18 +48,3 @@ func _get_bg_path() -> String:
 		file_name = dir.get_next()
 	dir.list_dir_end()
 	return ""
-
-func get_json_files_in_path(path: String) -> Array:
-	var result = []
-	var dir = DirAccess.open(path)
-	if not dir:
-		return result
-
-	dir.list_dir_begin()
-	var file_name = dir.get_next()
-	while file_name != "":
-		if not dir.current_is_dir() and file_name.ends_with(".json"):
-			result.append(file_name)
-		file_name = dir.get_next()
-	dir.list_dir_end()
-	return result

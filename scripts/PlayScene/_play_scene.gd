@@ -47,10 +47,10 @@ func _enter_tree() -> void:
 	add_child(sfx_pool)
 var start_time = 0
 var song_playing = false
-var wait = true
+var is_waiting = true
 func _ready() -> void:
 	reset()
-var lerping = 1.5 + abs(Game.settings["audio"]["offset"] * 1000)
+var lerp_time = 1.5 + abs(Game.settings["audio"]["offset"] * 1000)
 func reset() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 	$AnimationPlayer.play("camera_intro")
@@ -68,8 +68,8 @@ func reset() -> void:
 	song_end = 0
 	start_time = 0
 	song_playing = false
-	wait = true
-	lerping = 1.5 + abs(Game.settings["audio"]["offset"] * 1000)
+	is_waiting = true
+	lerp_time = 1.5 + abs(Game.settings["audio"]["offset"] * 1000)
 	Game.currentTime = 0
 	chart = CM.sc
 	chart.parse_objects()
@@ -82,27 +82,29 @@ func reset() -> void:
 			set_next_note()
 
 func _process(delta: float) -> void:
-	if !paused:
-		if lerping < 0 and wait:
-			songplayer.play()
-			wait = false
-		elif wait:
-			lerping -= delta
-			Game.currentTime = lerping * -1000
-		if Game.currentTime > song_end:
-			songplayer.volume_db -= delta * 30
-			if Game.currentTime > song_end + 2000:
-				Game.score = score
-				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-				get_tree().change_scene_to_file("res://Scene/result_scene.tscn")
-		check_objects()
-		comboDisplayer.text = str(combo)
-		if not song_playing and songplayer.playing:
-			start_time = Time.get_ticks_msec() - songplayer.get_playback_position() * 1000
-			song_playing = true
-		if Input.is_action_just_pressed("ui_cancel"):
-			%Pause.visible = true
-			pause()
+	if paused:
+		return
+	if lerp_time < 0 and is_waiting:
+		songplayer.play()
+		is_waiting = false
+	elif is_waiting:
+		lerp_time -= delta
+		Game.currentTime = lerp_time * -1000
+	if Game.currentTime > song_end:
+		songplayer.volume_db -= delta * 30
+		if Game.currentTime > song_end + 2000:
+			Game.score = score
+			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+			get_tree().change_scene_to_file("res://Scene/result_scene.tscn")
+	check_objects()
+	comboDisplayer.text = str(combo)
+	if not song_playing and songplayer.playing:
+		start_time = Time.get_ticks_msec() - songplayer.get_playback_position() * 1000
+		song_playing = true
+	if Input.is_action_just_pressed("ui_cancel"):
+		%Pause.visible = true
+		pause()
+
 var paused_time = 0
 
 func pause():

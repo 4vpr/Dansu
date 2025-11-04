@@ -1,4 +1,9 @@
+
+# It's terrible
+# I need to fix this someday
+
 extends Control
+
 @onready var Main_BG = $BG.position.x
 @onready var Main_Menu = $Menu.position.x
 @onready var Main_Player = $Player.position.x

@@ -56,7 +56,7 @@ func load_folders():
 		var file_name := dir.get_next()
 		while file_name != "":
 			if dir.current_is_dir() and file_name != "." and file_name != "..":
-				song_folders.append(SONG_PATH.path_join(file_name))
+				song_folders.append(file_name)
 			file_name = dir.get_next()
 		dir.list_dir_end()
 
@@ -78,41 +78,86 @@ func sync_folders():
 # 폴더 처리
 func refrsh_folders(folders: Array):
 	for folder in folders:
-		add_folder(folder)
+		add_folder_to_db(folder)
 
-func add_folder(folder):
-	var jsons := _get_jsons(folder)
-	if jsons == null:
+func _get_json_paths(folder: String) -> Array:
+	var dir := DirAccess.open(folder)
+	if not dir:
+		return []
+	var jsons = []
+	dir.list_dir_begin()
+	var name := dir.get_next()
+	while name != "":
+		if name.ends_with(".json"):
+			var path := folder.path_join(name)
+			jsons.append(path)
+		name = dir.get_next()
+	dir.list_dir_end()
+	return jsons
+
+func _read_json(folder_name:String ,json_file_name: String):
+	var folder_path = SONG_PATH.path_join(folder_name)
+	if not FileAccess.file_exists(folder_path.path_join(json_file_name)):
+		return null
+	var f := FileAccess.open(folder_path.path_join(json_file_name), FileAccess.READ)
+	if not f:
+		return null
+	var text := f.get_as_text()
+	f.close()
+	return JSON.parse_string(text)
+
+var chart_update_query = "uuid = ?, chartset_id = ?, title = ?, artist = ?, creator = ?, source = ?, tags = ?, hash = ?, rating = ?"
+var chart_create_query = "uuid, chartset_id, title, artist, creator, source, tags, hash, rating"
+
+func get_field(chart: Dictionary, chartset_id: int) -> Array:
+	return [
+			chart["uuid"], # uuid
+			chartset_id,    # chartset_id
+			chart["title"], # title
+			chart["artist"], # artist
+			chart["creator"], # creator
+			chart["source"], # source
+			chart["tags"], # tags
+			CM.hash_from_json(chart), # hash
+			Rating.calculate(chart), # rating
+			CM.get_bpm_max(chart), # bpm_max
+			CM.get_bpm_min(chart), # bpm_min
+			chart["song_preview"] # song_preview
+			]
+
+func add_folder_to_db(folder):
+	var json_names := _get_json_paths(folder)
+	if json_names == null:
 		return
-	var i = 0
-	for json_file in jsons:
-		var json = _read_json(json_file)
+	for json_name in json_names:
+		var json = _read_json(folder, json_name)
 		if typeof(json) != TYPE_DICTIONARY:
 			return
 		var chart_hash := CM.hash_from_json(json)
-		var diff = Rating.calculate(json)
-		var title = json["title"]
-		var artist = json["artist"]
-		var file_name = json_file.get_file()
-		var found = db.select_rows("chart", "hash = ?", [chart_hash])
+		var found := db.select_rows(
+			"chart",
+			"uuid = ?",
+			[json["uuid"]]
+		)
+		var field = get_field(json, 0)
 		if found.size() > 0:
 			db.query_with_bindings(
-				"UPDATE chart SET folder_name = ?, file_name = ? WHERE hash = ?",
-				[folder, file_name, chart_hash]
+				"UPDATE chart SET " + chart_update_query,
+				field
 			)
 		else:
 			# 신규 맵 등록
 			db.query_with_bindings("""
-				INSERT INTO charts (id_online, chartset_id, title, artist, hash, rating, folder_name, file_name)
-				VALUES (0, 0, ?, ?, ?, ?, ?, ?)
-			""", [title, artist, chart_hash, diff, folder, file_name])
+				INSERT INTO charts (uuid, chartset_id, title, artist, creator, source, tags, hash, rating)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+			""", field)
 
 func removed_folders(folders: Array):
 	for folder in folders:
 		db.query_with_bindings("DELETE FROM charts WHERE folder_name = ?", [folder])
 		db.query_with_bindings("DELETE FROM chartsets WHERE folder_name = ?", [folder])
 
-# DB 생성
+# Create DB
 func create_all():
 	create_chartsets()
 	create_charts()
@@ -138,18 +183,20 @@ func create_charts():
 	db.open_db()
 	db.query("""
 	CREATE TABLE IF NOT EXISTS charts(
-		id_local    INTEGER PRIMARY KEY AUTOINCREMENT,
-		id_online   INTEGER DEFAULT 0,
+		id    INTEGER PRIMARY KEY AUTOINCREMENT,
 		chartset_id INTEGER NOT NULL DEFAULT 0,
+		uuid        TEXT NOT NULL,
 		title       TEXT NOT NULL,
 		artist      TEXT NOT NULL,
 		source      TEXT,
-		description TEXT,
 		creator     TEXT,
 		tags        TEXT,
 		hash        TEXT NOT NULL,
 		rating      REAL,
+		max_bpm     REAL,
+		min_bpm     REAL,
 		folder_name TEXT,
+		length      REAL,
 		file_name   TEXT NOT NULL,
 		created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		FOREIGN KEY(chartset_id) REFERENCES chartsets(id_local)
@@ -165,7 +212,8 @@ func create_scores():
 	db.query("""
 	CREATE TABLE IF NOT EXISTS scores(
 		id_local    INTEGER PRIMARY KEY AUTOINCREMENT,
-		chart_id    INTEGER NOT NULL,
+		chart_uuid  INTEGER NOT NULL,
+		player_id   INTEGER,
 		chart_hash  TEXT NOT NULL,
 		score       INTEGER NOT NULL,
 		maxcombo    INTEGER NOT NULL,
@@ -178,32 +226,6 @@ func create_scores():
 		miss        INTEGER NOT NULL,
 		replay_file TEXT,
 		created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		FOREIGN KEY(chart_id) REFERENCES charts(id_local)
+		FOREIGN KEY(chart_id) REFERENCES charts(id_)
 	)
 	""")
-
-# 유틸
-func _get_jsons(folder: String) -> Array:
-	var dir := DirAccess.open(folder)
-	if not dir:
-		return []
-	var jsons = []
-	dir.list_dir_begin()
-	var name := dir.get_next()
-	while name != "":
-		if name.ends_with(".json"):
-			var path := folder.path_join(name)
-			jsons.append(path)
-		name = dir.get_next()
-	dir.list_dir_end()
-	return jsons
-
-func _read_json(path: String):
-	if not FileAccess.file_exists(path):
-		return null
-	var f := FileAccess.open(path, FileAccess.READ)
-	if not f:
-		return null
-	var text := f.get_as_text()
-	f.close()
-	return JSON.parse_string(text)

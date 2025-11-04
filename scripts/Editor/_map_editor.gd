@@ -145,41 +145,13 @@ func snap_to_bpm(timing: float, division: int = beatsdiv) -> float:
 	var snapped_timing = snapped_steps * snap_interval + chart.song_bpmstart
 	return snapped_timing
 
-var clipboard
-#클립보드 구현부
-#func copy() -> void:
-	#clipboard = selected.duplicate()
-func paste() -> void:
-	if clipboard != null:
-		if clipboard.get("id") != null:
-				var new_rail = rail_scene.instantiate()
-				new_rail.start = Game.currentTime
-				var i = 1
-				for rail in rails:
-					if rail.id == i:
-						i += 1
-					else:
-						break
-				new_rail.id = i
-				new_rail.end = clipboard.end - clipboard.start + Game.currentTime
-				new_rail.pos = clipboard.pos
-				selected = new_rail
-				RailContainer.add_child(new_rail)
-				for note in clipboard.notes.get_children():
-					var new_note = note_scene.instantiate()
-					new_note.type = note.type
-					new_note.time = Game.currentTime - clipboard.start + note.time
-					new_note.dir = note.dir
-					new_note.id = i
-					new_note.animation = note.animation
-					notes.push_back(new_note)
-					
 var last_hash := ""
 func _on_check_folder():
 	var current_hash = calculate_folder_hash(chart.folder_path.path_join("sprite"))
 	if current_hash != last_hash:
 		last_hash = current_hash
 		load_pngs()
+
 func calculate_folder_hash(path: String) -> String:
 	var dir = DirAccess.open(path)
 	if dir == null:

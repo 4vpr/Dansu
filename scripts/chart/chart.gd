@@ -1,33 +1,57 @@
 extends RefCounted
 class_name Chart
 
-var notes = []
-var rails = []
-var animations = []
-var player_animation = {}
-
-var meta_title: String = "?"
-var meta_artist: String = "unknown"
-var meta_creator: String = "unknown"
-var file_audio: String = "song.mp3"
-
-var diff_name: String = "?"
-var diff_value: float = 0
-var song_bpmstart: float = 0
-var song_lerp: float = 0
-var song_bpm: float = 100
-var is_built_in: bool = false
-var use_default_skin: bool = true
-
-var folder_path: String = ""
-var json_path: String = ""
-var json_file
-
+# SCENES
 var rail_scene = load("res://Scene/Entity/rail.tscn")
 var note_scene = load("res://Scene/Entity/note.tscn")
 var rail_scene_editor = load("res://Scene/Entity/Editor/rail.tscn")
 var note_scene_editor = load("res://Scene/Entity/Editor/note.tscn")
 
+# KEYS
+var id_local: int = 0
+var id_online: int = 0
+var chartset_id: int = 0
+
+# OBJECTS
+var notes: Array[Node3D] = []
+var rails: Array[Node3D] = []
+var animations = []
+var player_animation = {}
+
+# META
+var title: String = "?"
+var artist: String = "unknown"
+var creator: String = "unknown"
+var name: String = "unkown"
+var audio_file: String = "song.mp3"
+var tags: String
+var rating: float = 0
+
+# SONG
+var song_preview: float = 0
+var song_start: float = 0
+var song_bpms: Array[Dictionary] = [{
+	"bpm" : 100,
+	"time" : 0
+}]
+
+# FILE
+var is_built_in: bool = false # res:// for true
+var use_default_skin: bool = true
+
+var folder_path: String = ""
+var json_path: String = ""
+
+var fields = {
+	"title": ["title", ""],
+	"artist": ["artist", "unknown"],
+	"creator": ["creator", "unknown"],
+	"name": ["difficulty_name", "new"],
+	"use_default_skin": ["use_default_skin", true],
+	"file_audio": ["file_audio","song.mp3"]
+}
+
+var json_file
 var texture_cache = {}
 
 func get_json():
@@ -36,26 +60,18 @@ func get_json():
 		return false
 	var json = JSON.parse_string(file.get_as_text())
 	return json
+
 func get_difficulty() -> float:
 	var json = get_json()
 	return DifficultyAnalyzer.calculate_difficulty(json)
+
 func parse_meta():
-	var fields = {
-		"meta_title": ["title", ""],
-		"meta_artist": ["artist", "unknown"],
-		"meta_creator": ["creator", "unknown"],
-		"song_bpm": ["bpm", 100],
-		"song_bpmstart": ["bpmstart", 0],
-		"diff_name": ["difficulty_name", "new"],
-		"use_default_skin": ["use_default_skin", true],
-		"file_audio": ["file_audio","song.mp3"]
-	}
 	for var_name in fields:
-		var json_key = fields[var_name][0]
-		var default_value = fields[var_name][1]
-		set(var_name, json_file.get(json_key, default_value))
-	diff_value = get_difficulty()
-	return true
+		var key = fields[var_name][0]
+		var value = fields[var_name][1]
+		set(var_name, json_file.get(key, value))
+	rating = get_difficulty()
+
 func parse_notes(is_editor: bool = false):
 	var _notes = []
 	var note_scene_to_use = note_scene_editor if is_editor else note_scene
@@ -70,6 +86,7 @@ func parse_notes(is_editor: bool = false):
 			notes.append(new_note)
 	notes.sort_custom(func(a, b): return a.time < b.time)
 	return _notes
+
 func parse_rails(is_editor: bool = false):
 	var _rails = []
 	rails.clear()
@@ -96,25 +113,10 @@ func load_from_json(path: String) -> bool:
 	var json = JSON.parse_string(file.get_as_text())
 	if typeof(json) != TYPE_DICTIONARY:
 		return false
-	var fields = {
-		"meta_title": ["title", "?"],
-		"meta_artist": ["artist", "unknown"],
-		"meta_creator": ["creator", "unknown"],
-		"song_bpm": ["bpm", 100],
-		"song_bpmstart": ["bpmstart", 0],
-		"diff_name": ["difficulty_name", "New"],
-		"diff_value": ["difficulty_value", 0],
-		"use_default_skin": ["use_default_skin", true],
-		"file_audio": ["file_audio","song.mp3"]
-	}
-	for var_name in fields:
-		var json_key = fields[var_name][0]
-		var default_value = fields[var_name][1]
-		set(var_name, json.get(json_key, default_value))
 	json_path = path
-	diff_value = get_difficulty()
+	rating = get_difficulty()
+	parse_meta()
 	return true
-
 func parse_objects(is_editor: bool = false):
 	var file = FileAccess.open(json_path, FileAccess.READ)
 	if not file:
@@ -161,7 +163,7 @@ func _clear() -> void:
 	texture_cache.clear()
 
 func load_song(player: AudioStreamPlayer) -> bool:
-	var _path = folder_path.path_join(file_audio)
+	var _path = folder_path.path_join(audio_file)
 	var stream: AudioStream = null
 
 	if _path.begins_with("res://"):
@@ -182,8 +184,8 @@ func load_song(player: AudioStreamPlayer) -> bool:
 						#var ogg = AudioStreamOggVorbis.new()
 						var user_folder = "user://" + relative_path
 						print("user://: ", ProjectSettings.globalize_path("user://"))
-						print(user_folder.path_join(file_audio))
-						stream = load(user_folder.path_join(file_audio))
+						print(user_folder.path_join(audio_file))
+						stream = load(user_folder.path_join(audio_file))
 				"wav_FIX":
 					var wav = AudioStreamWAV.new()
 					wav.data = data

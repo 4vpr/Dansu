@@ -28,8 +28,7 @@ buses/default_bus_layout="res://Resources/audio_bus.tres"
 [autoload]
 
 Game="*res://scripts/Class/Game.gd"
-CM="*res://scripts/chart/chart_manager.gd"
-DB="*res://scripts/DB/db.gd"
+api="*res://scripts/Networking/api_manager.gd"
 
 [display]
 
