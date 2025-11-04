@@ -1,6 +1,4 @@
-extends RefCounted
-class_name CM # ChartManager
-
+extends Node
 # ===== Signals =====
 
 @warning_ignore("unused_signal")

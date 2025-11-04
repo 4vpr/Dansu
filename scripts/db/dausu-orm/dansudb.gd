@@ -1,10 +1,9 @@
-class_name MiniDB
-
+class_name DansuDB
 var sql
 
 func _ready() -> void:
 	sql = SQLite.new()
-	var ok = sql.open("user://app.db")
+	var ok = sql.open("user://data.db")
 	assert(ok, "DB open failed")
 
 func exec(q: String, params: Array = []) -> void:

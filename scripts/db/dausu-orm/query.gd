@@ -1,7 +1,7 @@
 extends RefCounted
 class_name QuerySet
 
-var db: MiniDB
+var db: DansuDB
 var cls
 
 var _where := []
@@ -9,7 +9,7 @@ var _params: Array = []
 var _order := ""
 var _limit := -1
 
-func _init(_db: MiniDB, _cls) -> void:
+func _init(_db: DansuDB, _cls) -> void:
 	db = _db
 	cls = _cls
 
@@ -48,7 +48,7 @@ func all() -> Array:
 	var rows := db.fetch_all(q, _params)
 	var out: Array = []
 	for r in rows:
-		out.append(MiniModel._from_row(cls, r))
+		out.append(Model._from_row(cls, r))
 	return out
 
 func first() -> Variant:
@@ -56,7 +56,7 @@ func first() -> Variant:
 	var arr := all()
 	return arr[0] if arr.size() > 0 else null
 
-func get(conds: Dictionary) -> Variant:
+func one(conds: Dictionary) -> Variant:
 	var qs := QuerySet.new(db, cls).filter(conds).limit(2).all()
 	assert(qs.size() == 1, "get() expects exactly one row")
 	return qs[0]

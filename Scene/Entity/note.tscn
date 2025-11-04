@@ -1,9 +1,9 @@
 [gd_scene load_steps=5 format=3 uid="uid://dugpyedd7s76d"]
 
-[ext_resource type="Script" path="res://scripts/PlayScene/note.gd" id="1_ehwet"]
-[ext_resource type="Texture2D" uid="uid://cw32mke1ro5iv" path="res://Textures/note.png" id="2_4n3a0"]
-[ext_resource type="Texture2D" uid="uid://bfhqco2aq37ys" path="res://Textures/arrow.png" id="2_554vh"]
-[ext_resource type="Script" path="res://scripts/PlayScene/note_arrow.gd" id="3_d41lb"]
+[ext_resource type="Script" path="res://scripts/playscene/note.gd" id="1_ehwet"]
+[ext_resource type="Texture2D" uid="uid://cw32mke1ro5iv" path="res://resource/texture/note.png" id="2_4n3a0"]
+[ext_resource type="Texture2D" uid="uid://bfhqco2aq37ys" path="res://resource/texture/arrow.png" id="2_554vh"]
+[ext_resource type="Script" path="res://scripts/playscene/note_arrow.gd" id="3_d41lb"]
 
 [node name="Note" type="Node3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)

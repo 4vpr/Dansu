@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://b7pyknokmtgbv"]
 
-[ext_resource type="Texture2D" uid="uid://cvgx6jixkqthy" path="res://Resources/note.tres" id="1_hfct5"]
-[ext_resource type="Script" path="res://scripts/Editor/editor_note.gd" id="1_ouo1o"]
+[ext_resource type="Texture2D" uid="uid://cvgx6jixkqthy" path="res://resource/note.tres" id="1_hfct5"]
+[ext_resource type="Script" path="res://scripts/editor/editor_note.gd" id="1_ouo1o"]
 
 [node name="Note" type="TextureButton"]
 offset_right = 60.0

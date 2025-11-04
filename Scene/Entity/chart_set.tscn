@@ -1,8 +1,8 @@
 [gd_scene load_steps=6 format=3 uid="uid://68ky1dydaoqf"]
 
-[ext_resource type="Script" path="res://scripts/SongSelect/song_ui.gd" id="1_slkj2"]
-[ext_resource type="FontFile" uid="uid://dyqkpg5wawdxu" path="res://Resources/font/Next Bravo.ttf" id="2_2sli2"]
-[ext_resource type="Script" path="res://scripts/Editor/button.gd" id="3_0okyf"]
+[ext_resource type="Script" path="res://scripts/songselect/song_ui.gd" id="1_slkj2"]
+[ext_resource type="FontFile" uid="uid://dyqkpg5wawdxu" path="res://resource/font/Next Bravo.ttf" id="2_2sli2"]
+[ext_resource type="Script" path="res://scripts/editor/button.gd" id="3_0okyf"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yp3d1"]
 corner_radius_top_left = 20

@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://bwxxsx3jrkm56"]
 
-[ext_resource type="Script" path="res://scripts/UI/options.gd" id="1_dgl4p"]
-[ext_resource type="Script" path="res://scripts/SongSelect/Hslider_velocity.gd" id="2_pat5m"]
+[ext_resource type="Script" path="res://scripts/ui/options.gd" id="1_dgl4p"]
+[ext_resource type="Script" path="res://scripts/songselect/h_slider_velocity.gd" id="2_pat5m"]
 [ext_resource type="Script" path="res://scripts/simple_buttons/b_open_song_folder.gd" id="3_tbbmq"]
 [ext_resource type="Script" path="res://scripts/simple_buttons/b_reload.gd" id="4_hplq3"]
 

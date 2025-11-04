@@ -1,16 +1,17 @@
-extends RefCounted
+extends Model
 class_name Chart
 
 # SCENES
-var rail_scene = load("res://Scene/Entity/rail.tscn")
-var note_scene = load("res://Scene/Entity/note.tscn")
-var rail_scene_editor = load("res://Scene/Entity/Editor/rail.tscn")
-var note_scene_editor = load("res://Scene/Entity/Editor/note.tscn")
+var rail_scene = load("res://scene/entity/rail.tscn")
+var note_scene = load("res://scene/entity/note.tscn")
+var rail_scene_editor = load("res://scene/entity/editor/rail.tscn")
+var note_scene_editor = load("res://scene/entity/editor/note.tscn")
 
 # KEYS
 var id_local: int = 0
 var id_online: int = 0
 var chartset_id: int = 0
+var hash: String = ""
 
 # OBJECTS
 var notes: Array[Node3D] = []
@@ -39,43 +40,45 @@ var song_bpms: Array[Dictionary] = [{
 var is_built_in: bool = false # res:// for true
 var use_default_skin: bool = true
 
-var folder_path: String = ""
-var json_path: String = ""
+var folder_name: String = ""
+var json_name: String = ""
 
-var fields = {
-	"title": ["title", ""],
-	"artist": ["artist", "unknown"],
-	"creator": ["creator", "unknown"],
-	"name": ["difficulty_name", "new"],
+# JSON MAP
+var map = {
+	"title": ["title", "?"],
+	"artist": ["artist", "?"],
+	"creator": ["creator", "?"],
+	"name": ["name", "?"],
 	"use_default_skin": ["use_default_skin", true],
 	"file_audio": ["file_audio","song.mp3"]
 }
-
-var json_file
+# DB FIELDS
+static func fields() -> Dictionary:
+	return {
+		"username": Field.Text("", false, true),
+	}
 var texture_cache = {}
 
 func get_json():
+	var json_path = Consts.song_folder.path_join(folder_name).path_join(json_name)
 	var file = FileAccess.open(json_path, FileAccess.READ)
 	if not file:
 		return false
 	var json = JSON.parse_string(file.get_as_text())
 	return json
 
-func get_difficulty() -> float:
-	var json = get_json()
-	return DifficultyAnalyzer.calculate_difficulty(json)
-
-func parse_meta():
-	for var_name in fields:
-		var key = fields[var_name][0]
-		var value = fields[var_name][1]
+func parse_meta(json_file):
+	for var_name in map:
+		var key = map[var_name][0]
+		var value = map[var_name][1]
 		set(var_name, json_file.get(key, value))
-	rating = get_difficulty()
+	rating = Rating.calculate(get_json())
 
-func parse_notes(is_editor: bool = false):
+func parse_notes(json_file, is_editor: bool = false):
+	var json = get_json()
 	var _notes = []
 	var note_scene_to_use = note_scene_editor if is_editor else note_scene
-	if "notes" in json_file:
+	if "notes" in json:
 		for note_data in json_file["notes"]:
 			var new_note = note_scene_to_use.instantiate()
 			new_note.type = note_data.get("type", 0)
@@ -85,9 +88,9 @@ func parse_notes(is_editor: bool = false):
 			new_note.animation = note_data.get("animation", 0)
 			notes.append(new_note)
 	notes.sort_custom(func(a, b): return a.time < b.time)
-	return _notes
+	notes = _notes
 
-func parse_rails(is_editor: bool = false):
+func parse_rails(json_file, is_editor: bool = false):
 	var _rails = []
 	rails.clear()
 	var rail_scene_to_use = rail_scene_editor if is_editor else rail_scene
@@ -105,56 +108,9 @@ func parse_rails(is_editor: bool = false):
 				new_rail.position.x = rail_data.get("position", 0.0)
 			rails.append(new_rail)
 	rails.sort_custom(func(a, b): return a.start < b.start)
+	rails = _rails
 	return _rails
-func load_from_json(path: String) -> bool:
-	var file = FileAccess.open(path, FileAccess.READ)
-	if not file:
-		return false
-	var json = JSON.parse_string(file.get_as_text())
-	if typeof(json) != TYPE_DICTIONARY:
-		return false
-	json_path = path
-	rating = get_difficulty()
-	parse_meta()
-	return true
-func parse_objects(is_editor: bool = false):
-	var file = FileAccess.open(json_path, FileAccess.READ)
-	if not file:
-		return
 
-	var json = JSON.parse_string(file.get_as_text())
-	rails.clear()
-	notes.clear()
-
-	var rail_scene_to_use = rail_scene_editor if is_editor else rail_scene
-	var note_scene_to_use = note_scene_editor if is_editor else note_scene
-
-	if "rails" in json:
-		for rail_data in json["rails"]:
-			var new_rail = rail_scene_to_use.instantiate()
-			new_rail.id = rail_data.get("id", -1)
-			new_rail.start = rail_data.get("start", -1)
-			new_rail.end = rail_data.get("end", -1)
-			new_rail.moves = rail_data.get("move", [])
-			if is_editor:
-				new_rail.pos = rail_data.get("position", 0.0)
-			else:
-				new_rail.position.x = rail_data.get("position", 0.0)
-			rails.append(new_rail)
-	rails.sort_custom(func(a, b): return a.start < b.start)
-
-	if "notes" in json:
-		for note_data in json["notes"]:
-			var new_note = note_scene_to_use.instantiate()
-			new_note.type = note_data.get("type", 0)
-			new_note.time = note_data.get("time", 0)
-			new_note.rail = note_data.get("rail", 0)
-			new_note.dir = note_data.get("dir", 0)
-			new_note.animation = note_data.get("animation", 0)
-			notes.append(new_note)
-	notes.sort_custom(func(a, b): return a.time < b.time)
-
-	load_player_resources(json, is_editor)
 func _clear() -> void:
 	notes.clear()
 	rails.clear()
@@ -163,30 +119,21 @@ func _clear() -> void:
 	texture_cache.clear()
 
 func load_song(player: AudioStreamPlayer) -> bool:
-	var _path = folder_path.path_join(audio_file)
+	var _path = Consts.song_folder.path_join(folder_name).path_join(audio_file)
 	var stream: AudioStream = null
-
 	if _path.begins_with("res://"):
 		stream = load(_path)
 	else:
 		if !FileAccess.file_exists(_path):
 			return false
-
 		var ext = _path.get_extension().to_lower()
 		var file = FileAccess.open(_path, FileAccess.READ)
 		if file:
 			var data = file.get_buffer(file.get_length())
 			match ext:
-				"ogg_FIX":
-					var parts = folder_path.split("Songs/")
-					if parts.size() > 1:
-						var relative_path = "Songs/" + parts[1]
-						#var ogg = AudioStreamOggVorbis.new()
-						var user_folder = "user://" + relative_path
-						print("user://: ", ProjectSettings.globalize_path("user://"))
-						print(user_folder.path_join(audio_file))
-						stream = load(user_folder.path_join(audio_file))
-				"wav_FIX":
+				"ogg":
+						stream = load(_path)
+				"wav":
 					var wav = AudioStreamWAV.new()
 					wav.data = data
 					stream = wav
@@ -196,11 +143,9 @@ func load_song(player: AudioStreamPlayer) -> bool:
 					stream = mp3
 				_:
 					return false
-
 	if stream == null:
 		return false
 
-	# mp3가 아닌 경우만 Interactive로 래핑
 	if not (stream is AudioStreamMP3):
 		var interactive := AudioStreamInteractive.new()
 		interactive.stream = stream
@@ -213,7 +158,6 @@ func load_song(player: AudioStreamPlayer) -> bool:
 func load_player_resources(json, save_filenames := false):
 	animations.clear()
 	player_animation.clear()
-
 	if "animations" in json:
 		for animation in json["animations"]:
 			var frames = animation.get("frames", [])
@@ -245,7 +189,7 @@ func _load_texture(file_name: String) -> Texture2D:
 	if texture_cache.has(file_name):
 		return texture_cache[file_name]
 
-	var texture_path = folder_path.path_join("sprite").path_join(file_name)
+	var texture_path = Consts.song_folder.path_join(folder_name).path_join("sprite").path_join(file_name)
 	var texture: Texture2D = null
 
 	if texture_path.begins_with("res://"):
@@ -262,9 +206,7 @@ func _load_texture(file_name: String) -> Texture2D:
 		texture_cache[file_name] = texture
 	return texture
 
-# 파싱된 맵에서 해시 생성
-
-func get_hash() -> String:
+func create_hash():
 	var hash_data = ""
 	for rail in rails:
 		hash_data += str(rail.id)
@@ -281,8 +223,8 @@ func get_hash() -> String:
 	context.update(hash_data.to_utf8_buffer())
 	var hash_result = context.finish()
 	var hex_str = hash_result.hex_encode()
-	var integrity_id = hex_str.substr(0, 32)
-	return integrity_id
+	var integrity_id = hex_str.substr(0, 255)
+	hash = integrity_id
 
 func generate_uuid() -> String:
 	var hex_chars = "0123456789abcdef"
@@ -292,3 +234,14 @@ func generate_uuid() -> String:
 		if i in [7, 11, 15, 19]:
 			uuid += "-"
 	return uuid
+
+static func table() -> String: return "charts"
+
+func _init() -> void:
+	_defaults()
+
+static func objects_for(db: DansuDB) -> QuerySet:
+	return Model.objects(db, User)
+
+static func ensure_table_for(db: DansuDB) -> void:
+	Model.ensure_table(db, User)

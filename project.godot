@@ -13,22 +13,23 @@ config_version=5
 config/name="Dansu"
 config/description="Dansu"
 config/version="dev"
-run/main_scene="res://Scene/main_menu.tscn"
+run/main_scene="res://scene/main_menu.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 boot_splash/bg_color=Color(0, 0, 0, 0)
 boot_splash/show_image=false
 boot_splash/use_filter=false
-config/icon="res://Resources/dansu.png"
+config/icon="res://resource/dansu.png"
 config/windows_native_icon="res://Resources/dansu.ico"
 
 [audio]
 
-buses/default_bus_layout="res://Resources/audio_bus.tres"
+buses/default_bus_layout="res://resource/audio_bus.tres"
 
 [autoload]
 
-Game="*res://scripts/Class/Game.gd"
-api="*res://scripts/Networking/api_manager.gd"
+Game="*res://scripts/class/game.gd"
+api="*res://scripts/networking/api_manager.gd"
+CM="*res://scripts/class/chart_manager.gd"
 
 [display]
 

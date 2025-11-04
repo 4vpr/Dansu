@@ -5,16 +5,15 @@ var notes = []
 var notes_i = 0
 var nextnote_i = -1
 var hitnotes = []
-var rail_scene = preload("res://Scene/Entity/rail.tscn")
-var note_scene = preload("res://Scene/Entity/note.tscn")
-var judge_scene = preload("res://Scene/Entity/judge.tscn")
+var rail_scene = preload("res://scene/entity/rail.tscn")
+var note_scene = preload("res://scene/entity/note.tscn")
+var judge_scene = preload("res://scene/entity/judge.tscn")
 var sfx_pool = SfxPool.new()
 var score:Score = Score.new()
 var combo = 0
 var judgeDisplayDuration = 1
 var song_end = 0
 var paused = false
-const DifficultyAnalyzer = preload("res://scripts/Class/difficulty_analyzer.gd")
 @onready var player = $Player
 @onready var rail_container = $Ground/RailContainor
 @onready var songplayer = $SongPlayer
@@ -248,7 +247,7 @@ func write_judge(i: int, note):
 			combo += 1
 			if score.high_combo < combo:
 				score.high_combo = combo
-		sfx_pool.play_sound(preload("res://Resources/drum-slidertick.wav"))
+		sfx_pool.play_sound(preload("res://resource/drum-slidertick.wav"))
 		player.sprites_current = null
 		if note.animation > 0:
 			player.set_animation(note.animation)

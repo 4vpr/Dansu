@@ -2,11 +2,8 @@ extends RefCounted
 class_name Rating
 
 const SEGMENT_DURATION_MS := 2000
-# 세그먼트 나누는 시간;
 const POWER := 10.5
-# powermean의 power
 const WEIGHT := 2.15
-# 배수
 
 static func calculate(json_data: Dictionary) -> float:
 	var notes = json_data.get("notes", [])
@@ -73,6 +70,7 @@ static func calculate(json_data: Dictionary) -> float:
 const FAST_INPUT_THRESHOLD := 180.0  # ms
 const FAST_INPUT_WEIGHT := 1.25
 
+# IT SUCKS
 static func calculate_ver2(json_data: Dictionary) -> float:
 	var notes: Array = json_data.get("notes", [])
 	var rails: Array = json_data.get("rails", [])
@@ -84,7 +82,7 @@ static func calculate_ver2(json_data: Dictionary) -> float:
 	for rail in rails:
 		rail_pos[rail.get("id", 0)] = rail.get("position", rail.get("pos", 0.0))
 
-	# 시간순 정렬
+	# order by time
 	notes.sort_custom(func(a, b): return a["time"] < b["time"])
 	var start_time :int = notes[0].get("time", 0)
 	var end_time :int = notes[-1].get("time", 0)
@@ -110,7 +108,7 @@ static func calculate_ver2(json_data: Dictionary) -> float:
 		elif n_type == 3:
 			value = 0.1
 
-		# 보이지 않는 이동 고려 (다음 note와 pos 다를 경우)
+		# invisible inputs
 		if i < notes.size() - 1:
 			var next = notes[i + 1]
 			if next.get("type", 1) != 4:
@@ -119,7 +117,6 @@ static func calculate_ver2(json_data: Dictionary) -> float:
 				if abs(next_pos - cur_pos) > 0:
 					value += 1.0
 
-		# 빠른 인풋 간격 가중치
 		if i > 0 and notes[i - 1].get("type", 1) != 4:
 			var prev_time :int = notes[i - 1].get("time", 0)
 			var cur_time :int = note.get("time", 0)
@@ -133,11 +130,11 @@ static func calculate_ver2(json_data: Dictionary) -> float:
 
 		segments[seg_index] += value
 
-	# 초당 입력으로 환산
+	# input per seconds
 	for i in segments.size():
 		segments[i] /= (SEGMENT_DURATION_MS / 1000.0)
 
-	# Power Mean 계산
+	# calc power mean
 	var acc := 0.0
 	var valid_count := 0
 	for v in segments:

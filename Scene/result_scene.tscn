@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://cxjwar8qokms3"]
 
 [ext_resource type="Script" path="res://scripts/result_scene.gd" id="1_q00yg"]
-[ext_resource type="FontFile" uid="uid://dyqkpg5wawdxu" path="res://Resources/font/Next Bravo.ttf" id="2_h8j4k"]
+[ext_resource type="FontFile" uid="uid://dyqkpg5wawdxu" path="res://resource/font/Next Bravo.ttf" id="2_h8j4k"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_wr7xd"]
 font_size = 300
