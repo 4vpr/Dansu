@@ -1,0 +1,445 @@
+[gd_scene load_steps=43 format=3 uid="uid://b8in7w7bfex2h"]
+
+[ext_resource type="Script" path="res://scripts/PlayScene/_play_scene.gd" id="1_rq5yt"]
+[ext_resource type="Script" path="res://scripts/PlayScene/player.gd" id="2_pb52u"]
+[ext_resource type="Script" path="res://scripts/PlayScene/camera_3d.gd" id="4_6a102"]
+[ext_resource type="Texture2D" path="res://10491.jpg" id="4_x7oiy"]
+[ext_resource type="Texture2D" uid="uid://did3rnma74vxa" path="res://media/textures/panel.png" id="5_5nxeb"]
+[ext_resource type="FontFile" uid="uid://bvrslc0aqoco0" path="res://media/font/Next Bravo.ttf" id="6_qkpip"]
+[ext_resource type="Script" path="res://scripts/PlayScene/UI/combo.gd" id="6_ws3s7"]
+[ext_resource type="Shader" path="res://media/wave.gdshader" id="7_3ly4l"]
+[ext_resource type="Script" path="res://scripts/PlayScene/UI/fps.gd" id="8_urvqm"]
+[ext_resource type="Texture2D" uid="uid://dxflyj6f5q4ge" path="res://media/textures/button.png" id="10_vkoos"]
+[ext_resource type="Script" path="res://scripts/button_animation.gd" id="11_le61d"]
+[ext_resource type="Texture2D" uid="uid://dk72ypuyrrdxk" path="res://media/textures/buttons/pause.png" id="11_q1tko"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qgxkp"]
+shading_mode = 0
+albedo_color = Color(0.266667, 0.266667, 0.266667, 1)
+albedo_texture = ExtResource("4_x7oiy")
+albedo_texture_force_srgb = true
+texture_filter = 5
+texture_repeat = false
+
+[sub_resource type="QuadMesh" id="QuadMesh_5iy25"]
+material = SubResource("StandardMaterial3D_qgxkp")
+size = Vector2(15, 15)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0es7k"]
+transparency = 1
+shading_mode = 0
+albedo_texture = ExtResource("5_5nxeb")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_vlhvm"]
+material = SubResource("StandardMaterial3D_0es7k")
+size = Vector2(2.5, 13)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lanr2"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_4uwsm"]
+line_spacing = 0.0
+font = ExtResource("6_qkpip")
+font_size = 70
+font_color = Color(1, 0.964706, 1, 1)
+outline_size = 30
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bb2w3"]
+shader = ExtResource("7_3ly4l")
+shader_parameter/height = 3.0
+shader_parameter/frequency = 20.0
+shader_parameter/speed = 3.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_3c5fy"]
+font = ExtResource("6_qkpip")
+font_size = 30
+outline_size = 30
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_bvtnh"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hvt0l"]
+shader = ExtResource("7_3ly4l")
+shader_parameter/height = 3.0
+shader_parameter/frequency = 20.0
+shader_parameter/speed = 3.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_6a1d3"]
+font = ExtResource("6_qkpip")
+font_size = 50
+outline_size = 6
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_i0lpc"]
+font = ExtResource("6_qkpip")
+font_size = 25
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_r3j8i"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jp81c"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_eha55"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_erjdn"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_aebnq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bpug4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fot51"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_66uln"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_boyj2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_s5n4i"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_n7tm8"]
+
+[sub_resource type="Shortcut" id="Shortcut_swhp2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1atgh"]
+
+[sub_resource type="Sky" id="Sky_ppkvx"]
+sky_material = SubResource("ShaderMaterial_1atgh")
+
+[sub_resource type="Environment" id="Environment_b6hmy"]
+background_mode = 2
+background_color = Color(0.890196, 0.662745, 0.890196, 1)
+sky = SubResource("Sky_ppkvx")
+
+[sub_resource type="Animation" id="Animation_luc7y"]
+length = 0.001
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Camera3D:rotation:x")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0)
+}
+
+[sub_resource type="Animation" id="Animation_f4jyh"]
+resource_name = "camera_intro"
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Camera3D:rotation:x")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0, 0),
+"points": PackedFloat32Array(1.75, 0, 0, 0, 0, 0, -0.5, 0, 0.25, 0.25),
+"times": PackedFloat32Array(0, 0.866667)
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_lq16m"]
+_data = {
+"RESET": SubResource("Animation_luc7y"),
+"camera_intro": SubResource("Animation_f4jyh")
+}
+
+[node name="PlayScene" type="Node3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00251871, -0.00147676, 0.00196695)
+script = ExtResource("1_rq5yt")
+
+[node name="Player" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 1)
+script = ExtResource("2_pb52u")
+
+[node name="Sprite" type="Sprite3D" parent="Player"]
+gi_mode = 0
+pixel_size = 0.001
+texture_filter = 0
+render_priority = 1
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1.8)
+script = ExtResource("4_6a102")
+
+[node name="BG" type="MeshInstance3D" parent="Camera3D"]
+unique_name_in_owner = true
+transform = Transform3D(2.3, 0, 0, 0, 1.294, 0, 0, 0, 1.198, 0, 0, -11.8)
+gi_mode = 0
+mesh = SubResource("QuadMesh_5iy25")
+skeleton = NodePath("../..")
+
+[node name="Ground" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.939693, -0.34202, 0, 0.34202, 0.939693, 0, 2.25, -3.8)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 2.98023e-08, 1, 0.000394821, -0.0241548, 0.018528)
+mesh = SubResource("PlaneMesh_vlhvm")
+skeleton = NodePath("../..")
+
+[node name="RailContainor" type="Node3D" parent="Ground"]
+transform = Transform3D(0.999999, 0, 0, 0, 0.999999, 2.68221e-07, 0, 1.19209e-07, 1, 0, -0.5, -6.5)
+
+[node name="SongPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"Music"
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Combo" type="VBoxContainer" parent="UI"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -44.5
+offset_top = 150.0
+offset_right = 44.5
+offset_bottom = 254.0
+grow_horizontal = 2
+script = ExtResource("6_ws3s7")
+
+[node name="Combo" type="Label" parent="UI/Combo"]
+material = SubResource("ShaderMaterial_lanr2")
+layout_mode = 2
+text = "0"
+label_settings = SubResource("LabelSettings_4uwsm")
+horizontal_alignment = 1
+
+[node name="Label" type="Label" parent="UI/Combo"]
+material = SubResource("ShaderMaterial_bb2w3")
+layout_mode = 2
+size_flags_vertical = 6
+text = "combo"
+label_settings = SubResource("LabelSettings_3c5fy")
+horizontal_alignment = 1
+
+[node name="Fps" type="Label" parent="UI"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "123123"
+label_settings = SubResource("LabelSettings_bvtnh")
+script = ExtResource("8_urvqm")
+
+[node name="Acc" type="HBoxContainer" parent="UI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -113.0
+offset_top = 30.0
+offset_right = -30.0
+offset_bottom = 80.0
+grow_horizontal = 0
+
+[node name="Rank" type="Label" parent="UI/Acc"]
+material = SubResource("ShaderMaterial_hvt0l")
+layout_mode = 2
+label_settings = SubResource("LabelSettings_6a1d3")
+horizontal_alignment = 1
+
+[node name="Acc" type="Label" parent="UI/Acc"]
+layout_mode = 2
+text = "90%"
+label_settings = SubResource("LabelSettings_i0lpc")
+
+[node name="TouchScreen" type="Control" parent="UI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Left" type="TextureButton" parent="UI/TouchScreen"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1260.0
+offset_top = -4.0
+offset_right = -410.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+action_mode = 0
+texture_normal = ExtResource("10_vkoos")
+stretch_mode = 3
+
+[node name="Right" type="TextureButton" parent="UI/TouchScreen"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1540.0
+offset_top = 12.0
+offset_right = -6.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+action_mode = 0
+texture_normal = ExtResource("10_vkoos")
+ignore_texture_size = true
+stretch_mode = 3
+flip_h = true
+
+[node name="Pause" type="TextureButton" parent="UI/TouchScreen"]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -20.0
+offset_top = 10.0
+offset_right = 20.0
+offset_bottom = 50.0
+grow_horizontal = 2
+texture_normal = ExtResource("11_q1tko")
+stretch_mode = 0
+
+[node name="Touch" type="TextureButton" parent="UI/TouchScreen"]
+visible = false
+layout_mode = 0
+offset_right = 800.0
+offset_bottom = 1080.0
+
+[node name="Pause" type="Control" parent="UI"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BG" type="ColorRect" parent="UI/Pause"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.588235)
+
+[node name="Resume2" type="Label" parent="UI/Pause"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+offset_left = 172.0
+offset_top = 208.0
+offset_right = 442.0
+offset_bottom = 308.0
+rotation = 0.165987
+theme_override_colors/font_color = Color(0.762404, 0.762404, 0.762404, 1)
+theme_override_fonts/font = ExtResource("6_qkpip")
+theme_override_font_sizes/font_size = 75
+theme_override_styles/normal = SubResource("StyleBoxEmpty_r3j8i")
+text = "paused"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/Pause"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -36.0
+offset_top = -20.0
+offset_right = 36.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Resume" type="Button" parent="UI/Pause/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+theme_override_colors/font_hover_pressed_color = Color(0.0923971, 0.0923971, 0.0923971, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(0.762404, 0.762404, 0.762404, 1)
+theme_override_fonts/font = ExtResource("6_qkpip")
+theme_override_font_sizes/font_size = 75
+theme_override_styles/focus = SubResource("StyleBoxEmpty_jp81c")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_eha55")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_erjdn")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_aebnq")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_bpug4")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_fot51")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_66uln")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_boyj2")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_s5n4i")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_n7tm8")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_r3j8i")
+shortcut = SubResource("Shortcut_swhp2")
+text = "play"
+script = ExtResource("11_le61d")
+
+[node name="Retry" type="Button" parent="UI/Pause/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+theme_override_colors/font_hover_pressed_color = Color(0.0923971, 0.0923971, 0.0923971, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(0.762404, 0.762404, 0.762404, 1)
+theme_override_fonts/font = ExtResource("6_qkpip")
+theme_override_font_sizes/font_size = 75
+theme_override_styles/focus = SubResource("StyleBoxEmpty_jp81c")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_eha55")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_erjdn")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_aebnq")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_bpug4")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_fot51")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_66uln")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_boyj2")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_s5n4i")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_n7tm8")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_r3j8i")
+text = "Retry
+"
+script = ExtResource("11_le61d")
+
+[node name="Exit" type="Button" parent="UI/Pause/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+theme_override_colors/font_hover_pressed_color = Color(0.0923971, 0.0923971, 0.0923971, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(0.762404, 0.762404, 0.762404, 1)
+theme_override_fonts/font = ExtResource("6_qkpip")
+theme_override_font_sizes/font_size = 75
+theme_override_styles/focus = SubResource("StyleBoxEmpty_jp81c")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_eha55")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_erjdn")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_aebnq")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_bpug4")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_fot51")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_66uln")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_boyj2")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_s5n4i")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_n7tm8")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_r3j8i")
+text = "Exit"
+script = ExtResource("11_le61d")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_b6hmy")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_lq16m")
+}

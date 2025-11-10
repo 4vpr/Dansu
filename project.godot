@@ -18,18 +18,18 @@ config/features=PackedStringArray("4.3", "Mobile")
 boot_splash/bg_color=Color(0, 0, 0, 0)
 boot_splash/show_image=false
 boot_splash/use_filter=false
-config/icon="res://Resources/dansu.png"
+config/icon="res://media/textures/logo.png"
 config/windows_native_icon="res://Resources/dansu.ico"
 
 [audio]
 
-buses/default_bus_layout="res://Resources/audio_bus.tres"
+buses/default_bus_layout="res://media/audio_bus.tres"
 
 [autoload]
 
-Game="*res://scripts/Class/Game.gd"
-OAuth="*res://scripts/Class/discord_OAuth.gd"
 CM="*res://scripts/chart/chart_manager.gd"
+Game="*res://scripts/class/game.gd"
+Settings="*res://scripts/class/settings.gd"
 
 [display]
 
@@ -37,7 +37,6 @@ window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/size/resizable=false
 window/stretch/mode="viewport"
-window/stretch/aspect="keep_width"
 window/vsync/vsync_mode=0
 
 [editor_plugins]
@@ -115,7 +114,7 @@ action_3={
 [physics]
 
 common/physics_ticks_per_second=1000
-common/max_physics_steps_per_frame=20
+common/max_physics_steps_per_frame=17
 common/physics_jitter_fix=0.0
 
 [rendering]

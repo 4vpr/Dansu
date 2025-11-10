@@ -39,7 +39,7 @@ func get_json():
 	return json
 func get_difficulty() -> float:
 	var json = get_json()
-	return BeatmapDifficultyAnalyzer.calculate_difficulty(json)
+	return Rating.calculate_difficulty(json)
 func parse_meta():
 	var fields = {
 		"map_uuid": ["uuid", map_uuid],
