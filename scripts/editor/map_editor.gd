@@ -2,13 +2,13 @@ extends Control
 var paused_position = 0.0
 var is_dragging = false
 var was_playing = false
-var player_animation = {}
-var animations = []
+
 var sprites = []
 var beatsdiv = 2
 var sfx_pool = SfxPool.new()
 var chart = Chart.new()
 var shortcut = [0,0,0,0,0,0,0,0,0,0]
+
 @onready var SongSlider = $SongSlider
 @onready var Inspector = $Inspector
 @onready var Song = $AudioStreamPlayer
@@ -18,15 +18,22 @@ var shortcut = [0,0,0,0,0,0,0,0,0,0]
 @onready var file_dialog: FileDialog = $FileDialog
 var SongIsPlaying = false
 var map_data = {}
+var selected = null
+
 var rail_scene = load("res://scene/entity/editor/rail.tscn")
 var note_scene = load("res://scene/entity/editor/note.tscn")
 var animation_scene = load("res://scene/entity/editor/animation.tscn")
-var selected = null
+
+# objects
+var player_animation = {}
+var animations = []
 var rails = []; var notes = []
 var rail_scope = null
+
 var selected_animation
 var selected_frame
 var selected_prev
+
 func select_object(object):
 	if selected_prev != null:
 		selected_prev._unselect()
@@ -55,6 +62,7 @@ func rail_check():
 					RailContainer.remove_child(rail)
 	for rail in RailContainer.get_children():
 		rail.position.y = (Game.currentTime - rail.start) * Game.editor_velocity - rail.size.y - 100
+
 func check_drag():
 	if selected != null:
 		var offset
@@ -67,6 +75,7 @@ func check_drag():
 			if selected.get("start") != null:
 				pass
 			selected._update()
+
 func create_note(type,dir = 0):
 	var new_note = note_scene.instantiate()
 	var time = int(snap_to_bpm(Game.currentTime))
@@ -88,13 +97,14 @@ func create_note(type,dir = 0):
 		new_note.rail = rail_scope.id
 		new_note.dir = dir
 		new_note.animation = 0
-		
+
 		notes.push_back(new_note)
 		undo_objects.append(new_note)
 		check_undo_size()
 		rail_scope.notes.add_child(new_note)
 		rail_scope._update()
 		select_object(new_note)
+
 func create_rail():
 	var new_rail = rail_scene.instantiate()
 	new_rail.start = Game.currentTime - 85
@@ -134,12 +144,11 @@ func load_pngs() -> void:
 	for sprite in sprites:
 		option_button.add_item(sprite["filename"], i)
 		i += 1
+
 # BPM 보간
 func snap_to_bpm(timing: float, division: int = beatsdiv) -> float:
 	var beat_interval = 60000.0 / chart.song_bpm  # ms per beat
 	var snap_interval = beat_interval / division
-	
-	
 	var relative_timing = timing - chart.song_bpmstart
 	var snapped_steps = round(relative_timing / snap_interval)
 	var snapped_timing = snapped_steps * snap_interval + chart.song_bpmstart
@@ -264,10 +273,10 @@ func _ready() -> void:
 var nextHitSound = -INF
 func _save() -> void:
 	$Menu.visible = false
-	save_to_json()
+	chart.save_to_json(notes,rails,player_animation,animations)
 	CM.sc.load_from_json(chart.json_path)
 func _save_exit() -> void:
-	save_to_json()
+	chart.save_to_json(notes,rails,player_animation,animations)
 	CM.sc.load_from_json(chart.json_path)
 	_quit()
 func _quit() -> void:
@@ -308,75 +317,12 @@ func snap_notes():
 	for note in notes:
 		note.time = snap_to_bpm(note.time)
 
-#저장
-func save_to_json():
-	var json_data = {}
-	json_data["file_audio"] = chart.file_audio
-	json_data["title"] = chart.meta_title
-	json_data["artist"] = chart.meta_artist
-	json_data["creator"] = chart.meta_creator
-	json_data["bpm"] = chart.song_bpm
-	json_data["bpmstart"] =chart.song_bpmstart
-	if chart.map_uuid == "0":
-		chart.map_uuid = chart.generate_uuid()
-	json_data["uuid"] = chart.map_uuid
-	json_data["difficulty_name"] = chart.diff_name
-	json_data["difficulty_value"] = chart.diff_value
-	if !player_animation.is_empty() && animations.size() > 0:
-		json_data["player"] = {
-			"idle": player_animation["idle"],
-			"left": player_animation["left"],
-			"right": player_animation["right"],
-			"jump": player_animation["jump"],
-			"land": player_animation["land"],
-			"defaultdance": player_animation["defaultdance"]
-			}
-		json_data["use_default_skin"] = false
-	else:
-		json_data["use_default_skin"] = true
-	json_data["animations"] = []
-	for animation in animations:
-		json_data["animations"].append({
-		"id": animation["id"],
-		"frames": animation["frame_filenames"],
-		"fps": animation["fps"],
-		"name": animation["name"],
-		"effect": animation["effect"]
-		})
-	json_data["rails"] = []
-	for rail in rails:
-		if rail.visible == true:
-			json_data["rails"].append({
-				"id": rail.id,
-				"end": rail.end,
-				"move": rail.moves,
-				"start": rail.start,
-				"position": rail.pos
-				})
-	json_data["notes"] = []
-	for note in notes:
-		if note.visible && note.hasrail:
-			json_data["notes"].append({
-				"type": int(note.type),
-				"time": int(note.time),
-				"rail": int(note.rail),
-				"dir": int(note.dir),
-				"animation": note.animation
-				})
-	var file = FileAccess.open(chart.json_path, FileAccess.WRITE)
-	if file:
-		file.store_string(JSON.stringify(json_data, "\t"))  # JSON 변환 후 저장
-		file.close()
-		print("JSON Saved!:", chart.json_path)
-	else:
-		print("JSON failed to save")
 #데이터 파싱
 func parse_data():
-	chart.parse_objects(true)
-	notes = chart.notes
-	rails = chart.rails
-	player_animation = chart.player_animation
-	animations = chart.animations
+	notes = chart.parse_notes(true)
+	rails = chart.parse_rails(true)
+	player_animation = chart.get_json()["player"]
+	animations = chart.get_json()["animations"]
 	for animation in animations:
 		var new_anim = animation_scene.instantiate()
 		new_anim.animation = animation
@@ -422,6 +368,7 @@ func _input(event):
 				# Optionally reflect change in inspector UI
 				if Inspector and Inspector.has_method("_update"):
 					Inspector._update(selected)
+
 func _on_pause_pressed() -> void:
 	if SongIsPlaying:
 		paused_position = Song.get_playback_position()
@@ -432,13 +379,17 @@ func _on_pause_pressed() -> void:
 			paused_position = 0
 		Song.play(paused_position)
 		SongIsPlaying = true
+
 func _on_slider_changed(value: float) -> void:
 	if Song:
 		if !SongIsPlaying:
 			paused_position = value
+
 func _on_song_finished() -> void:
 	SongIsPlaying = false
+
 var undo_objects = []
+
 func undo():
 	redo_objects.append(undo_objects[-1])
 	if undo_objects.size() > 0:
@@ -447,7 +398,9 @@ func undo():
 			for note in undo_objects[-1].notes.get_children():
 				note.hasrail = true
 	undo_objects.pop_back()
+
 var redo_objects = []
+
 func redo():
 	undo_objects.append(redo_objects[-1])
 	if redo_objects.size() > 0:
@@ -456,6 +409,7 @@ func redo():
 			for note in redo_objects[-1].notes.get_children():
 				note.hasrail = true
 	redo_objects.pop_back()
+
 func check_undo_size():
 	redo_objects.clear()
 	if undo_objects.size() > 20:
@@ -472,6 +426,7 @@ func check_undo_size():
 					undo_item.queue_free()
 					notes.erase(undo_item)
 		undo_objects.remove_at(0)
+
 func _on_remove_pressed():
 	undo_objects.append(selected)
 	check_undo_size()

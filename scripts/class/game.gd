@@ -1,5 +1,7 @@
 extends Node
-const SAVE_PATH := "user://save.json"
+
+const SAVE_PATH : String = "user://save.json"
+const SONG_PATH : String = "user://Songs"
 
 const FIELD_NAMES = [
 	"score", "note", "perfect_plus", "perfect", "good",

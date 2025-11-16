@@ -16,6 +16,7 @@ var default_dance_i = 0
 var scene
 var rails = []
 var sprites_current = []
+var animations = []
 var sprites_current_index = 0
 var sprites_current_update_time = 0
 var sprites_current_update = 0
@@ -25,6 +26,7 @@ func _ready() -> void:
 	chart = CM.sc
 	if chart.use_default_skin:
 		chart = Game._use_default_skin()
+	animations = chart.load_animation(false)
 	setPlayerIdle()
 	playAnimation()
 	scene = get_parent()
@@ -33,7 +35,7 @@ func _ready() -> void:
 	if rails.size() > 0:
 		standRail = closest_rail()
 	var texture_size = sprite.texture.get_size()
-	var target_size = Vector2(200,Game.settings["gameplay"]["playerheight"])
+	var target_size = Vector2(200,Settings.player_size)
 	var scale_factor = Vector2(
 			target_size.x / texture_size.x,
 			target_size.y / texture_size.y

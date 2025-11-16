@@ -12,7 +12,6 @@ func _process(_delta: float) -> void:
 func _draw() -> void:
 	if root == null:
 		return
-	# Proceed assuming MapEditor exports beatsdiv and chart; both exist in _map_editor.gd
 
 	var chart = root.chart
 	if chart == null:
@@ -27,7 +26,6 @@ func _draw() -> void:
 	var px_per_ms: float = Game.editor_velocity
 	var px_per_sub: float = sub_ms * px_per_ms
 
-	# Reference Y: align to center guideline (BG2) if present; else middle of this control.
 	var ref_y: float = size.y * 0.5
 	if preview and preview.has_node("BG2"):
 		var bg2: Control = preview.get_node("BG2")
@@ -40,7 +38,6 @@ func _draw() -> void:
 	var h: float = size.y
 	var w: float = size.x
 
-	# Draw past lines (scrolling down on screen)
 	var i: int = base_idx
 	while true:
 		var t: float = chart.song_bpmstart + float(i) * sub_ms
@@ -50,7 +47,6 @@ func _draw() -> void:
 		_draw_line_at(w, y, i, divis)
 		i -= 1
 
-	# Draw future lines (appear above, fall down)
 	i = base_idx + 1
 	while true:
 		var tf: float = chart.song_bpmstart + float(i) * sub_ms
@@ -68,7 +64,7 @@ func _draw_line_at(width: float, y: float, idx: int, divis: int) -> void:
 	else:
 		denom = int(divis / _gcd(j, divis))
 
-	var col := Color(0.5, 0.5, 0.5, 0.7) # default gray
+	var col := Color(0.5, 0.5, 0.5, 0.7)
 	var thickness := 1.0
 
 	match denom:
@@ -84,7 +80,7 @@ func _draw_line_at(width: float, y: float, idx: int, divis: int) -> void:
 		6:
 			col = Color(0.9, 0.7, 0.1, 0.85) # dark yellow
 		_:
-			# others remain gray
+			# gray
 			pass
 
 	draw_line(Vector2(0, y), Vector2(width, y), col, thickness)
