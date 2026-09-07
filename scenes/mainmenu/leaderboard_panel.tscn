@@ -1,0 +1,191 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/mainmenu/leaderboard_panel.gd" id="1_panel"]
+[ext_resource type="FontFile" path="res://resources/fonts/Next Bravo.ttf" id="2_title"]
+[ext_resource type="FontFile" path="res://resources/fonts/BebasNeue-Regular.ttf" id="3_body"]
+
+[sub_resource type="StyleBoxFlat" id="StyleCard"]
+bg_color = Color(0.045, 0.04, 0.075, 0.985)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.439, 0.357, 0.871, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.55)
+shadow_size = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleMy"]
+bg_color = Color(0.19, 0.15, 0.34, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.75, 0.64, 1, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[node name="LeaderboardPanel" type="Control" node_paths=PackedStringArray("title_label", "close_button", "global_button", "local_button", "my_panel", "my_rank_label", "my_accuracy_label", "my_combo_label", "status_label", "entries")]
+visible = false
+z_index = 60
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_panel")
+title_label = NodePath("Backdrop/Card/Margin/Layout/Header/Title")
+close_button = NodePath("Backdrop/Card/Margin/Layout/Header/Close")
+global_button = NodePath("Backdrop/Card/Margin/Layout/Tabs/Global")
+local_button = NodePath("Backdrop/Card/Margin/Layout/Tabs/Local")
+my_panel = NodePath("Backdrop/Card/Margin/Layout/MyScore")
+my_rank_label = NodePath("Backdrop/Card/Margin/Layout/MyScore/Margin/Columns/Rank")
+my_accuracy_label = NodePath("Backdrop/Card/Margin/Layout/MyScore/Margin/Columns/Accuracy")
+my_combo_label = NodePath("Backdrop/Card/Margin/Layout/MyScore/Margin/Columns/Combo")
+status_label = NodePath("Backdrop/Card/Margin/Layout/Status")
+entries = NodePath("Backdrop/Card/Margin/Layout/List/Entries")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015, 0.012, 0.03, 0.72)
+
+[node name="Card" type="PanelContainer" parent="Backdrop"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -480.0
+offset_top = -390.0
+offset_right = 480.0
+offset_bottom = 390.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleCard")
+
+[node name="Margin" type="MarginContainer" parent="Backdrop/Card"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 26
+
+[node name="Layout" type="VBoxContainer" parent="Backdrop/Card/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Backdrop/Card/Margin/Layout"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Backdrop/Card/Margin/Layout/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_title")
+theme_override_font_sizes/font_size = 38
+text = "CHART LEADERBOARD"
+text_overrun_behavior = 3
+
+[node name="Close" type="Button" parent="Backdrop/Card/Margin/Layout/Header"]
+custom_minimum_size = Vector2(54, 44)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_body")
+theme_override_font_sizes/font_size = 24
+text = "X"
+
+[node name="Tabs" type="HBoxContainer" parent="Backdrop/Card/Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Global" type="Button" parent="Backdrop/Card/Margin/Layout/Tabs"]
+custom_minimum_size = Vector2(180, 46)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_body")
+theme_override_font_sizes/font_size = 24
+text = "GLOBAL"
+
+[node name="Local" type="Button" parent="Backdrop/Card/Margin/Layout/Tabs"]
+custom_minimum_size = Vector2(180, 46)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_body")
+theme_override_font_sizes/font_size = 24
+text = "LOCAL"
+
+[node name="MyScore" type="PanelContainer" parent="Backdrop/Card/Margin/Layout"]
+custom_minimum_size = Vector2(0, 74)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleMy")
+
+[node name="Margin" type="MarginContainer" parent="Backdrop/Card/Margin/Layout/MyScore"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_right = 18
+
+[node name="Columns" type="HBoxContainer" parent="Backdrop/Card/Margin/Layout/MyScore/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Me" type="Label" parent="Backdrop/Card/Margin/Layout/MyScore/Margin/Columns"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_title")
+theme_override_font_sizes/font_size = 25
+text = "YOU"
+vertical_alignment = 1
+
+[node name="Rank" type="Label" parent="Backdrop/Card/Margin/Layout/MyScore/Margin/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("3_body")
+theme_override_font_sizes/font_size = 25
+text = "#--"
+vertical_alignment = 1
+
+[node name="Accuracy" type="Label" parent="Backdrop/Card/Margin/Layout/MyScore/Margin/Columns"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_body")
+theme_override_font_sizes/font_size = 25
+text = "--"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Combo" type="Label" parent="Backdrop/Card/Margin/Layout/MyScore/Margin/Columns"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_body")
+theme_override_font_sizes/font_size = 25
+text = "--"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Status" type="Label" parent="Backdrop/Card/Margin/Layout"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.68, 0.86, 1)
+theme_override_fonts/font = ExtResource("3_body")
+theme_override_font_sizes/font_size = 19
+text = "Loading…"
+vertical_alignment = 1
+
+[node name="List" type="ScrollContainer" parent="Backdrop/Card/Margin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Entries" type="VBoxContainer" parent="Backdrop/Card/Margin/Layout/List"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 7

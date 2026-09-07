@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://yxj3qe5taut4"]
+
+[ext_resource type="Script" uid="uid://x5d6lv3ky4n8" path="res://gameplay/rail_game.gd" id="1_aqge5"]
+
+[node name="Rail" type="Node3D" unique_id=745390351 node_paths=PackedStringArray("note_container", "mesh_instance", "outline_mesh_instance", "shadow_mesh_instance")]
+script = ExtResource("1_aqge5")
+note_container = NodePath("NoteContainer")
+mesh_instance = NodePath("MeshInstance3D")
+outline_mesh_instance = NodePath("OutlineMeshInstance3D")
+shadow_mesh_instance = NodePath("ShadowMeshInstance3D")
+
+[node name="ShadowMeshInstance3D" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.035, 0)
+cast_shadow = 0
+
+[node name="OutlineMeshInstance3D" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.01, 0)
+cast_shadow = 0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=407393165]
+
+[node name="NoteContainer" type="Node3D" parent="." unique_id=890554674]
