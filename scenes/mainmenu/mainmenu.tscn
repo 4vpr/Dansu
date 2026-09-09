@@ -1578,8 +1578,10 @@ text = "Continue"
 visible = false
 layout_mode = 1
 
-[node name="LeaderboardPanel" parent="." unique_id=677673597 instance=ExtResource("35_leaderboard")]
+[node name="LeaderboardPanel" parent="." unique_id=677673597 node_paths=PackedStringArray("mainmenu", "_catalogue") instance=ExtResource("35_leaderboard")]
 layout_mode = 1
+mainmenu = NodePath("..")
+_catalogue = NodePath("../Catalogue")
 
 [node name="PlaylistPanel" parent="." unique_id=789640518 instance=ExtResource("36_playlists")]
 layout_mode = 1

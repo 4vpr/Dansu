@@ -18,8 +18,14 @@ var _play_start_requests: Array[HTTPRequest] = []
 func record_play(chart: Chart, score: Score) -> int:
 	if chart == null or score == null:
 		return -1
+	if score.submission_id.is_empty():
+		score.submission_id = ChartIdentity.generate_uuid()
+	if score.replay != null and not score.submission_id.is_empty():
+		var saved_replay_path := score.replay.save(score.submission_id)
+		if saved_replay_path.is_empty():
+			Notification.notice("Failed to save replay.", Notification.Type.WARNING)
 	var play_id := 0
-	if chart.db_id > 0 and DB.connection != null:
+	if DB.connection != null:
 		play_id = int(DB.connection.record_play(chart, score))
 		if play_id <= 0:
 			Notification.notice("failed to record play: %s" % DB.connection.get_last_error_message(),
@@ -131,6 +137,8 @@ func submit_play(chart: Chart, score: Score) -> bool:
 		return false
 	if chart.filehash.length() != 64:
 		return false
+	if score.replay == null:
+		return false
 	if score.submitted:
 		return true
 	if score.submission_id.is_empty():
@@ -167,9 +175,12 @@ func build_submission_payload(
 	var chart_id := int(metadata.get("id", -1))
 	var revision := int(metadata.get("chart_revision", 0))
 	var checksum := str(metadata.get("checksum_sha256", "")).to_lower()
+	var replay_checksum := score.replay.sha256() if score.replay != null else ""
 	if chart_id <= 0 or revision <= 0 or checksum.length() != 64:
 		return {}
 	if checksum != chart.filehash.to_lower():
+		return {}
+	if replay_checksum.length() != 64:
 		return {}
 	return {
 		"submission_id": submission_id,
@@ -191,7 +202,7 @@ func build_submission_payload(
 		"average_signed_timing_ms": _decimal(score.avg_signed_timings),
 		"unstable_rate": _decimal(score.unstable_rate),
 		"mods": [],
-		"replay_sha256": null,
+		"replay_sha256": replay_checksum,
 	}
 
 
@@ -261,13 +272,14 @@ func _post_active(metadata: Dictionary) -> void:
 	_request = _new_request()
 	_request.request_completed.connect(_on_score_submitted)
 	var headers := Auth.authorization_headers()
-	headers.append("Content-Type: application/json")
+	var boundary := "----DansuReplay" + score.submission_id.replace("-", "")
+	headers.append("Content-Type: multipart/form-data; boundary=" + boundary)
 	headers.append("Accept: application/json")
-	if _request.request(
+	if _request.request_raw(
 		_api_url("/scores"),
 		headers,
 		HTTPClient.METHOD_POST,
-		JSON.stringify(payload)
+		_build_multipart_submission(payload, score.replay.to_bytes(), boundary, score.submission_id)
 	) != OK:
 		_retry_or_fail("Could not start the score submission.")
 
@@ -375,6 +387,26 @@ func _response_error(body: PackedByteArray, fallback: String) -> String:
 
 func _decimal(value: float) -> String:
 	return "%.4f" % value
+
+
+func _build_multipart_submission(
+	payload: Dictionary,
+	replay_bytes: PackedByteArray,
+	boundary: String,
+	submission_id: String
+) -> PackedByteArray:
+	var body := PackedByteArray()
+	body.append_array((
+		"--%s\r\nContent-Disposition: form-data; name=\"payload\"\r\n" % boundary
+		+ "Content-Type: application/json\r\n\r\n"
+		+ JSON.stringify(payload)
+		+ "\r\n--%s\r\n" % boundary
+		+ "Content-Disposition: form-data; name=\"replay\"; filename=\"%s.replay\"\r\n" % submission_id
+		+ "Content-Type: application/octet-stream\r\n\r\n"
+	).to_utf8_buffer())
+	body.append_array(replay_bytes)
+	body.append_array(("\r\n--%s--\r\n" % boundary).to_utf8_buffer())
+	return body
 
 
 func _api_url(path: String) -> String:

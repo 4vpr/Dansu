@@ -7,6 +7,7 @@ var stage = GameStage.Loading
 var main_menu_state := MainMenuState.Home
 var current_time := 0.0
 var last_result_score: Score = null
+var replay_playback: Replay = null
 var skin_editor_request = null
 var reopen_editor_without_chart_reload := false
 var editor_playtest_active := false
@@ -48,9 +49,25 @@ func get_color_from_rating(value: float,fade: bool = false) -> Color:
 
 func play_selected_chart() -> void:
 	cancel_editor_playtest()
+	replay_playback = null
 	if CM.parse_selected_chart():
 		Scores.record_play_start(CM.selected_chart)
 		Transition.transition_to("res://scenes/gameplay/gameplay.tscn",1.0)
+
+
+func play_replay(replay: Replay) -> bool:
+	cancel_editor_playtest()
+	if replay == null or replay.chart == null:
+		return false
+	CM.selected_chart = replay.chart
+	if not CM.parse_selected_chart():
+		return false
+	if replay.chart_uuid.to_lower() != CM.selected_chart.uuid.to_lower() \
+			or replay.hash.to_lower() != CM.selected_chart.filehash.to_lower():
+		return false
+	replay_playback = replay
+	Transition.transition_to("res://scenes/gameplay/gameplay.tscn", 1.0)
+	return true
 
 
 func begin_editor_playtest(start_time_ms: float, saved_snapshot: Dictionary) -> void:

@@ -21,6 +21,9 @@ var bad := 0
 var miss := 0
 
 var replay: Replay
+var replay_path: String:
+	get:
+		return Replay.path_for(submission_id)
 var signed_timings : Array[float] = []
 var stored_avg_signed_timing := 0.0
 var avg_signed_timings : float :

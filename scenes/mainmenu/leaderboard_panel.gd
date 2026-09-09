@@ -9,6 +9,8 @@ const REQUEST_TIMEOUT_SECONDS := 15.0
 const ROW_SCENE := preload("res://scenes/mainmenu/leaderboard_row.tscn")
 
 @export_group("Node References")
+@export var mainmenu: DansuMainMenu
+@export var _catalogue: ChartCatalogue
 @export var title_label: Label
 @export var close_button: Button
 @export var global_button: Button
@@ -27,6 +29,8 @@ var _global_data: Dictionary = {}
 var _expected_combo := 0
 var _rank_scan_page := 0
 var _rank_scan_pages := 0
+var _replay_request: HTTPRequest
+var _replay_generation := 0
 
 
 func _ready() -> void:
@@ -48,6 +52,7 @@ func open(chart: Chart) -> void:
 
 
 func close() -> void:
+	_cancel_replay()
 	_dispose_request()
 	hide()
 	visibility_set.emit(false)
@@ -64,6 +69,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _show_global() -> void:
+	_cancel_replay()
 	global_button.disabled = true
 	local_button.disabled = false
 	my_panel.show()
@@ -79,6 +85,7 @@ func _show_global() -> void:
 
 
 func _show_local() -> void:
+	_cancel_replay()
 	_dispose_request()
 	global_button.disabled = false
 	local_button.disabled = true
@@ -192,13 +199,15 @@ func _render_global(data: Dictionary) -> void:
 			continue
 		var item: Dictionary = value
 		var is_me := int(item.get("user_id", -2)) == user_id
-		_add_row(
+		var row := _add_row(
 			"#%d" % int(item.get("rank", 0)),
 			str(item.get("username", "PLAYER")),
 			float(item.get("total_score", 0.0)),
 			_combo_text(int(item.get("max_combo", 0)), _expected_combo),
 			is_me
 		)
+		row.set_online_entry(item)
+		row.replay_requested.connect(_download_replay.bind(int(data.get("chart_id", -1)), int(item.get("score_id", -1))))
 		if is_me:
 			my_entry = item
 	_set_status("Top %d of %d players" % [items.size(), int(data.get("total", items.size()))])
@@ -283,10 +292,73 @@ func _format_played_at(unix_time: int) -> String:
 	return "%04d-%02d-%02d  %02d:%02d" % [value.year, value.month, value.day, value.hour, value.minute]
 
 
-func _add_row(rank_text: String, display_name: String, accuracy: float, combo_text: String, highlighted: bool) -> void:
+func _add_row(rank_text: String, display_name: String, accuracy: float, combo_text: String, highlighted: bool) -> ChartLeaderboardRow:
 	var row := ROW_SCENE.instantiate() as ChartLeaderboardRow
 	entries.add_child(row)
 	row.set_entry(rank_text, display_name, accuracy, combo_text, highlighted)
+	return row
+
+
+func _download_replay(chart_id: int, score_id: int) -> void:
+	if is_instance_valid(_replay_request) or _chart == null or chart_id <= 0 or score_id <= 0:
+		return
+	var local_chart := _resolve_replay_chart()
+	if local_chart == null:
+		_set_status("Download or update this chart before watching its replay.")
+		return
+	_replay_generation += 1
+	_replay_request = HTTPRequest.new()
+	_replay_request.timeout = 30.0
+	_replay_request.max_redirects = 0
+	_replay_request.body_size_limit = 4 * 1024 * 1024
+	add_child(_replay_request)
+	_replay_request.request_completed.connect(_on_replay_loaded.bind(local_chart, _replay_generation))
+	_set_status("Downloading replay…")
+	var url := _api_url("/leaderboards/charts/%d/scores/%d/replay" % [chart_id, score_id])
+	if _replay_request.request(url, Auth.authorization_headers()) != OK:
+		_cancel_replay()
+		_set_status("Could not download replay. Try again.")
+
+
+func _on_replay_loaded(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray, chart: Chart, generation: int) -> void:
+	if generation != _replay_generation or not visible:
+		return
+	_cancel_replay()
+	if result != HTTPRequest.RESULT_SUCCESS or code != 200:
+		_set_status("Replay unavailable" if code == 404 else "Could not download replay. Try again.")
+		return
+	chart.filehash = FileAccess.get_sha256(chart.file_path)
+	var replay := Replay.from_bytes(body, chart)
+	if not replay:
+		_set_status("Replay is invalid or does not match this chart version.")
+		return
+	if not Game.play_replay(replay):
+		_set_status("Could not play replay. Check the installed chart version.")
+		return
+	close()
+
+
+func _resolve_replay_chart() -> Chart:
+	if not _chart.file_name.is_empty() and FileAccess.file_exists(_chart.file_path):
+		return _chart
+	var local := CM.charts_by_uuid.get(_chart.uuid) as Chart
+	if local != null and FileAccess.file_exists(local.file_path):
+		return local
+	if _chart.chart_set != null:
+		var cached := CommunityChartCache.load_chartset(_chart.chart_set.online_metadata)
+		if cached != null:
+			for chart in cached.charts:
+				if chart.uuid.to_lower() == _chart.uuid.to_lower():
+					return chart
+	return null
+
+
+func _cancel_replay() -> void:
+	_replay_generation += 1
+	if is_instance_valid(_replay_request):
+		_replay_request.cancel_request()
+		_replay_request.queue_free()
+	_replay_request = null
 
 
 func _clear_entries() -> void:

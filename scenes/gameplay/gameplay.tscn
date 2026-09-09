@@ -198,7 +198,7 @@ bus = &"Music"
 libraries/ = SubResource("AnimationLibrary_ct7aa")
 
 [node name="PlayArea" type="Node3D" parent="." unique_id=1670040184]
-transform = Transform3D(1, 0, 0, 0, 0.8660252, -0.49999988, 0, 0.49999988, 0.8660252, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 0.8329211, -0.5533914, 0, 0.5533914, 0.8329211, 0, 0, 0)
 
 [node name="Ground" type="MeshInstance3D" parent="PlayArea" unique_id=910030164]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.08, 0)

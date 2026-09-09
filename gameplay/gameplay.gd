@@ -21,10 +21,12 @@ const SKY_DETAIL_COLOR_PARAM := "detail_color"
 class SpawnableNote:
 	var note: Note
 	var rail: Rail
+	var order: int
 
-	func _init(note_value: Note, rail_value: Rail) -> void:
+	func _init(note_value: Note, rail_value: Rail, order_value: int) -> void:
 		note = note_value
 		rail = rail_value
+		order = order_value
 
 # notes
 var note_scene = preload("res://scenes/gameplay/note.tscn")
@@ -36,6 +38,7 @@ var touch_notes: Array[SpawnableNote] = []
 var touch_note_process_index := 0
 var spawned_note_nodes: Dictionary = {}
 var note_owner_by_note: Dictionary = {}
+var note_order_by_note: Dictionary = {}
 var processed_notes: Dictionary = {}
 var long_release_notes: Array[Note] = []
 var long_release_process_index := 0
@@ -68,6 +71,7 @@ var score := Score.new()
 var combo := 0
 var song_end := 0
 var paused := false
+var is_replay_mode := false
 
 @export var player: Player
 @export var rail_container: Node3D
@@ -94,6 +98,19 @@ var _result_transition_started := false
 var _play_time_ms := 0.0
 var _song_volume_db := 0.0
 var _timestamp_input_active := false
+var _timestamp_input: Object = null
+var _last_timestamp_cutoff_usec := -1
+var _corrected_timestamp_events := 0
+var _input_stream_failed := false
+var _current_time_ms := 0
+var _last_simulated_time_ms := 0
+var _simulation_event_times: Array[int] = []
+var _simulation_event_index := 0
+var _replay_playback: Replay = null
+var _replay_input_index := 0
+var _pending_simulation_inputs: Array[ReplayInput] = []
+var _input_order_counter := 0
+var _last_builtin_input_frame := -1
 var _camera_events: Array[CameraEvent] = []
 var _overlay_events: Array[OverlayEvent] = []
 var _theme_events: Array[ThemeEvent] = []
@@ -122,16 +139,34 @@ func _ready() -> void:
 	_prepare_sfx_players()
 	reset()
 
+
 func _exit_tree() -> void:
 	_stop_timestamp_input()
 
 func reset() -> void:
+	_input_stream_failed = false
+	set_process(true)
+	_corrected_timestamp_events = 0
 	Input.set_mouse_mode(Input.MOUSE_MODE_HIDDEN)
 
 	for child in rail_container.get_children():
 		child.queue_free()
 
 	score = Score.new()
+	_replay_playback = Game.replay_playback
+	Game.replay_playback = null
+	if not Game.editor_playtest_active:
+		if _replay_playback != null:
+			score.replay = _replay_playback
+		else:
+			score.replay = Replay.new()
+			score.replay.setup(CM.selected_chart)
+	if _replay_playback != null:
+		_stop_timestamp_input()
+		
+	elif not _timestamp_input_active:
+		_setup_timestamp_input()
+	print(Game.replay_playback)
 	combo = 0
 	song_end = 0
 
@@ -151,11 +186,24 @@ func reset() -> void:
 	_playback_start_time_ms = maxf(0.0, Game.editor_playtest_start_time_ms) if Game.editor_playtest_active else 0.0
 	audio_start_target_usec = Time.get_ticks_usec() + int(LEAD_IN_MS * 1000.0)
 	_discard_timestamp_events()
+	if _input_stream_failed:
+		return
 
-	_update_current_time()
+	if _timestamp_input_active:
+		_current_time_ms = _timestamp_to_game_time(_last_timestamp_cutoff_usec)
+		Game.current_time = _current_time_ms
+	else:
+		_update_current_time()
+	_last_simulated_time_ms = _current_time_ms - 1
+	_replay_input_index = 0
+	_pending_simulation_inputs.clear()
+	_input_order_counter = 0
+	_last_builtin_input_frame = -1
 	_rebuild_hitsound_cache()
 	_build_game_objects()
+	_build_simulation_event_times()
 	_skip_notes_before_playtest_start()
+	_advance_simulation(_current_time_ms, true)
 	_collect_camera_events()
 	_collect_overlay_events()
 	_collect_theme_events()
@@ -240,7 +288,10 @@ func _process(delta: float) -> void:
 		if is_song_playing or paused:
 			pause()
 
+	if _input_stream_failed:
+		return
 	if paused:
+		_discard_timestamp_events()
 		return
 
 	if not is_song_playing:
@@ -251,25 +302,48 @@ func _process(delta: float) -> void:
 		if now_usec >= play_call_time_usec:
 			songplayer.play(_playback_start_time_ms / 1000.0)
 			is_song_playing = true
-	_update_current_time()
-	_spawn_objects()
-	_process_gameplay_input()
-	_update_standing_rail()
-	_check_miss()
-	_check_long_note_release_miss()
-	_check_touch_notes()
+	_update_simulation()
+	if _input_stream_failed:
+		return
 	_check_result_transition()
 	_update_song_fade(delta)
 	_apply_runtime_events(Game.current_time)
 
+func _update_simulation() -> void:
+	var simulation_target: int
+	var exclusive := _replay_playback == null
+	if _timestamp_input_active:
+		var batch := _poll_timestamp_batch()
+		if _input_stream_failed:
+			return
+		_current_time_ms = _timestamp_to_game_time(batch.cutoff_timestamp_usec)
+		Game.current_time = _current_time_ms
+		_pending_simulation_inputs.append_array(_collect_timestamp_events(batch))
+		# Future usec can round to the same ms. Only close complete ms buckets.
+		simulation_target = _timestamp_to_game_time(int(batch.cutoff_timestamp_usec) + 1)
+	else:
+		_update_current_time()
+		_pending_simulation_inputs.append_array(_collect_gameplay_inputs(_current_time_ms))
+		simulation_target = _current_time_ms
+	if _input_stream_failed:
+		return
+	_spawn_objects()
+	_advance_simulation(simulation_target, exclusive)
+
 var tween: Tween
 func pause() -> void:
+	if _input_stream_failed:
+		return
+	if not paused:
+		_update_simulation()
+		if _input_stream_failed:
+			return
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	paused = !paused
 	if tween:
 			tween.kill()
 	if paused:
-		pause_begin_usec = Time.get_ticks_usec()
+		pause_begin_usec = _last_timestamp_cutoff_usec if _timestamp_input_active else Time.get_ticks_usec()
 		pause_menu.visible = true
 		if is_song_playing:
 			songplayer.stream_paused = true
@@ -277,9 +351,11 @@ func pause() -> void:
 		tween.tween_property(dim,"self_modulate",Color(1.0, 1.0, 1.0, 1.0),0.5)
 		tween.tween_property(pause_menu,"offset_transform_position",Vector2(0,0),0.25).set_trans(Tween.TRANS_SINE)
 	else:
-		var paused_duration_usec := Time.get_ticks_usec() - pause_begin_usec
-		audio_start_target_usec += paused_duration_usec
 		_discard_timestamp_events()
+		if _input_stream_failed:
+			return
+		var resume_usec := _last_timestamp_cutoff_usec if _timestamp_input_active else Time.get_ticks_usec()
+		audio_start_target_usec += resume_usec - pause_begin_usec
 
 		if is_song_playing:
 			songplayer.stream_paused = false
@@ -310,6 +386,8 @@ func retry() -> void:
 	set_process(false)
 	songplayer.stop()
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	if _replay_playback != null:
+		Game.replay_playback = _replay_playback
 	Transition.transition_to(GAMEPLAY_SCENE_PATH, 0.45)
 
 
@@ -326,103 +404,125 @@ func _on_quit_activated() -> void:
 	exit()
 
 func _update_current_time() -> void:
-	Game.current_time = _playback_start_time_ms + (
-		(Time.get_ticks_usec() - audio_start_target_usec) / 1000.0
-	) - Config.offset
+	_current_time_ms = _timestamp_to_game_time(Time.get_ticks_usec())
+	Game.current_time = _current_time_ms
 
 func _setup_timestamp_input() -> void:
-	if not OS.has_feature("windows"):
+	if not OS.has_feature("windows") or not Engine.has_singleton("TimestampInput"):
 		print("Falling back to Godot input.")
 		return
 
-	if not TimestampInput.start():
+	_timestamp_input = Engine.get_singleton("TimestampInput")
+	if not _timestamp_input.start():
 		push_warning("TimestampInput failed to start. Falling back to Godot input.")
 		return
 
+	_last_timestamp_cutoff_usec = -1
 	_timestamp_input_active = true
 	_discard_timestamp_events()
 
 func _stop_timestamp_input() -> void:
-	TimestampInput.stop()
+	if _timestamp_input != null:
+		_timestamp_input.stop()
 	_timestamp_input_active = false
+	_last_timestamp_cutoff_usec = -1
 
 func _discard_timestamp_events() -> void:
 	if not _timestamp_input_active:
 		return
-	TimestampInput.poll_events()
+	_poll_timestamp_batch(true)
 
-func _timestamp_to_game_time(timestamp_usec: int) -> float:
-	return _playback_start_time_ms + (
+func _poll_timestamp_batch(discard: bool = false) -> Dictionary:
+	var batch: Dictionary = _timestamp_input.poll_events(discard)
+	var cutoff: int = batch.cutoff_timestamp_usec
+	if cutoff < _last_timestamp_cutoff_usec:
+		_fail_input_stream("TimestampInput cutoff regressed.")
+	for event in batch.events:
+		if int(event.timestamp_usec) <= _last_timestamp_cutoff_usec or int(event.timestamp_usec) > cutoff:
+			_fail_input_stream("TimestampInput event crossed a closed poll cutoff.")
+	_last_timestamp_cutoff_usec = cutoff
+	_corrected_timestamp_events += int(batch.corrected_events)
+	return batch
+
+func _fail_input_stream(message: String) -> void:
+	_input_stream_failed = true
+	push_error(message)
+	set_process(false)
+	if songplayer != null:
+		songplayer.stream_paused = true
+
+func _timestamp_to_game_time(timestamp_usec: int) -> int:
+	return roundi(_playback_start_time_ms + (
 		float(timestamp_usec - audio_start_target_usec) / 1000.0
-	) - Config.offset
+	) - Config.offset)
 
-func _process_gameplay_input() -> void:
-	if _timestamp_input_active:
-		_process_timestamp_events()
-	else:
-		_process_builtin_input()
+func _collect_gameplay_inputs(time_ms: int) -> Array[ReplayInput]:
+	if _replay_playback != null:
+		return _collect_replay_inputs(time_ms)
+	return _collect_builtin_input(time_ms)
 
-func _process_timestamp_events() -> void:
-	var events: Array[RawInputEvent] = TimestampInput.poll_events()
-	for event_variant: RawInputEvent in events:
+func _collect_replay_inputs(time_ms: int) -> Array[ReplayInput]:
+	var due: Array[ReplayInput] = []
+	while _replay_input_index < _replay_playback.inputs.size():
+		var replay_input := _replay_playback.inputs[_replay_input_index]
+		if replay_input.timing > time_ms:
+			break
+		due.append(replay_input)
+		_replay_input_index += 1
+	return due
+
+func _collect_timestamp_events(batch: Dictionary) -> Array[ReplayInput]:
+	var collected: Array[ReplayInput] = []
+	for event_variant in batch.events:
 		if event_variant == null:
 			continue
 
-		var godot_keycode := int(event_variant.keycode)
-		var pressed := bool(event_variant.pressed)
-		var event_time := _timestamp_to_game_time(int(event_variant.timestamp_usec))
-		_handle_key_event(godot_keycode, pressed, event_time)
+		var type := _input_type_for_key(int(event_variant.keycode), bool(event_variant.pressed))
+		if type != ReplayInput.InputType.NONE:
+			var timing := _timestamp_to_game_time(int(event_variant.timestamp_usec))
+			if timing <= _last_simulated_time_ms:
+				_fail_input_stream("New live input timing %d is already simulated through %d." % [timing, _last_simulated_time_ms])
+				return []
+			collected.append(_record_input(timing, type))
+	return collected
 
-func _process_builtin_input() -> void:
-	if holding_long_move_note != null:
-		var released := (
-			(pending_move_dir == Note.Dir.LEFT and Input.is_action_just_released("action_left")) or
-			(pending_move_dir == Note.Dir.RIGHT and Input.is_action_just_released("action_right"))
-		)
-		if released:
-			_release_long_move(Game.current_time)
+func _collect_builtin_input(time_ms: int) -> Array[ReplayInput]:
+	var collected: Array[ReplayInput] = []
+	var frame := Engine.get_process_frames()
+	if frame == _last_builtin_input_frame:
+		return collected
+	_last_builtin_input_frame = frame
+	var actions := [
+		["action_hit1", ReplayInput.InputType.HIT1_DOWN, ReplayInput.InputType.HIT1_UP],
+		["action_hit2", ReplayInput.InputType.HIT2_DOWN, ReplayInput.InputType.HIT2_UP],
+		["action_left", ReplayInput.InputType.MOVELEFT_DOWN, ReplayInput.InputType.MOVELEFT_UP],
+		["action_right", ReplayInput.InputType.MOVERIGHT_DOWN, ReplayInput.InputType.MOVERIGHT_UP],
+	]
+	for action in actions:
+		if Input.is_action_just_pressed(action[0]):
+			collected.append(_record_input(time_ms, action[1]))
+		if Input.is_action_just_released(action[0]):
+			collected.append(_record_input(time_ms, action[2]))
+	return collected
 
-	if holding_long_hit_note != null:
-		var released_matching_hit := (
-			(holding_long_hit_keycode == int(Config.action_hit1) and Input.is_action_just_released("action_hit1")) or
-			(holding_long_hit_keycode == int(Config.action_hit2) and Input.is_action_just_released("action_hit2"))
-		)
-		if released_matching_hit:
-			_release_long_hit(Game.current_time)
+func _record_input(timing: int, type: ReplayInput.InputType) -> ReplayInput:
+	if score.replay != null:
+		return score.replay.add_input(timing, type)
+	var replay_input := ReplayInput.new(timing, type)
+	replay_input.order = _input_order_counter
+	_input_order_counter += 1
+	return replay_input
 
-	var allow_free_movement := holding_long_move_note == null and holding_long_hit_note == null
-	if Input.is_action_just_pressed("action_left"):
-		_move_action(Note.Dir.LEFT, Game.current_time, allow_free_movement)
-	if Input.is_action_just_pressed("action_right"):
-		_move_action(Note.Dir.RIGHT, Game.current_time, allow_free_movement)
-
-	if Input.is_action_just_pressed("action_hit1"):
-		_input_action(Game.current_time, int(Config.action_hit1))
-	elif Input.is_action_just_pressed("action_hit2"):
-		_input_action(Game.current_time, int(Config.action_hit2))
-
-func _handle_key_event(keycode: int, pressed: bool, event_time: float) -> void:
+func _input_type_for_key(keycode: int, pressed: bool) -> ReplayInput.InputType:
+	if keycode == int(Config.action_hit1):
+		return ReplayInput.InputType.HIT1_DOWN if pressed else ReplayInput.InputType.HIT1_UP
+	if keycode == int(Config.action_hit2):
+		return ReplayInput.InputType.HIT2_DOWN if pressed else ReplayInput.InputType.HIT2_UP
 	if keycode == int(Config.action_left):
-		if pressed:
-			var allow_free_movement := holding_long_move_note == null and holding_long_hit_note == null
-			_move_action(Note.Dir.LEFT, event_time, allow_free_movement)
-		elif holding_long_move_note != null and pending_move_dir == Note.Dir.LEFT:
-			_release_long_move(event_time)
-		return
-
+		return ReplayInput.InputType.MOVELEFT_DOWN if pressed else ReplayInput.InputType.MOVELEFT_UP
 	if keycode == int(Config.action_right):
-		if pressed:
-			var allow_free_movement := holding_long_move_note == null and holding_long_hit_note == null
-			_move_action(Note.Dir.RIGHT, event_time, allow_free_movement)
-		elif holding_long_move_note != null and pending_move_dir == Note.Dir.RIGHT:
-			_release_long_move(event_time)
-		return
-
-	if keycode == int(Config.action_hit1) or keycode == int(Config.action_hit2):
-		if pressed:
-			_input_action(event_time, keycode)
-		elif holding_long_hit_note != null and keycode == holding_long_hit_keycode:
-			_release_long_hit(event_time)
+		return ReplayInput.InputType.MOVERIGHT_DOWN if pressed else ReplayInput.InputType.MOVERIGHT_UP
+	return ReplayInput.InputType.NONE
 
 func _spawn_objects() -> void:
 	var spawn_threshold := Game.current_time + GameplayPlayfield.get_visible_travel_time_ms()
@@ -460,6 +560,7 @@ func _build_game_objects() -> void:
 	touch_note_process_index = 0
 	spawned_note_nodes = {}
 	note_owner_by_note = {}
+	note_order_by_note = {}
 	processed_notes = {}
 	long_release_notes = []
 	long_release_process_index = 0
@@ -479,9 +580,10 @@ func _build_game_objects() -> void:
 
 	for rail in rails:
 		for note in rail.notes:
-			var new_entry := SpawnableNote.new(note, rail)
+			var new_entry := SpawnableNote.new(note, rail, notes.size())
 			notes.append(new_entry)
 			note_owner_by_note[note] = rail
+			note_order_by_note[note] = new_entry.order
 			if note.type == Note.NoteType.TRACE or note.type == Note.NoteType.SPIKE:
 				touch_notes.append(new_entry)
 			elif note.length > 0 and (note.type == Note.NoteType.HIT or note.type == Note.NoteType.MOVE):
@@ -491,6 +593,8 @@ func _build_game_objects() -> void:
 	rails.sort_custom(_sort_rails)
 	touch_notes.sort_custom(_sort_notes)
 	long_release_notes.sort_custom(func(a: Note, b: Note) -> bool:
+		if a.end_time == b.end_time:
+			return int(note_order_by_note[a]) < int(note_order_by_note[b])
 		return a.end_time < b.end_time
 	)
 	_prebake_long_note_visuals()
@@ -500,6 +604,103 @@ func _build_game_objects() -> void:
 		song_end = int(_play_time_ms + SONG_FADE_DELAY_AFTER_PLAY_END_MS)
 
 	_set_next_note()
+
+
+func _build_simulation_event_times() -> void:
+	var unique_times := {}
+	for rail in rails:
+		unique_times[rail.start_time - Score.T.GREAT] = true
+		unique_times[rail.end_time + 1] = true
+	for note_entry in notes:
+		var note := note_entry.note
+		if note.type == Note.NoteType.TRACE or note.type == Note.NoteType.SPIKE:
+			unique_times[note.time] = true
+		elif note.type == Note.NoteType.HIT or note.type == Note.NoteType.MOVE:
+			unique_times[note.time + Score.T.BAD + 1] = true
+			if note.length > 0:
+				unique_times[note.end_time + Score.T.BAD + 1] = true
+	_simulation_event_times.assign(unique_times.keys())
+	_simulation_event_times.sort()
+	_simulation_event_index = 0
+	while _simulation_event_index < _simulation_event_times.size() \
+			and _simulation_event_times[_simulation_event_index] < _last_simulated_time_ms:
+		_simulation_event_index += 1
+
+
+func _advance_simulation(target_time: int, exclusive: bool = false) -> void:
+	var closed_time := target_time - 1 if exclusive else target_time
+	if closed_time < _last_simulated_time_ms:
+		return
+	_pending_simulation_inputs.sort_custom(func(a: ReplayInput, b: ReplayInput) -> bool:
+		if a.timing == b.timing:
+			return a.order < b.order
+		return a.timing < b.timing
+	)
+	if not _pending_simulation_inputs.is_empty() and _pending_simulation_inputs[0].timing <= _last_simulated_time_ms:
+		_fail_input_stream("Simulation received an input at an already closed timestamp.")
+		return
+	var input_index := 0
+	while true:
+		var next_auto_time := 9223372036854775807
+		if _simulation_event_index < _simulation_event_times.size():
+			next_auto_time = _simulation_event_times[_simulation_event_index]
+		var next_input_time := 9223372036854775807
+		if input_index < _pending_simulation_inputs.size():
+			next_input_time = _pending_simulation_inputs[input_index].timing
+		var event_time := mini(next_auto_time, next_input_time)
+		if event_time > closed_time:
+			break
+
+		# Same-time inputs keep replay order and all precede rail/miss/touch checks.
+		while input_index < _pending_simulation_inputs.size() \
+				and _pending_simulation_inputs[input_index].timing == event_time:
+			_handle_replay_input(_pending_simulation_inputs[input_index], event_time)
+			input_index += 1
+
+		_update_standing_rail(event_time)
+		_check_miss(event_time)
+		_check_long_note_release_miss(event_time)
+		_check_touch_notes(event_time)
+
+		while _simulation_event_index < _simulation_event_times.size() \
+				and _simulation_event_times[_simulation_event_index] == event_time:
+			_simulation_event_index += 1
+		_last_simulated_time_ms = event_time
+	if input_index > 0:
+		_pending_simulation_inputs = _pending_simulation_inputs.slice(input_index)
+	_last_simulated_time_ms = closed_time
+
+
+func _handle_replay_input(replay_input: ReplayInput, event_time: int) -> void:
+	match replay_input.type:
+		ReplayInput.InputType.HIT1_DOWN:
+			_input_action(event_time, int(Config.action_hit1))
+		ReplayInput.InputType.HIT2_DOWN:
+			_input_action(event_time, int(Config.action_hit2))
+		ReplayInput.InputType.HIT1_UP:
+			if holding_long_hit_note != null and holding_long_hit_keycode == int(Config.action_hit1):
+				_release_long_hit(event_time)
+		ReplayInput.InputType.HIT2_UP:
+			if holding_long_hit_note != null and holding_long_hit_keycode == int(Config.action_hit2):
+				_release_long_hit(event_time)
+		ReplayInput.InputType.MOVELEFT_DOWN:
+			_move_action(
+				Note.Dir.LEFT,
+				event_time,
+				holding_long_move_note == null and holding_long_hit_note == null
+			)
+		ReplayInput.InputType.MOVERIGHT_DOWN:
+			_move_action(
+				Note.Dir.RIGHT,
+				event_time,
+				holding_long_move_note == null and holding_long_hit_note == null
+			)
+		ReplayInput.InputType.MOVELEFT_UP:
+			if holding_long_move_note != null and pending_move_dir == Note.Dir.LEFT:
+				_release_long_move(event_time)
+		ReplayInput.InputType.MOVERIGHT_UP:
+			if holding_long_move_note != null and pending_move_dir == Note.Dir.RIGHT:
+				_release_long_move(event_time)
 
 
 func _skip_notes_before_playtest_start() -> void:
@@ -735,18 +936,22 @@ func _load_overlay_texture(reference: String) -> Texture2D:
 	return texture
 
 func _sort_notes(a: SpawnableNote, b: SpawnableNote) -> bool:
+	if a.note.time == b.note.time:
+		return a.order < b.order
 	return a.note.time < b.note.time
 
 func _sort_rails(a: Rail, b: Rail) -> bool:
+	if a.points[0].time == b.points[0].time:
+		return a.id < b.id
 	return a.points[0].time < b.points[0].time
 
-func _is_rail_active(rail: Rail, time: float = Game.current_time) -> bool:
+func _is_rail_active(rail: Rail, time: int = _current_time_ms) -> bool:
 	return (
 		time >= rail.start_time - Score.T.GREAT and
 		time <= rail.end_time
 	)
 
-func _update_standing_rail(time: float = Game.current_time) -> void:
+func _update_standing_rail(time: int = _current_time_ms) -> void:
 	if standing_rail != null and _is_rail_active(standing_rail, time):
 		return
 	var new_rail := _find_closest_active_rail(time)
@@ -754,8 +959,12 @@ func _update_standing_rail(time: float = Game.current_time) -> void:
 		standing_rail = new_rail
 		player.move_to_rail(new_rail)
 
-func _find_closest_active_rail(time: float = Game.current_time) -> Rail:
-	var current_x := player.position.x
+func _find_closest_active_rail(time: int = _current_time_ms) -> Rail:
+	var current_x := 0.0
+	if standing_rail != null:
+		current_x = GameplayPlayfield.normalized_x_to_world(
+			standing_rail._get_rail_x_at_time(mini(time, standing_rail.end_time))
+		)
 	var closest: Rail = null
 	var min_dist := INF
 	for rail in rails:
@@ -763,12 +972,12 @@ func _find_closest_active_rail(time: float = Game.current_time) -> Rail:
 			continue
 		var rail_x := GameplayPlayfield.normalized_x_to_world(rail._get_rail_x_at_time(int(time)))
 		var dist = abs(rail_x - current_x)
-		if dist < min_dist:
+		if dist < min_dist or (is_equal_approx(dist, min_dist) and (closest == null or rail.id < closest.id)):
 			min_dist = dist
 			closest = rail
 	return closest
 
-func _find_nearest_active_rail(dir: Note.Dir, time: float = Game.current_time) -> Rail:
+func _find_nearest_active_rail(dir: Note.Dir, time: int = _current_time_ms) -> Rail:
 	var current_x := GameplayPlayfield.normalized_x_to_world(
 		standing_rail._get_rail_x_at_time(int(time)) if standing_rail != null else 0.5
 	)
@@ -782,7 +991,7 @@ func _find_nearest_active_rail(dir: Note.Dir, time: float = Game.current_time) -
 		var is_in_dir := (dir == Note.Dir.LEFT and delta_x < 0.0) or (dir == Note.Dir.RIGHT and delta_x > 0.0)
 		if is_in_dir:
 			var dist = abs(delta_x)
-			if dist < min_dist:
+			if dist < min_dist or (is_equal_approx(dist, min_dist) and (best == null or rail.id < best.id)):
 				min_dist = dist
 				best = rail
 	return best
@@ -790,22 +999,22 @@ func _find_nearest_active_rail(dir: Note.Dir, time: float = Game.current_time) -
 func _move_player_in_direction(
 	dir: Note.Dir,
 	play_direction_animation: bool = true,
-	time: float = Game.current_time
+	time: int = _current_time_ms
 ) -> void:
 	var target_rail := _find_nearest_active_rail(dir, time)
 	if target_rail != null:
 		standing_rail = target_rail
 		player.move_to_rail(target_rail, play_direction_animation)
 
-func _check_miss() -> void:
+func _check_miss(time: int = _current_time_ms) -> void:
 	while next_process_note != null:
-		var gap := next_process_note.time - Game.current_time
+		var gap := next_process_note.time - time
 		if gap < -Score.T.BAD:
 			_process_note_result(next_process_note, Score.MISS, gap)
 		else:
 			break
 
-func _check_long_note_release_miss() -> void:
+func _check_long_note_release_miss(time: int = _current_time_ms) -> void:
 	while long_release_process_index < long_release_notes.size():
 		var note := long_release_notes[long_release_process_index]
 		if processed_long_releases.has(note):
@@ -813,14 +1022,14 @@ func _check_long_note_release_miss() -> void:
 			continue
 
 		var release_time := float(note.end_time)
-		if Game.current_time <= release_time + Score.T.BAD:
+		if time <= release_time + Score.T.BAD:
 			break
 
-		_process_long_note_release(note, Score.MISS, release_time - Game.current_time)
+		_process_long_note_release(note, Score.MISS, release_time - time)
 		_clear_long_note_hold(note)
 		long_release_process_index += 1
 
-func _check_touch_notes() -> void:
+func _check_touch_notes(time: int = _current_time_ms) -> void:
 	while touch_note_process_index < touch_notes.size():
 		var note_entry := touch_notes[touch_note_process_index]
 		var note := note_entry.note
@@ -828,7 +1037,7 @@ func _check_touch_notes() -> void:
 			touch_note_process_index += 1
 			continue
 
-		var gap := note.time - Game.current_time
+		var gap := note.time - time
 		if gap > 0.0:
 			break
 
@@ -856,7 +1065,7 @@ func _check_touch_notes() -> void:
 
 		touch_note_process_index += 1
 
-func _input_action(time: float, keycode: int) -> void:
+func _input_action(time: int, keycode: int) -> void:
 	if next_process_note == null or standing_rail == null:
 		return
 
@@ -879,7 +1088,7 @@ func _input_action(time: float, keycode: int) -> void:
 		holding_long_hit_note = note
 		holding_long_hit_keycode = keycode
 
-func _move_action(dir: Note.Dir, time: float, allow_free_movement: bool = true) -> void:
+func _move_action(dir: Note.Dir, time: int, allow_free_movement: bool = true) -> void:
 	if (next_process_note != null and
 			next_process_note.type == Note.NoteType.MOVE and
 			note_owner_by_note.get(next_process_note) == standing_rail and
@@ -902,19 +1111,19 @@ func _move_action(dir: Note.Dir, time: float, allow_free_movement: bool = true) 
 	if allow_free_movement:
 		_move_player_in_direction(dir, true, time)
 
-func _release_long_hit(time: float) -> void:
+func _release_long_hit(time: int) -> void:
 	var note := holding_long_hit_note
 	_clear_long_note_hold(note)
 	_judge_long_note_release(note, time)
 
-func _release_long_move(time: float) -> void:
+func _release_long_move(time: int) -> void:
 	var note := holding_long_move_note
 	var direction := pending_move_dir
 	_clear_long_note_hold(note)
 	_judge_long_note_release(note, time)
 	_move_player_in_direction(direction, false, time)
 
-func _judge_long_note_release(note: Note, input_time: float) -> void:
+func _judge_long_note_release(note: Note, input_time: int) -> void:
 	if note == null or processed_long_releases.has(note):
 		return
 	var gap := float(note.end_time) - input_time
@@ -1007,7 +1216,7 @@ func _increment_combo() -> void:
 	score.high_combo = max(score.high_combo, combo)
 
 func _check_result_transition() -> void:
-	if _result_transition_started:
+	if _input_stream_failed or _result_transition_started:
 		return
 	if Game.current_time < _play_time_ms + RESULT_DELAY_AFTER_PLAY_END_MS:
 		return
@@ -1016,7 +1225,8 @@ func _check_result_transition() -> void:
 	if Game.editor_playtest_active:
 		_return_to_chart_editor()
 		return
-	Scores.record_play(CM.selected_chart, score)
+	if _replay_playback == null:
+		Scores.record_play(CM.selected_chart, score)
 	Game.last_result_score = score
 	Transition.transition_to(RESULT_SCENE_PATH, 1.0)
 

@@ -6,5 +6,5 @@ reloadable = true
 
 [libraries]
 
-windows.debug.x86_64 = "res://bin/dansusql.windows.template_debug.x86_64.chartset_uuid_v1.dll"
-windows.release.x86_64 = "res://bin/dansusql.windows.template_release.x86_64.chartset_uuid_v1.dll"
+windows.debug.x86_64 = "res://bin/dansusql.windows.template_debug.x86_64.replay_submission_v2.dll"
+windows.release.x86_64 = "res://bin/dansusql.windows.template_release.x86_64.replay_submission_v1.dll"
