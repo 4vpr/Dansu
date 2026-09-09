@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bwxj6yd12wsry"
-path="res://.godot/imported/c9f41619-9bd4-4862-b65d-3f8a8f9a8ba9_1-Photoroom.png-ff702c8e730e5e9e032f1f2541601f4b.ctex"
+uid="uid://bhr7typ7hiilr"
+path="res://.godot/imported/dance2.png-a97beaca2a913e53b68af311280ec53d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://mockup/c9f41619-9bd4-4862-b65d-3f8a8f9a8ba9_1-Photoroom.png"
-dest_files=["res://.godot/imported/c9f41619-9bd4-4862-b65d-3f8a8f9a8ba9_1-Photoroom.png-ff702c8e730e5e9e032f1f2541601f4b.ctex"]
+source_file="res://resources/skins/big/sprites/dance2.png"
+dest_files=["res://.godot/imported/dance2.png-a97beaca2a913e53b68af311280ec53d.ctex"]
 
 [params]
 

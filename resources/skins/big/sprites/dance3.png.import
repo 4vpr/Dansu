@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://n48htgfia26x"
-path="res://.godot/imported/danshe_dance_2.png-9d7917571e12b281ab339965c606a151.ctex"
+uid="uid://dpwl3p0d7e5ae"
+path="res://.godot/imported/dance3.png-09d33ffaaa785e9eeda69b84625902e3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/skins/danshe/sprites/danshe_dance_2.png"
-dest_files=["res://.godot/imported/danshe_dance_2.png-9d7917571e12b281ab339965c606a151.ctex"]
+source_file="res://resources/skins/big/sprites/dance3.png"
+dest_files=["res://.godot/imported/dance3.png-09d33ffaaa785e9eeda69b84625902e3.ctex"]
 
 [params]
 

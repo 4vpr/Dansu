@@ -10,7 +10,7 @@ const CHART_EDITOR_SCENE_PATH := "res://scenes/chart/editor/editor_scene.tscn"
 const COMBO_POP_SCALE := Vector2(0.96, 1.12)
 const COMBO_POP_DURATION_IN := 0.08
 const COMBO_POP_DURATION_OUT := 0.14
-const JUDGE_POPUP_OFFSET := Vector3(0.0, 2.0, 0.0)
+const JUDGE_POPUP_OFFSET := Vector3(0.0, 2.5, -0.1)
 const SONG_FADE_DELAY_AFTER_PLAY_END_MS := 1000.0
 const RESULT_DELAY_AFTER_PLAY_END_MS := 2000.0
 const SONG_FADE_DB_PER_SECOND := 30.0
@@ -1067,18 +1067,22 @@ func _check_touch_notes(time: int = _current_time_ms) -> void:
 
 func _input_action(time: int, keycode: int) -> void:
 	if next_process_note == null or standing_rail == null:
+		player.play_hit_animation()
 		return
 
 	if next_process_note.type != Note.NoteType.HIT:
+		player.play_hit_animation()
 		return
 
 	var target_rail: Rail = note_owner_by_note.get(next_process_note)
 	if target_rail == null or standing_rail != target_rail:
+		player.play_hit_animation()
 		return
 
 	var gap := next_process_note.time - time
 	var judgement := score.get_judgement(gap)
 	if judgement == Score.NONE:
+		player.play_hit_animation()
 		return
 
 	var note := next_process_note

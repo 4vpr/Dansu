@@ -6,7 +6,7 @@
 [ext_resource type="FontFile" uid="uid://cay31gip2omwr" path="res://resources/fonts/BebasNeue-Regular.ttf" id="3_body"]
 
 [sub_resource type="StyleBoxFlat" id="StylePanel"]
-bg_color = Color(0.056613322, 0.0484, 0.11, 1)
+bg_color = Color(0.05565999, 0.0473, 0.11, 0.92156863)
 border_width_left = 5
 border_width_bottom = 5
 border_color = Color(0.4392157, 0.35686275, 0.87058824, 0.9)

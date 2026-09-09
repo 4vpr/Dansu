@@ -1,6 +1,5 @@
 [gd_scene format=3 uid="uid://txbv3tuwtel0"]
 
-[ext_resource type="Texture2D" uid="uid://n48htgfia26x" path="res://resources/skins/danshe/sprites/danshe_dance_2.png" id="1_4gqg5"]
 [ext_resource type="Script" uid="uid://ctohnvsr275ai" path="res://skin/editor/ui/sprite_image.gd" id="1_suuvg"]
 
 [node name="SpriteImage" type="VBoxContainer" unique_id=414158218 node_paths=PackedStringArray("file_name_label", "texture_rect")]
@@ -16,6 +15,5 @@ text = "sprite file name"
 [node name="TextureRect" type="TextureRect" parent="." unique_id=1611643655]
 custom_minimum_size = Vector2(128, 128)
 layout_mode = 2
-texture = ExtResource("1_4gqg5")
 expand_mode = 1
 stretch_mode = 5

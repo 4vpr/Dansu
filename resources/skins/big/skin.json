@@ -39,13 +39,24 @@
 	  "id": 4,
 	  "name": "none",
 	  "return_idle": true
+	},
+	{
+	  "effect": "groove",
+	  "fps": 2,
+	  "frames": [
+        "dance4.png"
+	  ],
+	  "id": 5,
+	  "name": "none",
+	  "return_idle": true
 	}
   ],
   "player": {
 	"hits": [
 		2,
 		3,
-		4
+		4,
+		5
 	],
 	"idle": 1,
 	"jump": 1,
@@ -55,5 +66,5 @@
 	"repeat_idle": false
   },
   "name": "Danshe",
-  "scale": 1.6
+  "scale": 1.538461538461538
 }
