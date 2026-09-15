@@ -6,6 +6,7 @@ class_name MainMenuAnimations
 @export var character_animation: AnimationPlayer
 @export var logo_animation: AnimationPlayer
 @export var charts_animation: AnimationPlayer
+@export var search_animation: AnimationPlayer
 @export var bottom_buttons_animation: AnimationPlayer
 @export var song_info_animation: AnimationPlayer
 
@@ -27,10 +28,18 @@ func call_menu_things() -> void:
 
 func song_select_scene() -> void:
 	charts_animation.play("fade")
+	search_animation.play("fade")
 	bottom_buttons_animation.play("fade")
 	song_info_animation.play("fade")
 
 func main_menu() -> void:
 	charts_animation.play("fade",-1,-2,true)
+	search_animation.play("fade",-1,-2,true)
 	song_info_animation.play("fade",-1,-4,true)
 	bottom_buttons_animation.play_backwards("fade")
+
+
+func replay_charts() -> void:
+	charts_animation.stop()
+	charts_animation.play("fade")
+	charts_animation.advance(0.0)

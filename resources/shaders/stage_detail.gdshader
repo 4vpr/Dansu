@@ -9,6 +9,7 @@ uniform float fade_out_end_z = 6.0;
 uniform float emission_strength : hint_range(0.0, 1.0) = 0.035;
 uniform float low_energy : hint_range(0.0, 1.0) = 0.0;
 uniform float volume_level : hint_range(0.0, 1.0) = 0.0;
+uniform vec4 tint_color : source_color = vec4(1.0);
 
 varying vec4 mesh_color;
 varying float stage_z;
@@ -23,7 +24,8 @@ void fragment() {
 	float near_alpha = 1.0 - smoothstep(fade_out_start_z, fade_out_end_z, stage_z);
 	float response = 1.0 + volume_level * 0.35;
 	float alpha = clamp(mesh_color.a * spawn_alpha * near_alpha * response, 0.0, 1.0);
-	ALBEDO = mesh_color.rgb;
-	EMISSION = mesh_color.rgb * emission_strength * alpha * (1.0 + volume_level * 0.60);
+	vec3 color = mesh_color.rgb * tint_color.rgb;
+	ALBEDO = color;
+	EMISSION = color * emission_strength * alpha * (1.0 + volume_level * 0.60);
 	ALPHA = alpha;
 }

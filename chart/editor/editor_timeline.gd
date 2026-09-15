@@ -1,7 +1,7 @@
 extends RefCounted
 class_name EditorTimeline
 
-const DEFAULT_MIN_TIME := -1000
+const DEFAULT_MIN_TIME := -3000
 const DEFAULT_TAIL_PADDING := 3000
 
 var chart: Chart = null

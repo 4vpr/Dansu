@@ -1,5 +1,11 @@
 extends Node3D
 
+@export var editor_preview := false
+var _preview_time := -INF
+var _base_player_skin: PlayerSkinData
+var _active_event_skin_path := ""
+var _event_skin_cache: Dictionary = {}
+
 const DEFAULT_HIT_SFX := preload("res://resources/audio/hitsounds/chop.wav")
 const DEFAULT_MOVE_SFX := preload("res://resources/audio/hitsounds/chop.wav")
 const SFX_PLAYER_COUNT := 8
@@ -72,6 +78,9 @@ var combo := 0
 var song_end := 0
 var paused := false
 var is_replay_mode := false
+@export var autoplay_enabled := false
+var _autoplay: Autoplay
+@onready var song_progress: ProgressBar = $Control/ProgressBar
 
 @export var player: Player
 @export var rail_container: Node3D
@@ -82,6 +91,7 @@ var is_replay_mode := false
 @export var hud_root: Control
 @export var combo_container: VBoxContainer
 @export var combo_label: Label
+@export var score_hud: GameplayScoreHUD
 @export var world_environment: WorldEnvironment
 @export var stage_visualizer: GameplayStageVisualizer
 
@@ -94,6 +104,7 @@ var _sfx_players: Array[AudioStreamPlayer] = []
 var _next_sfx_player_index := 0
 var _hitsound_streams: Dictionary = {}
 var _combo_tween: Tween
+var _hud_skipped_notes := 0
 var _result_transition_started := false
 var _play_time_ms := 0.0
 var _song_volume_db := 0.0
@@ -128,7 +139,28 @@ var audio_start_target_usec: int = 0
 var pause_begin_usec: int = 0
 var _playback_start_time_ms := 0.0
 
+func _enter_tree() -> void:
+	if editor_preview:
+		# Preview palette edits must not mutate materials reused by a later playtest.
+		var environment_node := get_node("WorldEnvironment") as WorldEnvironment
+		environment_node.environment = environment_node.environment.duplicate(true)
+		var ground := get_node("PlayArea/Ground") as MeshInstance3D
+		ground.mesh = ground.mesh.duplicate(true)
+
 func _ready() -> void:
+	_base_player_skin = player.sprite.skin
+	if editor_preview:
+		set_process(false)
+		_cache_stage_theme_defaults()
+		_ensure_overlay_root()
+		for child in hud_root.get_children():
+			if child != _overlay_root and child is CanvasItem:
+				child.hide()
+		get_node("Label").hide()
+		return
+	song_progress.min_value = 0.0
+	song_progress.max_value = 1.0
+	song_progress.step = 0.0
 	_setup_combo_hud()
 	_setup_timestamp_input()
 	songplayer.bus = MUSIC_BUS
@@ -141,7 +173,54 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	if editor_preview:
+		return
 	_stop_timestamp_input()
+
+func update_editor_preview(rebuild: bool, events_changed: bool) -> void:
+	if not editor_preview or CM.parsed_chart == null:
+		return
+	var time := Game.current_time
+	if rebuild:
+		GameRail.clear_mesh_cache()
+		GameplayLongNoteVisual.clear_mesh_cache()
+	if rebuild or time < _preview_time or absf(time - _preview_time) > 1000.0:
+		for child in rail_container.get_children():
+			rail_container.remove_child(child)
+			child.queue_free()
+		_build_game_objects()
+		for entry in notes:
+			if entry.note.end_time < time:
+				processed_notes[entry.note] = Score.NONE
+		for rail in rails:
+			if rail.end_time < time:
+				rail_spawn_index += 1
+			else:
+				break
+	if rebuild or events_changed:
+		_collect_camera_events()
+		_collect_theme_events()
+		_collect_overlay_events()
+	_preview_time = time
+	standing_rail = null
+	for rail in rails:
+		if rail.start_time <= time and rail.end_time >= time:
+			standing_rail = rail
+			break
+	player.standing_rail = standing_rail
+	if standing_rail != null:
+		player.position.x = GameplayPlayfield.normalized_x_to_world(standing_rail._get_rail_x_at_time(int(time)))
+	_spawn_objects()
+	for node in spawned_rails:
+		node.visible = node.rail.end_time >= time
+		node.is_standing = node.rail == standing_rail
+	for note in spawned_note_nodes:
+		var node: GameNote = spawned_note_nodes[note]
+		node.visible = note.end_time >= time
+	_apply_runtime_events(time)
+	gameplay_camera.position.x = gameplay_camera._base_position.x + gameplay_camera.target_position.x + (player.position.x if gameplay_camera.follow_character else 0.0)
+	gameplay_camera.position.y = gameplay_camera._base_position.y + gameplay_camera.target_position.y
+	gameplay_camera.fov = gameplay_camera._base_fov / maxf(gameplay_camera.target_zoom, 0.01)
 
 func reset() -> void:
 	_input_stream_failed = false
@@ -155,18 +234,24 @@ func reset() -> void:
 	score = Score.new()
 	_replay_playback = Game.replay_playback
 	Game.replay_playback = null
-	if not Game.editor_playtest_active:
+	autoplay_enabled = (autoplay_enabled or Game.autoplay_requested) and _replay_playback == null
+	Game.autoplay_requested = false
+	is_replay_mode = _replay_playback != null
+	$Control/ReplayVignette.visible = is_replay_mode
+	$Control/ReplayLabel.visible = is_replay_mode or autoplay_enabled
+	$Control/ReplayLabel.text = "AUTOPLAY" if autoplay_enabled else "REPLAY"
+	$Control/PauseMenu/Retry.visible = !is_replay_mode
+	if not Game.editor_playtest_active and not autoplay_enabled:
 		if _replay_playback != null:
 			score.replay = _replay_playback
 		else:
 			score.replay = Replay.new()
 			score.replay.setup(CM.selected_chart)
-	if _replay_playback != null:
+	if _replay_playback != null or autoplay_enabled:
 		_stop_timestamp_input()
 		
 	elif not _timestamp_input_active:
 		_setup_timestamp_input()
-	print(Game.replay_playback)
 	combo = 0
 	song_end = 0
 
@@ -175,6 +260,7 @@ func reset() -> void:
 	pause_begin_usec = 0
 	_result_transition_started = false
 	_play_time_ms = 0.0
+	song_progress.value = 0.0
 	songplayer.volume_db = _song_volume_db
 
 	holding_long_move_note = null
@@ -201,9 +287,16 @@ func reset() -> void:
 	_last_builtin_input_frame = -1
 	_rebuild_hitsound_cache()
 	_build_game_objects()
+	_autoplay = Autoplay.new() if autoplay_enabled else null
+	if _autoplay != null:
+		_autoplay.setup(rails, int(_playback_start_time_ms), note_order_by_note)
 	_build_simulation_event_times()
 	_skip_notes_before_playtest_start()
+	_hud_skipped_notes = processed_notes.size()
+	if score_hud != null:
+		score_hud.reset(notes.size() - _hud_skipped_notes)
 	_advance_simulation(_current_time_ms, true)
+	_update_score_hud()
 	_collect_camera_events()
 	_collect_overlay_events()
 	_collect_theme_events()
@@ -311,7 +404,7 @@ func _process(delta: float) -> void:
 
 func _update_simulation() -> void:
 	var simulation_target: int
-	var exclusive := _replay_playback == null
+	var exclusive := _replay_playback == null and not autoplay_enabled
 	if _timestamp_input_active:
 		var batch := _poll_timestamp_batch()
 		if _input_stream_failed:
@@ -329,6 +422,13 @@ func _update_simulation() -> void:
 		return
 	_spawn_objects()
 	_advance_simulation(simulation_target, exclusive)
+	_update_score_hud()
+
+
+func _update_score_hud() -> void:
+	song_progress.value = clampf(float(Game.current_time) / _play_time_ms, 0.0, 1.0) if _play_time_ms > 0.0 else 0.0
+	if score_hud != null:
+		score_hud.refresh(score, processed_notes.size() - _hud_skipped_notes)
 
 var tween: Tween
 func pause() -> void:
@@ -388,6 +488,7 @@ func retry() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	if _replay_playback != null:
 		Game.replay_playback = _replay_playback
+	Game.autoplay_requested = autoplay_enabled
 	Transition.transition_to(GAMEPLAY_SCENE_PATH, 0.45)
 
 
@@ -457,6 +558,8 @@ func _timestamp_to_game_time(timestamp_usec: int) -> int:
 	) - Config.offset)
 
 func _collect_gameplay_inputs(time_ms: int) -> Array[ReplayInput]:
+	if autoplay_enabled:
+		return []
 	if _replay_playback != null:
 		return _collect_replay_inputs(time_ms)
 	return _collect_builtin_input(time_ms)
@@ -608,6 +711,9 @@ func _build_game_objects() -> void:
 
 func _build_simulation_event_times() -> void:
 	var unique_times := {}
+	if _autoplay != null:
+		for time in _autoplay.event_times():
+			unique_times[time] = true
 	for rail in rails:
 		unique_times[rail.start_time - Score.T.GREAT] = true
 		unique_times[rail.end_time + 1] = true
@@ -652,6 +758,8 @@ func _advance_simulation(target_time: int, exclusive: bool = false) -> void:
 			break
 
 		# Same-time inputs keep replay order and all precede rail/miss/touch checks.
+		if _autoplay != null:
+			_autoplay.advance(self, event_time)
 		while input_index < _pending_simulation_inputs.size() \
 				and _pending_simulation_inputs[input_index].timing == event_time:
 			_handle_replay_input(_pending_simulation_inputs[input_index], event_time)
@@ -793,9 +901,34 @@ func _ensure_overlay_root() -> void:
 	hud_root.move_child(_overlay_root, 0)
 
 func _apply_runtime_events(time_ms: float) -> void:
+	_apply_skin_events(time_ms)
 	_apply_theme_events(time_ms)
 	_apply_camera_events(time_ms)
 	_apply_overlay_events(time_ms)
+
+func _apply_skin_events(time_ms: float) -> void:
+	if player == null or player.sprite == null or Config.ignore_chart_skin:
+		return
+	var active: SkinEvent = null
+	for event in CM.parsed_chart.events:
+		if event is SkinEvent and event.time <= time_ms and (active == null or event.time >= active.time):
+			active = event
+	var path := EventResourceRef.resolve_skin(CM.selected_chart, active.skin_json) if active != null else ""
+	if path == _active_event_skin_path:
+		return
+	_active_event_skin_path = path
+	var skin := _base_player_skin
+	if not path.is_empty():
+		if not _event_skin_cache.has(path):
+			var candidate := PlayerSkinData.new()
+			candidate.resource_directory = path.get_base_dir()
+			_event_skin_cache[path] = candidate if FileAccess.file_exists(path) and candidate.parse_objects(PlayerSkinData.TYPE.IN_CHART, "", path.get_file()) else null
+		skin = _event_skin_cache[path] if _event_skin_cache[path] != null else _base_player_skin
+	if skin != null:
+		var holding := player.sprite.hold_last_frame
+		player.sprite.skin = skin
+		player.sprite._setup()
+		player.sprite.hold_last_frame = holding
 
 func _apply_theme_events(time_ms: float) -> void:
 	var base_color := _default_sky_base_color
@@ -825,7 +958,7 @@ func _apply_theme_events(time_ms: float) -> void:
 func _find_active_theme_event(time_ms: float) -> ThemeEvent:
 	var active: ThemeEvent = null
 	for event in _theme_events:
-		if time_ms < event.time or time_ms > event.end_time:
+		if event.frames.is_empty() or time_ms < event.time + event.frames[0].time:
 			continue
 		if active == null or event.time >= active.time:
 			active = event
@@ -851,7 +984,7 @@ func _apply_camera_events(time_ms: float) -> void:
 func _find_active_camera_event(time_ms: float) -> CameraEvent:
 	var active: CameraEvent = null
 	for event in _camera_events:
-		if time_ms < event.time or time_ms > event.end_time:
+		if event.frames.is_empty() or time_ms < event.time + event.frames[0].time:
 			continue
 		if active == null or event.time >= active.time:
 			active = event
@@ -898,9 +1031,9 @@ func _find_active_overlay_events(time_ms: float) -> Array[OverlayEvent]:
 		if time_ms >= event.time and time_ms <= event.end_time:
 			active_overlays.append(event)
 	active_overlays.sort_custom(func(a: OverlayEvent, b: OverlayEvent) -> bool:
-		if a.layer == b.layer:
+		if a.x == b.x:
 			return a.time < b.time
-		return a.layer < b.layer
+		return a.x < b.x
 	)
 	return active_overlays
 
@@ -1001,6 +1134,8 @@ func _move_player_in_direction(
 	play_direction_animation: bool = true,
 	time: int = _current_time_ms
 ) -> void:
+	if holding_long_hit_note != null or holding_long_move_note != null:
+		return
 	var target_rail := _find_nearest_active_rail(dir, time)
 	if target_rail != null:
 		standing_rail = target_rail
@@ -1091,6 +1226,7 @@ func _input_action(time: int, keycode: int) -> void:
 	if is_long:
 		holding_long_hit_note = note
 		holding_long_hit_keycode = keycode
+		player.set_hold_animation(true)
 
 func _move_action(dir: Note.Dir, time: int, allow_free_movement: bool = true) -> void:
 	if (next_process_note != null and
@@ -1107,6 +1243,7 @@ func _move_action(dir: Note.Dir, time: int, allow_free_movement: bool = true) ->
 			if note.length > 0:
 				holding_long_move_note = note
 				pending_move_dir = dir
+				player.set_hold_animation(true)
 				return
 			else:
 				_move_player_in_direction(dir, false, time)
@@ -1119,6 +1256,8 @@ func _release_long_hit(time: int) -> void:
 	var note := holding_long_hit_note
 	_clear_long_note_hold(note)
 	_judge_long_note_release(note, time)
+	if note != null:
+		player.play_hit_animation()
 
 func _release_long_move(time: int) -> void:
 	var note := holding_long_move_note
@@ -1126,6 +1265,8 @@ func _release_long_move(time: int) -> void:
 	_clear_long_note_hold(note)
 	_judge_long_note_release(note, time)
 	_move_player_in_direction(direction, false, time)
+	if note != null:
+		player.play_hit_animation()
 
 func _judge_long_note_release(note: Note, input_time: int) -> void:
 	if note == null or processed_long_releases.has(note):
@@ -1143,6 +1284,7 @@ func _clear_long_note_hold(note: Note) -> void:
 	if note == holding_long_move_note:
 		holding_long_move_note = null
 		pending_move_dir = Note.Dir.NONE
+	player.set_hold_animation(holding_long_hit_note != null or holding_long_move_note != null)
 
 func process_note(_j: int, note_node: GameNote) -> void:
 	if note_node != null and note_node.waiting_for_long_release:
@@ -1229,7 +1371,7 @@ func _check_result_transition() -> void:
 	if Game.editor_playtest_active:
 		_return_to_chart_editor()
 		return
-	if _replay_playback == null:
+	if _replay_playback == null and not autoplay_enabled:
 		Scores.record_play(CM.selected_chart, score)
 	Game.last_result_score = score
 	Transition.transition_to(RESULT_SCENE_PATH, 1.0)

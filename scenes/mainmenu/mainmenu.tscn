@@ -19,13 +19,10 @@
 [ext_resource type="Texture2D" uid="uid://g4w7jxdx88sv" path="res://resources/icons/play.svg" id="13_hqrtg"]
 [ext_resource type="Texture2D" uid="uid://yxtyt10rngs0" path="res://resources/icons/log-out.svg" id="13_ne1f7"]
 [ext_resource type="PackedScene" uid="uid://cij7mo4rkb3uj" path="res://scenes/mainmenu/chart.tscn" id="13_xnw7g"]
-[ext_resource type="Texture2D" uid="uid://bh7stcrpeaogx" path="res://resources/icons/map.svg" id="14_dx8qc"]
 [ext_resource type="Texture2D" uid="uid://dnbui2wkl4v1h" path="res://resources/icons/bolt.svg" id="14_hqrtg"]
 [ext_resource type="Texture2D" uid="uid://sc3o36e08g15" path="res://resources/icons/square-pen.svg" id="15_dx8qc"]
 [ext_resource type="Theme" uid="uid://d3ctsqw4vkokp" path="res://resources/themes/editor_mainmenu_theme.tres" id="17_y7e7m"]
 [ext_resource type="Script" uid="uid://dx05jon4ev7cp" path="res://chart/select/chart_scroll.gd" id="20_vv2g0"]
-[ext_resource type="Texture2D" uid="uid://carktd8pd048o" path="res://resources/icons/checkbox-checked.svg" id="21_b8088"]
-[ext_resource type="Script" uid="uid://btw6hjxpgdn3b" path="res://global/resizeable_texture.gd" id="21_exxu0"]
 [ext_resource type="PackedScene" uid="uid://bi38ewb02pdbn" path="res://scenes/mainmenu/star_button.tscn" id="21_p4mk8"]
 [ext_resource type="Texture2D" uid="uid://4mpob6r0inkq" path="res://resources/icons/arrow-big-left.svg" id="23_c5bhb"]
 [ext_resource type="Script" uid="uid://c0rooft00opwr" path="res://scenes/mainmenu/bottom_buttons.gd" id="24_nnql3"]
@@ -37,9 +34,14 @@
 [ext_resource type="Script" uid="uid://df0tdddwomkwc" path="res://network/chart_catalogue.gd" id="32_catalogue"]
 [ext_resource type="Script" uid="uid://c7rtexp5pv8at" path="res://network/chart_publisher.gd" id="33_publisher"]
 [ext_resource type="Shader" uid="uid://lyl0i1warddt" path="res://resources/shaders/card_shine.gdshader" id="34_shine"]
-[ext_resource type="PackedScene" path="res://scenes/mainmenu/leaderboard_panel.tscn" id="35_leaderboard"]
 [ext_resource type="Texture2D" uid="uid://dggi6xmwgmp00" path="res://resources/icons/drum.svg" id="35_xuiok"]
 [ext_resource type="PackedScene" path="res://scenes/mainmenu/playlist_panel.tscn" id="36_playlists"]
+[ext_resource type="PackedScene" uid="uid://dwxl2qt32v5ch" path="res://scenes/mainmenu/inline_leaderboard.tscn" id="97_inline_leaderboard"]
+[ext_resource type="Script" uid="uid://b2rueyimmbuu1" path="res://scenes/mainmenu/source_switch.gd" id="98_source_switch"]
+[ext_resource type="Script" uid="uid://baq4h3x3wbdqw" path="res://scenes/mainmenu/loved_button.gd" id="99_loved"]
+[ext_resource type="Texture2D" uid="uid://b4vcmn7ccywqd" path="res://resources/icons/loved-outline.svg" id="99_loved_icon"]
+[ext_resource type="Texture2D" uid="uid://b0g6vtkibxwu4" path="res://resources/icons/playlist-add.svg" id="100_playlist_icon"]
+[ext_resource type="Script" uid="uid://cg01yja22rfrs" path="res://scenes/mainmenu/playlist_add_button.gd" id="101_playlist_button"]
 
 [sub_resource type="Animation" id="Animation_xnw7g"]
 length = 0.001
@@ -282,7 +284,7 @@ length = 0.001
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("../Charts:offset_transform_position")
+tracks/0/path = NodePath("../Charts/Content:offset_transform_position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -291,6 +293,30 @@ tracks/0/keys = {
 "update": 0,
 "values": [Vector2(-1000, 0)]
 }
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Charts/Content:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Charts/Content:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
 
 [sub_resource type="Animation" id="Animation_bn2a6"]
 resource_name = "fade"
@@ -298,7 +324,7 @@ length = 0.53333336
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
-tracks/0/path = NodePath("../Charts:offset_transform_position")
+tracks/0/path = NodePath("../Charts/Content:offset_transform_position")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -307,11 +333,120 @@ tracks/0/keys = {
 "update": 0,
 "values": [Vector2(-1000, 0), Vector2(0, 0)]
 }
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Charts/Content:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.1, 0.33333334),
+"transitions": PackedFloat32Array(2.2973974, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Charts/Content:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.033333335),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_vv2g0"]
 _data = {
 &"RESET": SubResource("Animation_vbcus"),
 &"fade": SubResource("Animation_bn2a6")
+}
+
+[sub_resource type="Animation" id="Animation_search_reset"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Charts/VBoxContainer:offset_transform_position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(-1000, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Charts/VBoxContainer:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Charts:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_search_fade"]
+resource_name = "fade"
+length = 0.53333336
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Charts/VBoxContainer:offset_transform_position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(0.25000018, 1),
+"update": 0,
+"values": [Vector2(-1000, 0), Vector2(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Charts/VBoxContainer:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.1, 0.33333334),
+"transitions": PackedFloat32Array(2.2973974, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Charts:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.033333335),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_search"]
+_data = {
+&"RESET": SubResource("Animation_search_reset"),
+&"fade": SubResource("Animation_search_fade")
 }
 
 [sub_resource type="Animation" id="Animation_c5bhb"]
@@ -328,6 +463,18 @@ tracks/0/keys = {
 "update": 0,
 "values": [Vector2(0, 170)]
 }
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = false
+tracks/1/path = NodePath("../BottomButtons:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(),
+"transitions": PackedFloat32Array(),
+"update": 1,
+"values": []
+}
 
 [sub_resource type="Animation" id="Animation_nh018"]
 resource_name = "fade"
@@ -340,9 +487,21 @@ tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.46666667),
-"transitions": PackedFloat32Array(1, 1),
+"transitions": PackedFloat32Array(0.24148433, 1),
 "update": 0,
 "values": [Vector2(0, 170), Vector2(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../BottomButtons:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.03333334),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_xujh8"]
@@ -417,35 +576,6 @@ shader_parameter/water_height = 0.3
 shader_parameter/amplitude = 0.1
 shader_parameter/speed = 1.5
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a8qj1"]
-bg_color = Color(0.10980392, 0.101960786, 0.1764706, 1)
-border_width_left = 10
-border_width_top = 10
-border_width_right = 10
-border_width_bottom = 10
-border_color = Color(0.10980392, 0.101960786, 0.1764706, 1)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-
-[sub_resource type="Gradient" id="Gradient_a8qj1"]
-
-[sub_resource type="GradientTexture1D" id="GradientTexture1D_vhubh"]
-gradient = SubResource("Gradient_a8qj1")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_chart_shine"]
-shader = ExtResource("34_shine")
-shader_parameter/cursor_uv = Vector2(0.5, 0.5)
-shader_parameter/hover_strength = 0.0
-shader_parameter/shine_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_a8qj1"]
-shader = ExtResource("10_jyltf")
-shader_parameter/height = 1.5
-shader_parameter/frequency = 20.0
-shader_parameter/speed = 3.0
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c5bhb"]
 content_margin_left = 23.0
 content_margin_top = 5.0
@@ -465,35 +595,6 @@ shadow_size = 10
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xujh8"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exxu0"]
-content_margin_left = 50.0
-content_margin_top = 5.0
-content_margin_right = 50.0
-content_margin_bottom = 10.0
-bg_color = Color(0.12, 0.12, 0.12, 0.78431374)
-border_width_left = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.6135513, 0.58516335, 0.89360356, 1)
-corner_radius_bottom_right = 30
-corner_radius_bottom_left = 30
-corner_detail = 20
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b8088"]
-content_margin_left = 50.0
-content_margin_top = 5.0
-content_margin_right = 50.0
-content_margin_bottom = 10.0
-bg_color = Color(0.23753911, 0.23753914, 0.23753908, 0.78431374)
-border_width_left = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.6135513, 0.58516335, 0.89360356, 1)
-corner_radius_bottom_right = 30
-corner_radius_bottom_left = 30
-corner_detail = 20
-expand_margin_bottom = 5.0
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i4nl7"]
 content_margin_left = 50.0
 content_margin_top = 5.0
@@ -509,6 +610,20 @@ corner_radius_bottom_left = 30
 corner_detail = 20
 expand_margin_bottom = 3.0
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exxu0"]
+content_margin_left = 50.0
+content_margin_top = 5.0
+content_margin_right = 50.0
+content_margin_bottom = 10.0
+bg_color = Color(0.12, 0.12, 0.12, 0.78431374)
+border_width_left = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.6135513, 0.58516335, 0.89360356, 1)
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+corner_detail = 20
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pkird"]
 content_margin_left = 50.0
 content_margin_top = 5.0
@@ -523,19 +638,27 @@ corner_radius_bottom_right = 30
 corner_radius_bottom_left = 30
 corner_detail = 20
 
-[sub_resource type="Texture2D" id="Texture2D_exxu0"]
-resource_local_to_scene = false
-resource_name = ""
-script = ExtResource("21_exxu0")
-source = ExtResource("21_b8088")
-metadata/_custom_type_script = "uid://btw6hjxpgdn3b"
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_playlist_selector"]
+content_margin_left = 24.0
+content_margin_top = 8.0
+content_margin_right = 48.0
+content_margin_bottom = 8.0
+bg_color = Color(0.075, 0.067, 0.105, 0.98)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
-[sub_resource type="Texture2D" id="Texture2D_b8088"]
-resource_local_to_scene = false
-resource_name = ""
-script = ExtResource("21_exxu0")
-source = ExtResource("14_dx8qc")
-metadata/_custom_type_script = "uid://btw6hjxpgdn3b"
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_playlist_selector_hover"]
+content_margin_left = 24.0
+content_margin_top = 8.0
+content_margin_right = 48.0
+content_margin_bottom = 8.0
+bg_color = Color(0.22, 0.18, 0.36, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_da4vi"]
 shader = ExtResource("6_da4vi")
@@ -543,6 +666,43 @@ shader_parameter/water_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
 shader_parameter/water_height = 0.3
 shader_parameter/amplitude = 0.1
 shader_parameter/speed = 0.9
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a8qj1"]
+bg_color = Color(0.10980392, 0.101960786, 0.1764706, 1)
+border_width_left = 10
+border_width_top = 10
+border_width_right = 10
+border_width_bottom = 10
+border_color = Color(0.10980392, 0.101960786, 0.1764706, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jbwdy"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 50
+corner_radius_top_right = 50
+corner_radius_bottom_right = 50
+corner_radius_bottom_left = 50
+corner_detail = 20
+
+[sub_resource type="Gradient" id="Gradient_a8qj1"]
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_vhubh"]
+gradient = SubResource("Gradient_a8qj1")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_chart_shine"]
+shader = ExtResource("34_shine")
+shader_parameter/cursor_uv = Vector2(0.5, 0.5)
+shader_parameter/hover_strength = 0.0
+shader_parameter/shine_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_a8qj1"]
+shader = ExtResource("10_jyltf")
+shader_parameter/height = 1.5
+shader_parameter/frequency = 20.0
+shader_parameter/speed = 3.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x46xa"]
 bg_color = Color(0.10681517, 0.090740524, 0.16382176, 1)
@@ -568,7 +728,7 @@ corner_radius_top_right = 18
 corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
 
-[node name="MainMenu" type="Control" unique_id=609673978 node_paths=PackedStringArray("progress_bar", "current_chartset_label", "search_input", "filter_button", "source_tabs", "chart_scroll", "exit_overlay", "audio_1", "audio_2", "menu_audio_switcher", "settings_popup", "logo", "menu_buttons", "account_panel", "username_setup_overlay", "username_input", "username_status", "username_submit_button", "bottom_buttons", "bottom_play_button", "bottom_edit_button", "new_chart_button", "edit_actions", "leaderboard_button", "loved_button", "playlist_button", "leaderboard_panel", "playlist_panel", "new_difficulty_button", "delete_difficulty_button", "delete_chartset_button", "delete_chart_dialog", "_publish_button", "chart_info_panel", "_filter_popup", "_catalogue", "_publisher", "animations", "switch_player", "bye_player")]
+[node name="MainMenu" type="Control" unique_id=609673978 node_paths=PackedStringArray("progress_bar", "current_chartset_label", "search_input", "filter_button", "source_tabs", "chart_scroll", "exit_overlay", "audio_1", "audio_2", "menu_audio_switcher", "settings_popup", "logo", "menu_buttons", "account_panel", "username_setup_overlay", "username_input", "username_status", "username_submit_button", "bottom_buttons", "bottom_play_button", "bottom_edit_button", "new_chart_button", "edit_actions", "loved_button", "playlist_button", "playlist_panel", "new_difficulty_button", "delete_difficulty_button", "delete_chartset_button", "delete_chart_dialog", "_publish_button", "chart_info_panel", "_filter_popup", "_catalogue", "_publisher", "animations", "switch_player", "bye_player")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -599,10 +759,8 @@ bottom_play_button = NodePath("BottomButtons/Play")
 bottom_edit_button = NodePath("BottomButtons/Edit")
 new_chart_button = NodePath("BottomButtons/NewChart")
 edit_actions = NodePath("ChartInfo/EditActions")
-leaderboard_button = NodePath("ChartInfo/Leaderboard")
-loved_button = NodePath("ChartInfo/Loved")
-playlist_button = NodePath("ChartInfo/Playlists")
-leaderboard_panel = NodePath("LeaderboardPanel")
+loved_button = NodePath("ChartInfo/Panel/Content/Loved")
+playlist_button = NodePath("ChartInfo/Panel/Content/Playlists")
 playlist_panel = NodePath("PlaylistPanel")
 new_difficulty_button = NodePath("ChartInfo/EditActions/NewDifficulty")
 delete_difficulty_button = NodePath("ChartInfo/EditActions/DeleteDifficulty")
@@ -618,13 +776,14 @@ switch_player = NodePath("Switch7")
 bye_player = NodePath("Bye")
 metadata/_edit_lock_ = true
 
-[node name="Animations" type="Node" parent="." unique_id=1265180024 node_paths=PackedStringArray("menu_buttons_animation", "loading_animation", "character_animation", "logo_animation", "charts_animation", "bottom_buttons_animation", "song_info_animation")]
+[node name="Animations" type="Node" parent="." unique_id=1265180024 node_paths=PackedStringArray("menu_buttons_animation", "loading_animation", "character_animation", "logo_animation", "charts_animation", "search_animation", "bottom_buttons_animation", "song_info_animation")]
 script = ExtResource("2_rhsxn")
 menu_buttons_animation = NodePath("MenuButtons")
 loading_animation = NodePath("Loading")
 character_animation = NodePath("Character")
 logo_animation = NodePath("Logo")
 charts_animation = NodePath("Charts")
+search_animation = NodePath("Search")
 bottom_buttons_animation = NodePath("BottomButtons")
 song_info_animation = NodePath("SongInfo_Play")
 
@@ -648,6 +807,9 @@ libraries/ = SubResource("AnimationLibrary_vbcus")
 
 [node name="Charts" type="AnimationPlayer" parent="Animations" unique_id=1459348586]
 libraries/ = SubResource("AnimationLibrary_vv2g0")
+
+[node name="Search" type="AnimationPlayer" parent="Animations" unique_id=1655209409]
+libraries/ = SubResource("AnimationLibrary_search")
 
 [node name="BottomButtons" type="AnimationPlayer" parent="Animations" unique_id=501784704]
 libraries/ = SubResource("AnimationLibrary_xujh8")
@@ -763,423 +925,19 @@ rotation = -0.06981315
 scale = Vector2(0.81759554, 0.8175957)
 texture = ExtResource("10_ckwsv")
 
-[node name="ChartInfo" type="Control" parent="." unique_id=403222565]
-layout_mode = 1
-anchor_left = 1.0
-anchor_top = 0.483
-anchor_right = 1.0
-anchor_bottom = 0.483
-offset_left = -1020.0
-offset_top = -343.64
-offset_right = -77.0
-offset_bottom = 344.36
-offset_transform_enabled = true
-offset_transform_position = Vector2(1101, 0)
-mouse_filter = 2
-
-[node name="Panel" type="Panel" parent="ChartInfo" unique_id=34224441 node_paths=PackedStringArray("thumb", "previous_thumb", "cover_layer", "content", "shine_rect", "title_label", "artist_label", "desc_label", "rank_label", "full_combo_label", "all_just_label", "perfect_label", "never_played_label", "score_label", "ranked_label")]
-clip_children = 2
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_a8qj1")
-script = ExtResource("11_ll1i1")
-thumb = NodePath("CoverLayer/Thumb")
-previous_thumb = NodePath("CoverLayer/PreviousThumb")
-cover_layer = NodePath("CoverLayer")
-content = NodePath("Content")
-shine_rect = NodePath("Shine")
-title_label = NodePath("Content/Title")
-artist_label = NodePath("Content/Artist")
-desc_label = NodePath("Content/Desc")
-rank_label = NodePath("../Rank")
-full_combo_label = NodePath("../FullCombo")
-all_just_label = NodePath("../AllJust")
-perfect_label = NodePath("../Perfect")
-never_played_label = NodePath("../NeverPlayed")
-score_label = NodePath("../Score")
-ranked_label = NodePath("../Ranked")
-metadata/_edit_use_anchors_ = true
-
-[node name="CoverLayer" type="Control" parent="ChartInfo/Panel" unique_id=1483692487]
-layout_mode = 1
-anchor_left = -0.035172798
-anchor_top = -0.072430216
-anchor_right = 1.0454555
-anchor_bottom = 1.0439652
-offset_left = 0.16796875
-offset_top = -0.16801101
-offset_right = 0.16796875
-offset_bottom = -0.24804688
-grow_horizontal = 2
-grow_vertical = 2
-offset_transform_enabled = true
-mouse_filter = 2
-metadata/_edit_use_anchors_ = true
-
-[node name="PreviousThumb" type="TextureRect" parent="ChartInfo/Panel/CoverLayer" unique_id=1950153817]
-unique_name_in_owner = true
-modulate = Color(1, 1, 1, 0)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 6
-
-[node name="Thumb" type="TextureRect" parent="ChartInfo/Panel/CoverLayer" unique_id=1734452956]
-unique_name_in_owner = true
-modulate = Color(1, 1, 1, 0.38431373)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-texture = SubResource("GradientTexture1D_vhubh")
-expand_mode = 1
-stretch_mode = 6
-
-[node name="Content" type="Control" parent="ChartInfo/Panel" unique_id=500247412]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-mouse_force_pass_scroll_events = false
-
-[node name="Title" type="Label" parent="ChartInfo/Panel/Content" unique_id=1309542252]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.284
-anchor_right = 1.0
-anchor_bottom = 0.284
-offset_left = 31.0
-offset_top = -32.147125
-offset_right = -32.0
-offset_bottom = 31.852875
-theme_override_colors/font_color = Color(1, 1, 0.80784315, 1)
-theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
-theme_override_constants/outline_size = 20
-theme_override_fonts/font = ExtResource("4_ridl2")
-theme_override_font_sizes/font_size = 52
-text = "song title"
-horizontal_alignment = 1
-vertical_alignment = 1
-text_overrun_behavior = 5
-
-[node name="Artist" type="Label" parent="ChartInfo/Panel/Content" unique_id=2037081083]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.38900003
-anchor_right = 1.0
-anchor_bottom = 0.38900003
-offset_left = 95.0
-offset_top = -13.632019
-offset_right = -96.0
-offset_bottom = 26.367981
-theme_override_colors/font_color = Color(1, 1, 0.81960785, 1)
-theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
-theme_override_constants/outline_size = 5
-theme_override_fonts/font = ExtResource("12_a8qj1")
-theme_override_font_sizes/font_size = 28
-text = "artist"
-horizontal_alignment = 1
-vertical_alignment = 1
-text_overrun_behavior = 5
-
-[node name="Desc" type="Label" parent="ChartInfo/Panel/Content" unique_id=960278019]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.001
-anchor_top = 0.674
-anchor_right = 1.0
-anchor_bottom = 0.674
-offset_left = 105.006
-offset_top = -121.712006
-offset_right = -88.0
-offset_bottom = 110.287994
-theme_override_colors/font_color = Color(1, 1, 0.81960785, 1)
-theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
-theme_override_constants/outline_size = 5
-theme_override_fonts/font = ExtResource("12_a8qj1")
-theme_override_font_sizes/font_size = 24
-text = "99:99 (50-250bpm)"
-horizontal_alignment = 1
-vertical_alignment = 1
-clip_text = true
-
-[node name="Shine" type="ColorRect" parent="ChartInfo/Panel" unique_id=604929899]
-material = SubResource("ShaderMaterial_chart_shine")
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="ChartInfo" unique_id=1987109179 node_paths=PackedStringArray("chart_scroll")]
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.50734645
-anchor_top = 0.8968023
-anchor_right = 0.50734645
-anchor_bottom = 0.8968023
-offset_left = -472.13306
-offset_top = -43.0
-offset_right = 467.86694
-offset_bottom = 37.0
-mouse_filter = 2
-theme_override_constants/separation = 15
-alignment = 1
-script = ExtResource("11_1w8yq")
-chart_scroll = NodePath("../../Charts")
-
-[node name="StartButton" parent="ChartInfo/HBoxContainer" unique_id=939246191 instance=ExtResource("21_p4mk8")]
-layout_mode = 2
-
-[node name="Rank" type="Label" parent="ChartInfo" unique_id=1421036526]
-layout_mode = 0
-offset_left = -40.0
-offset_top = -30.0
-offset_right = 89.0
-offset_bottom = 69.0
-rotation = -0.2012667
-theme_override_colors/font_color = Color(0.7781524, 0.9855893, 0.71779585, 1)
-theme_override_colors/font_shadow_color = Color(0.9647059, 0.9254902, 0.74509805, 1)
-theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_constants/outline_size = 30
-theme_override_fonts/font = ExtResource("4_ridl2")
-theme_override_font_sizes/font_size = 100
-text = "A"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="FullCombo" type="Label" parent="ChartInfo" unique_id=708357602]
-material = SubResource("ShaderMaterial_a8qj1")
-layout_mode = 0
-offset_left = -52.00003
-offset_top = 70.0
-offset_right = 322.86343
-offset_bottom = 138.34529
-rotation = -0.2012667
-theme_override_colors/font_color = Color(0.10980392, 0.101960786, 0.1764706, 1)
-theme_override_colors/font_shadow_color = Color(0.8156863, 0.65882355, 0.38431373, 1)
-theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_constants/outline_size = 30
-theme_override_fonts/font = ExtResource("4_ridl2")
-theme_override_font_sizes/font_size = 54
-text = "Full combo"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="AllJust" type="Label" parent="ChartInfo" unique_id=858703156]
-material = SubResource("ShaderMaterial_a8qj1")
-layout_mode = 0
-offset_left = -140.0
-offset_top = 69.99999
-offset_right = 403.0
-offset_bottom = 169.0
-rotation = -0.2012667
-theme_override_colors/font_color = Color(0.10980392, 0.101960786, 0.1764706, 1)
-theme_override_colors/font_shadow_color = Color(0.8156863, 0.65882355, 0.38431373, 1)
-theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_constants/outline_size = 30
-theme_override_fonts/font = ExtResource("4_ridl2")
-theme_override_font_sizes/font_size = 54
-text = "Perfect"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Perfect" type="Label" parent="ChartInfo" unique_id=1076048974]
-material = SubResource("ShaderMaterial_a8qj1")
-layout_mode = 0
-offset_left = -132.0
-offset_top = 69.99999
-offset_right = 411.0
-offset_bottom = 169.0
-rotation = -0.2012667
-theme_override_colors/font_color = Color(0.10980392, 0.101960786, 0.1764706, 1)
-theme_override_colors/font_shadow_color = Color(0.8156863, 0.65882355, 0.38431373, 1)
-theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_constants/outline_size = 30
-theme_override_fonts/font = ExtResource("4_ridl2")
-theme_override_font_sizes/font_size = 54
-text = "impeccable"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="NeverPlayed" type="Label" parent="ChartInfo" unique_id=654147387]
-layout_mode = 0
-offset_left = -40.0
-offset_top = -3.0
-offset_right = 75.0
-offset_bottom = 66.0
-rotation = -0.2012667
-theme_override_colors/font_color = Color(0.89283663, 0.9162954, 0.9607381, 1)
-theme_override_colors/font_shadow_color = Color(0.9647059, 0.9254902, 0.74509805, 1)
-theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_constants/outline_size = 10
-theme_override_fonts/font = ExtResource("4_ridl2")
-theme_override_font_sizes/font_size = 32
-text = "never
-played"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Score" type="Label" parent="ChartInfo" unique_id=2030052414]
-layout_mode = 0
-offset_left = 72.0
-offset_top = -22.0
-offset_right = 218.0
-offset_bottom = 28.0
-rotation = -0.12995416
-theme_override_colors/font_color = Color(0.7781524, 0.9855893, 0.71779585, 1)
-theme_override_colors/font_shadow_color = Color(0.9647059, 0.9254902, 0.74509805, 1)
-theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_constants/outline_size = 30
-theme_override_fonts/font = ExtResource("4_ridl2")
-theme_override_font_sizes/font_size = 50
-text = "92.4%"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Ranked" type="Label" parent="ChartInfo" unique_id=2112130810]
-visible = false
-layout_mode = 0
-offset_left = 328.0
-offset_top = -33.0
-offset_right = 483.1538
-offset_bottom = 4.13501
-rotation = 0.26918906
-theme_override_colors/font_color = Color(0.9031105, 0.9098936, 0.976659, 1)
-theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_constants/outline_size = 15
-theme_override_fonts/font = ExtResource("4_ridl2")
-theme_override_font_sizes/font_size = 24
-text = "ranked"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Leaderboard" type="Button" parent="ChartInfo" unique_id=352329389]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -205.0
-offset_top = 16.0
-offset_right = -24.0
-offset_bottom = 56.0
-grow_horizontal = 0
-theme = ExtResource("17_y7e7m")
-text = "Leaderboard"
-
-[node name="Loved" type="Button" parent="ChartInfo" unique_id=73305534]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -396.0
-offset_top = 16.0
-offset_right = -215.0
-offset_bottom = 56.0
-grow_horizontal = 0
-theme = ExtResource("17_y7e7m")
-text = "Love ♡"
-
-[node name="Playlists" type="Button" parent="ChartInfo" unique_id=148872323]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -587.0
-offset_top = 16.0
-offset_right = -406.0
-offset_bottom = 56.0
-grow_horizontal = 0
-theme = ExtResource("17_y7e7m")
-text = "Playlists"
-
-[node name="EditActions" type="HBoxContainer" parent="ChartInfo" unique_id=1828236275]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.50600004
-anchor_top = 0.794
-anchor_right = 0.50600004
-anchor_bottom = 0.794
-offset_left = -402.15805
-offset_top = -487.27203
-offset_right = 356.84195
-offset_bottom = -447.27203
-theme = ExtResource("17_y7e7m")
-theme_override_constants/separation = 9
-
-[node name="NewDifficulty" type="Button" parent="ChartInfo/EditActions" unique_id=1382980622]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "new difficulty"
-
-[node name="DeleteDifficulty" type="Button" parent="ChartInfo/EditActions" unique_id=1721194332]
-modulate = Color(1, 0.45999998, 0.45999998, 1)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "delete difficulty"
-
-[node name="DeleteChartset" type="Button" parent="ChartInfo/EditActions" unique_id=1734575970]
-self_modulate = Color(1, 0.45882353, 0.45882353, 1)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "delete chartset"
-
-[node name="Upload" type="Button" parent="ChartInfo/EditActions" unique_id=1880901865]
-self_modulate = Color(0.64, 1, 0.93399996, 1)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Upload"
-
 [node name="Charts" type="Control" parent="." unique_id=836592076 node_paths=PackedStringArray("content")]
+visible = false
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
 offset_right = 752.0
 grow_vertical = 2
 offset_transform_enabled = true
-offset_transform_position = Vector2(-1000, 0)
 script = ExtResource("20_vv2g0")
 content = NodePath("Content")
 
 [node name="Content" type="Control" parent="Charts" unique_id=1089976693]
+visible = false
 layout_mode = 1
 anchor_left = 1.33
 anchor_top = 0.007
@@ -1189,6 +947,8 @@ offset_left = -1000.16003
 offset_top = -7.5600004
 offset_right = -264.16003
 offset_bottom = -7.960083
+offset_transform_enabled = true
+offset_transform_position = Vector2(-1000, 0)
 
 [node name="Chart" parent="Charts/Content" unique_id=595133427 instance=ExtResource("13_xnw7g")]
 layout_mode = 0
@@ -1347,6 +1107,8 @@ offset_bottom = 2836.0
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
+offset_transform_enabled = true
+offset_transform_position = Vector2(-1000, 0)
 theme_override_constants/separation = 5
 
 [node name="Search" type="PanelContainer" parent="Charts/VBoxContainer" unique_id=226043883]
@@ -1377,21 +1139,38 @@ theme_override_font_sizes/font_size = 25
 text = "Filter"
 flat = true
 
-[node name="TabBar" type="TabBar" parent="Charts/VBoxContainer" unique_id=1739606260]
+[node name="TabBar" type="Button" parent="Charts/VBoxContainer" unique_id=1739606260]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
+size_flags_horizontal = 0
 size_flags_vertical = 3
-theme_override_constants/icon_max_width = 24
+focus_mode = 0
 theme_override_fonts/font = ExtResource("4_ridl2")
-theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_exxu0")
-theme_override_styles/tab_hovered = SubResource("StyleBoxFlat_b8088")
-theme_override_styles/tab_selected = SubResource("StyleBoxFlat_i4nl7")
-theme_override_styles/tab_disabled = SubResource("StyleBoxFlat_pkird")
-current_tab = 0
-tab_count = 2
-tab_0/title = "Official"
-tab_0/icon = SubResource("Texture2D_exxu0")
-tab_1/title = "Community"
-tab_1/icon = SubResource("Texture2D_b8088")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_i4nl7")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_exxu0")
+theme_override_styles/hover = SubResource("StyleBoxFlat_i4nl7")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_pkird")
+text = "Official"
+script = ExtResource("98_source_switch")
+
+[node name="PlaylistSelector" type="Button" parent="Charts/VBoxContainer/TabBar" unique_id=1993014343]
+visible = false
+layout_mode = 0
+offset_left = 224.0
+offset_right = 576.0
+offset_bottom = 48.0
+mouse_default_cursor_shape = 2
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("12_a8qj1")
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_playlist_selector")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_playlist_selector_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_playlist_selector_hover")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_xujh8")
+text = "All Beatmaps"
+alignment = 0
+text_overrun_behavior = 1
 
 [node name="WaveFront" type="ColorRect" parent="." unique_id=468223081]
 material = SubResource("ShaderMaterial_da4vi")
@@ -1403,6 +1182,437 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 7.6800003
 offset_top = -192.0
+
+[node name="ChartInfo" type="Control" parent="." unique_id=403222565]
+layout_mode = 1
+anchor_left = 1.0
+anchor_top = 0.483
+anchor_right = 1.0
+anchor_bottom = 0.483
+offset_left = -1020.0
+offset_top = -393.64
+offset_right = -77.0
+offset_bottom = 344.35992
+offset_transform_enabled = true
+offset_transform_position = Vector2(1101, 0)
+mouse_filter = 2
+
+[node name="InlineLeaderboard" parent="ChartInfo" unique_id=1732127386 node_paths=PackedStringArray("above_panel") instance=ExtResource("97_inline_leaderboard")]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.583
+anchor_right = 1.0
+anchor_bottom = 1.179
+offset_top = -0.2539673
+offset_bottom = -0.10192871
+grow_horizontal = 2
+above_panel = NodePath("../Panel")
+
+[node name="EditActions" type="HBoxContainer" parent="ChartInfo" unique_id=1828236275]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.50600004
+anchor_top = 0.794
+anchor_right = 0.50600004
+anchor_bottom = 0.794
+offset_left = -373.15805
+offset_top = -164.13788
+offset_right = 385.84195
+offset_bottom = -124.13788
+theme = ExtResource("17_y7e7m")
+theme_override_constants/separation = 9
+
+[node name="NewDifficulty" type="Button" parent="ChartInfo/EditActions" unique_id=1382980622]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+text = "new difficulty"
+
+[node name="DeleteDifficulty" type="Button" parent="ChartInfo/EditActions" unique_id=1721194332]
+modulate = Color(1, 0.45999998, 0.45999998, 1)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+text = "delete difficulty"
+
+[node name="DeleteChartset" type="Button" parent="ChartInfo/EditActions" unique_id=1734575970]
+self_modulate = Color(1, 0.45882353, 0.45882353, 1)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+text = "delete chartset"
+
+[node name="Upload" type="Button" parent="ChartInfo/EditActions" unique_id=1880901865]
+self_modulate = Color(0.64, 1, 0.93399996, 1)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+text = "Upload"
+
+[node name="Panel" type="Panel" parent="ChartInfo" unique_id=34224441 node_paths=PackedStringArray("thumb", "previous_thumb", "cover_layer", "content", "shine_rect", "title_label", "artist_label", "desc_label", "rank_label", "full_combo_label", "all_just_label", "perfect_label", "never_played_label", "score_label", "ranked_label")]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.028455287
+anchor_right = 1.0
+anchor_bottom = 0.50124395
+offset_bottom = 0.08203125
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_a8qj1")
+script = ExtResource("11_ll1i1")
+thumb = NodePath("CoverLayer/Thumb")
+previous_thumb = NodePath("CoverLayer/PreviousThumb")
+cover_layer = NodePath("CoverLayer")
+content = NodePath("Content")
+shine_rect = NodePath("CoverLayer/Shine")
+title_label = NodePath("Content/Title")
+artist_label = NodePath("Content/Artist")
+desc_label = NodePath("Content/Desc")
+rank_label = NodePath("Content/Rank")
+full_combo_label = NodePath("Content/FullCombo")
+all_just_label = NodePath("Content/AllJust")
+perfect_label = NodePath("Content/Perfect")
+never_played_label = NodePath("Content/NeverPlayed")
+score_label = NodePath("Content/Score")
+ranked_label = NodePath("Content/Ranked")
+
+[node name="CoverLayer" type="Panel" parent="ChartInfo/Panel" unique_id=232816774]
+clip_children = 2
+clip_contents = true
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.035172798
+anchor_top = -0.012837194
+anchor_right = 1.0199703
+anchor_bottom = 1.0439652
+offset_left = 0.16796875
+offset_top = -0.16801071
+offset_right = 0.16796875
+offset_bottom = -0.24804688
+grow_horizontal = 2
+grow_vertical = 2
+offset_transform_enabled = true
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_jbwdy")
+
+[node name="PreviousThumb" type="TextureRect" parent="ChartInfo/Panel/CoverLayer" unique_id=1950153817]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Thumb" type="TextureRect" parent="ChartInfo/Panel/CoverLayer" unique_id=1734452956]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0.39215687)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture1D_vhubh")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Shine" type="ColorRect" parent="ChartInfo/Panel/CoverLayer" unique_id=604929899]
+material = SubResource("ShaderMaterial_chart_shine")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -100.0
+offset_right = 5.000061
+offset_bottom = 173.00006
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Content" type="Control" parent="ChartInfo/Panel" unique_id=500247412]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+mouse_force_pass_scroll_events = false
+metadata/_edit_use_anchors_ = true
+
+[node name="Score" type="Label" parent="ChartInfo/Panel/Content" unique_id=2030052414]
+layout_mode = 0
+offset_left = 56.0
+offset_top = -16.0
+offset_right = 202.0
+offset_bottom = 34.0
+rotation = -0.12995416
+theme_override_colors/font_color = Color(0.7781524, 0.9855893, 0.71779585, 1)
+theme_override_colors/font_shadow_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
+theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 5
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("4_ridl2")
+theme_override_font_sizes/font_size = 50
+text = "92.4%"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Perfect" type="Label" parent="ChartInfo/Panel/Content" unique_id=1076048974]
+visible = false
+material = SubResource("ShaderMaterial_a8qj1")
+layout_mode = 0
+offset_left = -132.0
+offset_top = 70.0
+offset_right = 411.0
+offset_bottom = 169.0
+rotation = -0.2012667
+theme_override_colors/font_color = Color(0.10980392, 0.101960786, 0.1764706, 1)
+theme_override_colors/font_shadow_color = Color(0.8156863, 0.65882355, 0.38431373, 1)
+theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 30
+theme_override_fonts/font = ExtResource("4_ridl2")
+theme_override_font_sizes/font_size = 54
+text = "impeccable"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Ranked" type="Label" parent="ChartInfo/Panel/Content" unique_id=2112130810]
+visible = false
+layout_mode = 0
+offset_left = 328.0
+offset_top = -33.0
+offset_right = 483.1538
+offset_bottom = 4.13501
+rotation = 0.26918906
+theme_override_colors/font_color = Color(0.9031105, 0.9098936, 0.976659, 1)
+theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 15
+theme_override_fonts/font = ExtResource("4_ridl2")
+theme_override_font_sizes/font_size = 24
+text = "ranked"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Title" type="Label" parent="ChartInfo/Panel/Content" unique_id=1309542252]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.62700003
+anchor_right = 0.5
+anchor_bottom = 0.62700003
+offset_left = -440.5
+offset_top = -152.69014
+offset_right = 439.5
+offset_bottom = -88.69014
+theme_override_colors/font_color = Color(1, 1, 0.80784315, 1)
+theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
+theme_override_constants/outline_size = 20
+theme_override_fonts/font = ExtResource("4_ridl2")
+theme_override_font_sizes/font_size = 48
+text = "song title"
+horizontal_alignment = 1
+vertical_alignment = 1
+text_overrun_behavior = 5
+
+[node name="NeverPlayed" type="Label" parent="ChartInfo/Panel/Content" unique_id=654147387]
+visible = false
+layout_mode = 0
+offset_left = -40.0
+offset_top = -3.0
+offset_right = 75.0
+offset_bottom = 66.0
+rotation = -0.2012667
+theme_override_colors/font_color = Color(0.89283663, 0.9162954, 0.9607381, 1)
+theme_override_colors/font_shadow_color = Color(0.9647059, 0.9254902, 0.74509805, 1)
+theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 10
+theme_override_fonts/font = ExtResource("4_ridl2")
+theme_override_font_sizes/font_size = 32
+text = "never
+played"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AllJust" type="Label" parent="ChartInfo/Panel/Content" unique_id=858703156]
+visible = false
+material = SubResource("ShaderMaterial_a8qj1")
+layout_mode = 0
+offset_left = -140.0
+offset_top = 70.0
+offset_right = 403.0
+offset_bottom = 169.0
+rotation = -0.2012667
+theme_override_colors/font_color = Color(0.10980392, 0.101960786, 0.1764706, 1)
+theme_override_colors/font_shadow_color = Color(0.8156863, 0.65882355, 0.38431373, 1)
+theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 30
+theme_override_fonts/font = ExtResource("4_ridl2")
+theme_override_font_sizes/font_size = 54
+text = "Perfect"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Loved" type="Button" parent="ChartInfo/Panel/Content" unique_id=73305534]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = -0.003
+anchor_right = 0.5
+anchor_bottom = -0.003
+offset_left = -33.5
+offset_top = 0.04700005
+offset_right = 30.5
+offset_bottom = 64.047
+grow_horizontal = 2
+mouse_filter = 1
+icon = ExtResource("99_loved_icon")
+flat = true
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("99_loved")
+
+[node name="Playlists" type="Button" parent="ChartInfo/Panel/Content" unique_id=148872323]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -68.0
+offset_top = 10.0
+offset_right = -16.0
+offset_bottom = 62.0
+grow_horizontal = 0
+mouse_filter = 1
+icon = ExtResource("100_playlist_icon")
+icon_alignment = 1
+expand_icon = true
+script = ExtResource("101_playlist_button")
+
+[node name="Artist" type="Label" parent="ChartInfo/Panel/Content" unique_id=2037081083]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.40905735
+anchor_right = 1.0
+anchor_bottom = 0.40905735
+offset_left = 95.0
+offset_top = -10.632019
+offset_right = -96.0
+offset_bottom = 29.367981
+theme_override_colors/font_color = Color(1, 1, 0.81960785, 1)
+theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("12_a8qj1")
+theme_override_font_sizes/font_size = 28
+text = "artist"
+horizontal_alignment = 1
+vertical_alignment = 1
+text_overrun_behavior = 5
+metadata/_edit_use_anchors_ = true
+
+[node name="Rank" type="Label" parent="ChartInfo/Panel/Content" unique_id=1421036526]
+layout_mode = 0
+offset_left = -94.0
+offset_top = -21.0
+offset_right = 35.0
+offset_bottom = 78.0
+rotation = -0.2012667
+theme_override_colors/font_color = Color(0.7781524, 0.9855893, 0.71779585, 1)
+theme_override_colors/font_shadow_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
+theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 5
+theme_override_constants/outline_size = 5
+theme_override_constants/shadow_outline_size = 10
+theme_override_fonts/font = ExtResource("4_ridl2")
+theme_override_font_sizes/font_size = 100
+text = "A"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Desc" type="Label" parent="ChartInfo/Panel/Content" unique_id=960278019]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.001
+anchor_top = 0.5874041
+anchor_right = 1.0106045
+anchor_bottom = 0.5874041
+offset_left = -0.05699998
+offset_top = -41.052017
+offset_right = -1.0
+offset_bottom = 40.947983
+theme_override_colors/font_color = Color(1, 1, 0.81960785, 1)
+theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("12_a8qj1")
+theme_override_font_sizes/font_size = 24
+text = "99:99 (50-250bpm)"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+metadata/_edit_use_anchors_ = true
+
+[node name="FullCombo" type="Label" parent="ChartInfo/Panel/Content" unique_id=708357602]
+layout_mode = 0
+offset_left = -87.0
+offset_top = 56.0
+offset_right = 287.86346
+offset_bottom = 124.34529
+rotation = -0.2012667
+theme_override_colors/font_color = Color(0.10980392, 0.101960786, 0.1764706, 1)
+theme_override_colors/font_shadow_color = Color(0.6693076, 0.6558965, 0.9016472, 1)
+theme_override_colors/font_outline_color = Color(0.4392157, 0.35686275, 0.87058824, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 10
+theme_override_constants/shadow_outline_size = 20
+theme_override_fonts/font = ExtResource("4_ridl2")
+theme_override_font_sizes/font_size = 32
+text = "Full combo"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ChartInfo/Panel/Content" unique_id=1987109179 node_paths=PackedStringArray("chart_scroll")]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.50734645
+anchor_top = 0.8968023
+anchor_right = 0.50734645
+anchor_bottom = 0.8968023
+offset_left = -472.13303
+offset_top = -57.0
+offset_right = 467.86697
+offset_bottom = 23.0
+mouse_filter = 2
+theme_override_constants/separation = 15
+alignment = 1
+script = ExtResource("11_1w8yq")
+chart_scroll = NodePath("../../../../Charts")
+
+[node name="StartButton" parent="ChartInfo/Panel/Content/HBoxContainer" unique_id=939246191 instance=ExtResource("21_p4mk8")]
+layout_mode = 2
 
 [node name="MenuButtons" type="VBoxContainer" parent="." unique_id=175635342 node_paths=PackedStringArray("play_button", "edit_button", "options_button", "exit_button", "settings_popup", "menu")]
 visible = false
@@ -1495,7 +1705,6 @@ offset_right = 334.0
 offset_bottom = -15.0
 theme_override_fonts/font = ExtResource("4_ridl2")
 theme_override_font_sizes/font_size = 32
-text = "loading charts"
 horizontal_alignment = 1
 
 [node name="UsernameSetupOverlay" type="ColorRect" parent="." unique_id=704516535]
@@ -1578,16 +1787,14 @@ text = "Continue"
 visible = false
 layout_mode = 1
 
-[node name="LeaderboardPanel" parent="." unique_id=677673597 node_paths=PackedStringArray("mainmenu", "_catalogue") instance=ExtResource("35_leaderboard")]
-layout_mode = 1
-mainmenu = NodePath("..")
-_catalogue = NodePath("../Catalogue")
-
 [node name="PlaylistPanel" parent="." unique_id=789640518 instance=ExtResource("36_playlists")]
 layout_mode = 1
 
 [node name="DeleteChartDialog" type="ConfirmationDialog" parent="." unique_id=2045817839]
+oversampling_override = 1.0
 title = "Delete Chart"
+position = Vector2i(0, 36)
+size = Vector2i(200, 106)
 dialog_text = "Move this chart to the Recycle Bin?"
 dialog_autowrap = true
 
@@ -1654,20 +1861,19 @@ layout_mode = 2
 bg_color = Color(0.10980392, 0.101960786, 0.1764706, 1)
 button_text = "back"
 icon_texture = ExtResource("23_c5bhb")
-hover_scale = 1.04
-
-[node name="NewChart" parent="BottomButtons" unique_id=1500546478 instance=ExtResource("4_da4vi")]
-visible = false
-custom_minimum_size = Vector2(300, 64)
-layout_mode = 2
-bg_color = Color(0.10980392, 0.101960786, 0.1764706, 1)
-button_text = "New chart"
-icon_texture = ExtResource("15_dx8qc")
-hover_scale = 1.04
+hover_scale = 1.0
 
 [node name="Spacer" type="Control" parent="BottomButtons" unique_id=2087293157]
 layout_mode = 2
 size_flags_horizontal = 3
+
+[node name="NewChart" parent="BottomButtons" unique_id=1500546478 instance=ExtResource("4_da4vi")]
+custom_minimum_size = Vector2(450, 64)
+layout_mode = 2
+bg_color = Color(0.10980392, 0.101960786, 0.1764706, 1)
+button_text = "New chart"
+icon_texture = ExtResource("15_dx8qc")
+hover_scale = 1.0
 
 [node name="Edit" parent="BottomButtons" unique_id=1648492515 instance=ExtResource("4_da4vi")]
 custom_minimum_size = Vector2(240, 64)
@@ -1675,12 +1881,14 @@ layout_mode = 2
 bg_color = Color(0.105882354, 0.09019608, 0.16470589, 1)
 button_text = "EDIT"
 icon_texture = ExtResource("15_dx8qc")
+hover_scale = 1.0
 
 [node name="Play" parent="BottomButtons" unique_id=513521786 instance=ExtResource("4_da4vi")]
 custom_minimum_size = Vector2(240, 64)
 layout_mode = 2
 bg_color = Color(0.105882354, 0.09019608, 0.16470589, 1)
 icon_texture = ExtResource("35_xuiok")
+hover_scale = 1.0
 
 [node name="Bye" type="AudioStreamPlayer" parent="." unique_id=316893624]
 stream = ExtResource("28_vhubh")

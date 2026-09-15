@@ -2,17 +2,27 @@ extends Node3D
 class_name GameplayStageVisualizer
 
 const DETAIL_SHADER := preload("res://resources/shaders/stage_detail.gdshader")
+const JUDGEMENT_SHADER := preload("res://resources/shaders/judgement_line.gdshader")
 const SPECTRUM_BUS := &"Music"
 const WAVE_SAMPLE_COUNT := 48
 const MIN_FREQUENCY_HZ := 55.0
 const MAX_FREQUENCY_HZ := 12000.0
 const ABSOLUTE_FLOOR_DB := -62.0
 const ABSOLUTE_CEILING_DB := -12.0
-const VISUAL_VOLUME_FLOOR := 0.28
-const VISUAL_VOLUME_CEILING := 0.94
-const VISUAL_VOLUME_CURVE := 1.35
-const VOLUME_ATTACK_RESPONSE := 9.0
-const VOLUME_RELEASE_RESPONSE := 4.5
+const VISUAL_VOLUME_NOISE_FLOOR := 0.08
+const VISUAL_VOLUME_BODY_FLOOR := 0.10
+const VISUAL_VOLUME_BODY_CEILING := 0.62
+const VISUAL_VOLUME_PEAK_FLOOR := 0.76
+const VISUAL_VOLUME_PEAK_CEILING := 0.98
+const VISUAL_VOLUME_MIN := 0.10
+const VISUAL_VOLUME_BODY := 0.46
+const VISUAL_VOLUME_TRANSIENT := 0.62
+const VISUAL_VOLUME_PEAK := 0.32
+const VOLUME_FAST_RESPONSE := 34.0
+const VOLUME_SLOW_ATTACK_RESPONSE := 3.2
+const VOLUME_SLOW_RELEASE_RESPONSE := 1.1
+const VOLUME_ATTACK_RESPONSE := 30.0
+const VOLUME_RELEASE_RESPONSE := 15.0
 const SCROLL_LOOP_LENGTH := 48.0
 const WAVE_Z_MIN := -50.0
 const WAVE_Z_MAX := 4.0
@@ -28,14 +38,17 @@ const FLOOR_DETAIL_MIX := 0.38
 const FLOOR_RAIL_MIX := 0.12
 const FLOOR_VALUE_FROM_BACKGROUND := 0.42
 const FLOOR_VALUE_FROM_RAIL := 0.07
-const FLOOR_MIN_VALUE := 0.10
-const FLOOR_MAX_VALUE := 0.34
+const FLOOR_MIN_VALUE := 0.012
+const FLOOR_MAX_VALUE := 0.045
 const GUIDE_BASE_MIX := 0.28
-const GUIDE_RAIL_MIX := 0.34
-const GUIDE_VALUE_FROM_BACKGROUND := 0.78
-const GUIDE_VALUE_FROM_RAIL := 0.56
-const GUIDE_MIN_VALUE := 0.28
-const GUIDE_MAX_VALUE := 0.78
+const GUIDE_RAIL_MIX := 0.62
+const GUIDE_VALUE_FROM_BACKGROUND := 0.48
+const GUIDE_VALUE_FROM_RAIL := 0.82
+const GUIDE_MIN_VALUE := 0.42
+const GUIDE_MAX_VALUE := 0.92
+const GROUND_LINE_OPACITY := 0.58
+const GROUND_FLOOR_OPACITY := 0.10
+const GROUND_VOLUME_ALPHA_BOOST := 0.34
 
 @export var ground: MeshInstance3D
 @export var player: Node3D
@@ -45,6 +58,7 @@ const GUIDE_MAX_VALUE := 0.78
 var accent_color: Color
 var guide_color: Color
 var _floor_color: Color
+var _detail_color: Color
 
 var low_energy := 0.0
 var mid_energy := 0.0
@@ -55,16 +69,18 @@ var _ground_material: ShaderMaterial = null
 var _spectrum: AudioEffectSpectrumAnalyzerInstance = null
 var _spectrum_levels := PackedFloat32Array()
 var _scroll_phase := 0.0
+var _shader_scroll_offset := 0.0
+var _volume_fast := 0.0
+var _volume_slow := 0.0
 
 var _stage_shell: Node3D = null
+var _shell_material: StandardMaterial3D = null
 var _scrolling_details: Node3D = null
 var _detail_material: ShaderMaterial = null
 var _wave_left: ImmediateMesh = null
 var _wave_right: ImmediateMesh = null
 var _wave_material: ShaderMaterial = null
-var _judgement_material: StandardMaterial3D = null
-var _ring_instance: MeshInstance3D = null
-var _ring_material: StandardMaterial3D = null
+var _judgement_material: ShaderMaterial = null
 
 
 func _ready() -> void:
@@ -76,31 +92,31 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_update_audio_levels(delta)
 	var playback_seconds := maxf(Game.current_time, 0.0) * 0.001
-	_scroll_phase = fposmod(playback_seconds * scroll_speed, SCROLL_LOOP_LENGTH)
+	_shader_scroll_offset = playback_seconds * scroll_speed
+	_scroll_phase = fposmod(_shader_scroll_offset, SCROLL_LOOP_LENGTH)
 	if _scrolling_details != null:
 		_scrolling_details.position.z = _scroll_phase
 	_update_waveforms(playback_seconds)
 	_update_judgement_line()
-	_update_player_rings()
 	_update_shader_parameters()
 
 
 func set_theme_colors(base_color: Color, detail_color: Color, rail_color: Color) -> void:
 	_update_theme_palette(base_color, detail_color, rail_color)
-	if _judgement_material != null:
-		_judgement_material.emission = accent_color.darkened(0.16)
 	if _ground_material != null:
 		_ground_material.set_shader_parameter("floor_color", _floor_color)
 	if vignette != null and vignette.material is ShaderMaterial:
 		var vignette_material := vignette.material as ShaderMaterial
 		vignette_material.set_shader_parameter("edge_color", _floor_color.darkened(0.36))
-	_update_shader_parameters()
 	_ensure_themed_visuals()
+	_update_judgement_line()
+	_update_shader_parameters()
 
 
 func _update_theme_palette(base_color: Color, detail_color: Color, rail_color: Color) -> void:
 	var base := Color(base_color.r, base_color.g, base_color.b, 1.0)
 	var detail := Color(detail_color.r, detail_color.g, detail_color.b, 1.0)
+	_detail_color = detail
 	accent_color = Color(rail_color.r, rail_color.g, rail_color.b, 1.0)
 
 	var background_value := maxf(base.v, detail.v)
@@ -141,7 +157,6 @@ func _ensure_themed_visuals() -> void:
 	_create_scrolling_details()
 	_create_waveforms()
 	_create_judgement_line()
-	_create_player_rings()
 
 
 func _cache_ground_material() -> void:
@@ -210,13 +225,24 @@ func _update_audio_levels(delta: float) -> void:
 	instant_mid /= 20.0
 	instant_high /= 16.0
 	var absolute_volume := instant_low * 0.55 + instant_mid * 0.35 + instant_high * 0.10
-	var visual_volume := clampf(
-		(absolute_volume - VISUAL_VOLUME_FLOOR) / (VISUAL_VOLUME_CEILING - VISUAL_VOLUME_FLOOR),
+	_volume_fast = lerpf(_volume_fast, absolute_volume, 1.0 - exp(-delta * VOLUME_FAST_RESPONSE))
+	var slow_response := VOLUME_SLOW_ATTACK_RESPONSE if absolute_volume > _volume_slow else VOLUME_SLOW_RELEASE_RESPONSE
+	_volume_slow = lerpf(_volume_slow, absolute_volume, 1.0 - exp(-delta * slow_response))
+	var normalized_volume := smoothstep(VISUAL_VOLUME_BODY_FLOOR, VISUAL_VOLUME_BODY_CEILING, absolute_volume)
+	var transient_volume := clampf(
+		(_volume_fast - _volume_slow) / maxf(1.0 - _volume_slow, 0.001),
 		0.0,
 		1.0
 	)
-	visual_volume = visual_volume * visual_volume * (3.0 - 2.0 * visual_volume)
-	visual_volume = pow(visual_volume, VISUAL_VOLUME_CURVE)
+	var body_level := pow(normalized_volume, 0.72)
+	var peak_level := pow(smoothstep(VISUAL_VOLUME_PEAK_FLOOR, VISUAL_VOLUME_PEAK_CEILING, absolute_volume), 2.4)
+	var visual_volume := 0.0
+	if absolute_volume > VISUAL_VOLUME_NOISE_FLOOR:
+		visual_volume = VISUAL_VOLUME_MIN
+		visual_volume += body_level * VISUAL_VOLUME_BODY
+		visual_volume += pow(transient_volume, 0.55) * VISUAL_VOLUME_TRANSIENT
+		visual_volume += peak_level * VISUAL_VOLUME_PEAK
+		visual_volume = clampf(visual_volume, VISUAL_VOLUME_MIN, 1.0)
 	volume_level = _smooth_volume(volume_level, visual_volume, delta)
 
 
@@ -248,15 +274,22 @@ func _average_spectrum_range(start_index: int, end_index: int) -> float:
 
 
 func _update_shader_parameters() -> void:
+	if _shell_material != null:
+		_shell_material.albedo_color = accent_color
 	if _ground_material != null:
-		_ground_material.set_shader_parameter("scroll_offset", _scroll_phase)
+		_ground_material.set_shader_parameter("scroll_offset", _shader_scroll_offset)
+		_ground_material.set_shader_parameter("line_opacity", GROUND_LINE_OPACITY)
+		_ground_material.set_shader_parameter("floor_opacity", GROUND_FLOOR_OPACITY)
+		_ground_material.set_shader_parameter("volume_alpha_boost", GROUND_VOLUME_ALPHA_BOOST)
 		_ground_material.set_shader_parameter("low_energy", low_energy)
 		_ground_material.set_shader_parameter("mid_energy", mid_energy)
 		_ground_material.set_shader_parameter("high_energy", high_energy)
 		_ground_material.set_shader_parameter("volume_level", volume_level)
 		_ground_material.set_shader_parameter("accent_color", accent_color)
 		_ground_material.set_shader_parameter("guide_color", guide_color)
+		_ground_material.set_shader_parameter("detail_color", _detail_color)
 	if _detail_material != null:
+		_detail_material.set_shader_parameter("tint_color", accent_color)
 		_detail_material.set_shader_parameter("scroll_offset", _scroll_phase)
 		_detail_material.set_shader_parameter("low_energy", low_energy)
 		_detail_material.set_shader_parameter("volume_level", volume_level)
@@ -298,6 +331,7 @@ func _get_wall_transform(side: float) -> Transform3D:
 
 
 func _create_stage_shell() -> void:
+	_shell_material = _create_vertex_material(0)
 	_stage_shell = Node3D.new()
 	_stage_shell.name = "StageShell"
 	add_child(_stage_shell)
@@ -307,16 +341,16 @@ func _create_stage_shell() -> void:
 		var surface := SurfaceTool.new()
 		surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 
-		var wall_color := _floor_color
+		var wall_color := Color(0.035, 0.035, 0.035, 1.0)
 		wall_color.a = 0.075
 		_add_prism(surface, Vector3(WALL_WIDTH * 0.5, -0.045, -23.0), Vector3(WALL_WIDTH, 0.045, 60.0), wall_color)
 
-		var edge_color := guide_color.lerp(accent_color, 0.08)
+		var edge_color := Color.WHITE
 		edge_color.a = 0.095
 		_add_prism(surface, Vector3(0.04, 0.0, -23.0), Vector3(0.045, 0.032, 60.0), edge_color)
 		_add_prism(surface, Vector3(WALL_WIDTH - 0.04, 0.0, -23.0), Vector3(0.045, 0.032, 60.0), edge_color)
 
-		var seam_color := guide_color
+		var seam_color := Color.WHITE
 		seam_color.a = 0.032
 		for seam_index in range(1, 4):
 			var seam_x := WALL_WIDTH * float(seam_index) / 4.0
@@ -324,7 +358,7 @@ func _create_stage_shell() -> void:
 
 		var mesh := surface.commit()
 		if mesh != null and mesh.get_surface_count() > 0:
-			mesh.surface_set_material(0, _create_vertex_material(0))
+			mesh.surface_set_material(0, _shell_material)
 		var wall_instance := MeshInstance3D.new()
 		wall_instance.name = "WallLeft" if side < 0.0 else "WallRight"
 		wall_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -352,7 +386,7 @@ func _create_scrolling_details() -> void:
 				var x := 0.48 + fmod(float(row_index) * 0.91 + side_offset, WALL_WIDTH - 0.92)
 				var elevation := 0.030 + float((row_index + (1 if side > 0.0 else 0)) % 3) * 0.025
 				var rotation := side * (0.07 + fmod(float(row_index) * 0.105, 0.29))
-				var color := guide_color
+				var color := Color.WHITE
 				color.a = 0.14 + float(row_index % 3) * 0.025
 				match (row_index + (1 if side > 0.0 else 0)) % 4:
 					0:
@@ -362,7 +396,7 @@ func _create_scrolling_details() -> void:
 					2:
 						_add_bar_cluster(surface, Vector3(x, elevation, z), side, color, rotation)
 					_:
-						var accent := accent_color
+						var accent := Color.WHITE
 						accent.a = 0.17
 						_add_triangle(surface, Vector3(x, elevation + 0.045, z), Vector2(0.60, 0.50), accent, side)
 						_add_prism(surface, Vector3(x + 0.48, elevation, z + 0.38), Vector3(0.40, 0.040, 0.16), color, -rotation * 0.72)
@@ -418,7 +452,7 @@ func _build_waveform_surface(mesh: ImmediateMesh, z_shift: float) -> void:
 		var level := _spectrum_levels[source_index]
 		var x := WAVE_BASE_OFFSET + 0.15 + level * 1.18
 		var top_y := WAVE_SURFACE_Y - level * 0.012
-		var wall_color := accent_color.lerp(guide_color, 0.48)
+		var wall_color := accent_color
 		wall_color.a = 0.10 + level * 0.18
 		var base_color := wall_color
 		base_color.a *= 0.35
@@ -439,7 +473,7 @@ func _build_waveform_surface(mesh: ImmediateMesh, z_shift: float) -> void:
 		var x := WAVE_BASE_OFFSET + amplitude
 		var half_width := 0.035 + level * 0.035
 		var top_y := WAVE_SURFACE_Y - level * 0.012
-		var color := accent_color.lerp(guide_color, 0.34)
+		var color := accent_color
 		color.a = 0.30 + level * 0.46 + volume_level * 0.08
 
 		mesh.surface_set_color(color)
@@ -467,30 +501,29 @@ func _build_waveform_surface(mesh: ImmediateMesh, z_shift: float) -> void:
 
 
 func _create_judgement_line() -> void:
-	_judgement_material = _create_vertex_material(-1)
-	_judgement_material.emission_enabled = true
-	_judgement_material.emission = accent_color.darkened(0.16)
-	_judgement_material.emission_energy_multiplier = 0.10
+	_judgement_material = ShaderMaterial.new()
+	_judgement_material.shader = JUDGEMENT_SHADER
+	_judgement_material.render_priority = -1
 
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var judgement_z := GameplayPlayfield.JUDGEMENT_Z
 
-	var shadow_color := guide_color.lightened(0.34)
+	var shadow_color := Color(0.0, 0.0, 0.0, 1.0)
 	shadow_color.a = 0.137
 	_add_prism(surface, Vector3(0.0, 0.010, judgement_z), Vector3(16.0, 0.016, 0.23), shadow_color)
 
-	var body_color := guide_color.darkened(0.20)
+	var body_color := Color(0.33, 0.0, 0.0, 1.0)
 	body_color.a = 0.38
 	_add_prism(surface, Vector3(0.0, 0.028, judgement_z), Vector3(15.72, 0.020, 0.13), body_color)
 
-	var core_color := accent_color.lerp(guide_color, 0.14).darkened(0.08)
+	var core_color := Color(0.67, 0.0, 0.0, 1.0)
 	core_color.a = 0.278
 	_add_prism(surface, Vector3(0.0, 0.050, judgement_z - 0.003), Vector3(15.34, 0.013, 0.042), core_color)
 
 	for side_value in [-1.0, 1.0]:
 		var side := float(side_value)
-		var cap_color := accent_color.darkened(0.18)
+		var cap_color := Color(1.0, 0.0, 0.0, 1.0)
 		cap_color.a = 0.72
 		_add_prism(
 			surface,
@@ -518,51 +551,9 @@ func _create_judgement_line() -> void:
 func _update_judgement_line() -> void:
 	if _judgement_material == null:
 		return
-	_judgement_material.emission_energy_multiplier = 0.10 + volume_level * 0.12
-
-
-func _create_player_rings() -> void:
-	_ring_material = _create_vertex_material(3)
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	_add_ring(surface, 0.94, 0.026, 0.10)
-	var mesh := surface.commit()
-	if mesh != null and mesh.get_surface_count() > 0:
-		mesh.surface_set_material(0, _ring_material)
-	_ring_instance = MeshInstance3D.new()
-	_ring_instance.name = "PlayerRings"
-	_ring_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_ring_instance.mesh = mesh
-	add_child(_ring_instance)
-
-
-func _update_player_rings() -> void:
-	if _ring_instance == null or player == null:
-		return
-	_ring_instance.position = Vector3(player.position.x, DETAIL_Y + 0.028, 0.0)
-	var pulse_scale := 1.0 + volume_level * 0.06
-	_ring_instance.scale = Vector3.ONE * pulse_scale
-	if _ring_material != null:
-		var ring_color := accent_color
-		ring_color.a = 0.34 + volume_level * 0.16
-		_ring_material.albedo_color = ring_color
-
-
-func _add_ring(surface: SurfaceTool, radius: float, width: float, alpha: float) -> void:
-	const SEGMENTS := 64
-	var ring_color := accent_color
-	ring_color.a = alpha
-	for index in range(SEGMENTS):
-		var angle_a := TAU * float(index) / float(SEGMENTS)
-		var angle_b := TAU * float(index + 1) / float(SEGMENTS)
-		var inner := radius - width
-		var outer := radius + width
-		var a := Vector3(cos(angle_a) * inner, 0.0, sin(angle_a) * inner)
-		var b := Vector3(cos(angle_a) * outer, 0.0, sin(angle_a) * outer)
-		var c := Vector3(cos(angle_b) * inner, 0.0, sin(angle_b) * inner)
-		var d := Vector3(cos(angle_b) * outer, 0.0, sin(angle_b) * outer)
-		_add_colored_triangle(surface, a, c, b, ring_color)
-		_add_colored_triangle(surface, b, c, d, ring_color)
+	_judgement_material.set_shader_parameter("rail_color", accent_color)
+	_judgement_material.set_shader_parameter("guide_color", guide_color)
+	_judgement_material.set_shader_parameter("emission_energy", 0.10 + volume_level * 0.12)
 
 
 func _add_cross(surface: SurfaceTool, center: Vector3, size: float, thickness: float, color: Color, rotation: float) -> void:

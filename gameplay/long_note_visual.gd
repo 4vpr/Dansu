@@ -14,6 +14,7 @@ const HIT_BODY_COLOR := Color("929cf1")
 const HIT_EDGE_COLOR := Color("6061df")
 const MOVE_BODY_COLOR := Color("f15b6b")
 const MOVE_EDGE_COLOR := Color("b83f4d")
+const FAILED_BRIGHTNESS := 0.3
 
 class MeshCacheEntry:
 	extends RefCounted
@@ -78,14 +79,6 @@ static func clear_mesh_cache() -> void:
 	_mesh_cache.clear()
 
 
-func set_visual_opacity(value: float) -> void:
-	var alpha := clampf(value, 0.0, 1.0)
-	if _material != null:
-		_material.set_shader_parameter("opacity", alpha)
-	if tail_cap != null:
-		tail_cap.modulate = Color(_cap_color.r, _cap_color.g, _cap_color.b, alpha)
-
-
 func set_holding(value: bool) -> void:
 	if _material != null:
 		_material.set_shader_parameter("holding", 1.0 if value else 0.0)
@@ -93,6 +86,22 @@ func set_holding(value: bool) -> void:
 
 func get_tail_cap() -> Sprite3D:
 	return tail_cap
+
+
+func set_failed() -> void:
+	set_holding(false)
+	var colors := _get_visual_colors(_note.type)
+	var body_color: Color = colors[0]
+	var edge_color: Color = colors[1]
+	body_color = Color(body_color.r * FAILED_BRIGHTNESS, body_color.g * FAILED_BRIGHTNESS, body_color.b * FAILED_BRIGHTNESS, body_color.a)
+	edge_color = Color(edge_color.r * FAILED_BRIGHTNESS, edge_color.g * FAILED_BRIGHTNESS, edge_color.b * FAILED_BRIGHTNESS, edge_color.a)
+	_cap_color = body_color
+	if _material != null:
+		_material.set_shader_parameter("body_color", body_color)
+		_material.set_shader_parameter("edge_color", edge_color)
+	if tail_cap != null:
+		tail_cap.modulate = _cap_color
+	_update_clip_position()
 
 
 func _process(_delta: float) -> void:
@@ -186,7 +195,12 @@ func _setup_material() -> void:
 	_cap_color = body_color
 	_material = _get_material_template(_note.type).duplicate() as ShaderMaterial
 	_material.render_priority = 0
-	_material.set_shader_parameter("opacity", 1.0)
+	_material.set_shader_parameter("spawn_fade_distance", GameplayPlayfield.get_spawn_fade_distance())
+	# Mesh vertices are in the head owner's space, including its scale.
+	var owner_transform := _head_owner.transform
+	_material.set_shader_parameter("owner_z_axis", Vector3(
+		owner_transform.basis.x.z, owner_transform.basis.y.z, owner_transform.basis.z.z
+	))
 	_material.set_shader_parameter("holding", 0.0)
 	body.material_override = _material
 
@@ -202,7 +216,6 @@ static func _get_material_template(note_type: Note.NoteType) -> ShaderMaterial:
 	material.render_priority = 0
 	material.set_shader_parameter("body_color", colors[0])
 	material.set_shader_parameter("edge_color", colors[1])
-	material.set_shader_parameter("opacity", 1.0)
 	material.set_shader_parameter("holding", 0.0)
 	_material_templates[note_type] = material
 	return material
@@ -235,3 +248,8 @@ func _update_clip_position() -> void:
 	var parent_point := Vector3(_head_owner.position.x, BODY_SURFACE_Y, current_time_z)
 	var local_point := _head_owner.transform.affine_inverse() * parent_point
 	_material.set_shader_parameter("clip_local_z", local_point.z)
+	_material.set_shader_parameter("playfield_origin_z",
+		GameplayPlayfield.rail_origin_z(_rail.start_time, Game.current_time) + _head_owner.position.z)
+	if tail_cap != null:
+		var alpha := GameplayPlayfield.get_spawn_fade_alpha(_note.end_time, Game.current_time)
+		tail_cap.modulate = Color(_cap_color.r, _cap_color.g, _cap_color.b, _cap_color.a * alpha)

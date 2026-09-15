@@ -77,12 +77,12 @@ func _write_hitsounds(file: FileAccess, parsed_chart: ParsedChart) -> void:
 
 func _write_events(file: FileAccess, events: Array[ChartEvent]) -> void:
 	file.store_line("@EVENTS")
-	file.store_line("# camera:id,time,duration")
-	file.store_line("# [offset,follow_character,x,y,zoom,e:ease]")
-	file.store_line("# overlay:id,time,duration,l:layer,a:anchor")
+	file.store_line("# camera:id")
+	file.store_line("# [time,follow_character,x,y,zoom,e:ease]")
+	file.store_line("# overlay:id,time,duration,x:position(0-9),a:anchor")
 	file.store_line("# [offset,x,y,scale_x,scale_y,rotation,s:sprite,o:opacity,e:ease]")
-	file.store_line("# theme:id,time,duration")
-	file.store_line("# [offset,bg_color,bg_color_2,rail_color,e:ease]")
+	file.store_line("# theme:id")
+	file.store_line("# [time,bg_color,bg_color_2,rail_color,e:ease]")
 	file.store_line("# skin:id,time,skin_json")
 
 	for event in events:
@@ -100,13 +100,13 @@ func _write_events(file: FileAccess, events: Array[ChartEvent]) -> void:
 	file.store_line("")
 
 func _write_camera_event(file: FileAccess, event: CameraEvent) -> void:
-	file.store_line("camera:%s,%d,%d" % [event.id.strip_edges(), event.time, event.duration])
+	file.store_line("camera:%s" % event.id.strip_edges())
 	event.sort_frames()
 	for frame in event.frames:
 		if frame == null:
 			continue
 		var tokens: Array[String] = [
-			str(frame.time),
+			str(event.time + frame.time),
 			"1" if frame.follow_character else "0",
 			_float_to_text(frame.position.x),
 			_float_to_text(frame.position.y),
@@ -119,8 +119,8 @@ func _write_camera_event(file: FileAccess, event: CameraEvent) -> void:
 
 func _write_overlay_event(file: FileAccess, event: OverlayEvent) -> void:
 	var header_tokens: Array[String] = [event.id.strip_edges(), str(event.time), str(event.duration)]
-	if event.layer != 0:
-		header_tokens.append("l:%d" % event.layer)
+	if event.x != 0:
+		header_tokens.append("x:%d" % event.x)
 	if event.anchor != "center":
 		if OverlayEventFrame.is_valid_anchor(event.anchor):
 			header_tokens.append("a:%s" % event.anchor)
@@ -152,13 +152,13 @@ func _write_overlay_event(file: FileAccess, event: OverlayEvent) -> void:
 	file.store_line("")
 
 func _write_theme_event(file: FileAccess, event: ThemeEvent) -> void:
-	file.store_line("theme:%s,%d,%d" % [event.id.strip_edges(), event.time, event.duration])
+	file.store_line("theme:%s" % event.id.strip_edges())
 	event.sort_frames()
 	for frame in event.frames:
 		if frame == null:
 			continue
 		var tokens: Array[String] = [
-			str(frame.time),
+			str(event.time + frame.time),
 			_color_to_text(frame.bg_color),
 			_color_to_text(frame.bg_color_2),
 			_color_to_text(frame.rail_color),

@@ -70,18 +70,12 @@ func _ready() -> void:
 	_cache_animation_bases()
 	_apply_rank_state(0)
 	_update_live_score(0.0, 0)
-	_calc_humanity()
 
 	if back_button != null and back_button.button != null and not back_button.button.pressed.is_connected(_on_back_pressed):
 		back_button.button.pressed.connect(_on_back_pressed)
 
 	await get_tree().create_timer(RESULT_START_DELAY).timeout
 	await _run_result_sequence()
-
-func _calc_humanity() -> void:
-	print("humanity")
-	print(InputNaturalness.analyze(score.signed_timings,170))
-
 
 func _setup_score_submission_ui() -> void:
 	account_panel.visible = Auth.is_authenticated()

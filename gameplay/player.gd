@@ -28,7 +28,7 @@ func _process(delta: float) -> void:
 		position.x = lerp(position.x, target_x, delta * 18.0)
 		if abs(position.x - target_x) < 0.01:
 			_is_moving = false
-			if sprite.skin and _should_return_to_idle_after_move():
+			if sprite.skin and not sprite.hold_last_frame and _should_return_to_idle_after_move():
 				sprite.play_animation(sprite.skin.idle)
 	else:
 		position.x = target_x
@@ -40,7 +40,7 @@ func move_to_rail(rail: Rail, play_direction_animation: bool = true) -> void:
 	standing_rail = rail
 	_is_moving = true
 
-	if sprite.skin and play_direction_animation:
+	if sprite.skin and play_direction_animation and not sprite.hold_last_frame:
 		var target_x := GameplayPlayfield.normalized_x_to_world(
 			rail._get_rail_x_at_time(int(Game.current_time))
 		)
@@ -49,7 +49,7 @@ func move_to_rail(rail: Rail, play_direction_animation: bool = true) -> void:
 			sprite.play_animation(move_animation)
 
 func play_hit_animation(note: Note = null) -> void:
-	if not sprite.skin:
+	if not sprite.skin or (sprite.hold_last_frame and note == null):
 		return
 
 	var custom_animation: PlayerAnimation = null
@@ -74,7 +74,7 @@ func spawn_hit_stars() -> void:
 	effect.global_position = global_position + hit_star_offset
 
 func play_move_note_animation(note: Note, dir: Note.Dir = Note.Dir.NONE) -> void:
-	if not sprite.skin:
+	if not sprite.skin or (sprite.hold_last_frame and note == null):
 		return
 
 	var custom_animation: PlayerAnimation = null
@@ -94,6 +94,14 @@ func play_move_note_animation(note: Note, dir: Note.Dir = Note.Dir.NONE) -> void
 		sprite.play_animation(sprite.skin.left)
 	elif dir == Note.Dir.RIGHT and sprite.skin.right != null:
 		sprite.play_animation(sprite.skin.right)
+
+func set_hold_animation(active: bool) -> void:
+	if sprite == null:
+		return
+	var was_holding := sprite.hold_last_frame
+	sprite.hold_last_frame = active
+	if was_holding and not active and sprite.skin != null:
+		sprite.play_animation(sprite.skin.idle, false)
 
 func _should_return_to_idle_after_move() -> bool:
 	if not sprite.skin:

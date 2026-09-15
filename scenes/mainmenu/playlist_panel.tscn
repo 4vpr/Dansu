@@ -1,201 +1,63 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scenes/mainmenu/playlist_panel.gd" id="1_script"]
-[ext_resource type="FontFile" path="res://resources/fonts/Next Bravo.ttf" id="2_title"]
 [ext_resource type="FontFile" path="res://resources/fonts/BebasNeue-Regular.ttf" id="3_body"]
 
-[sub_resource type="StyleBoxFlat" id="StyleCard"]
-bg_color = Color(0.045, 0.04, 0.075, 0.985)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.439, 0.357, 0.871, 1)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-shadow_color = Color(0, 0, 0, 0.55)
-shadow_size = 24
-
-[node name="PlaylistPanel" type="Control" node_paths=PackedStringArray("close_button", "playlist_select", "add_button", "remove_button", "delete_button", "share_button", "name_input", "create_button", "share_code_input", "open_shared_button", "status_label", "items", "request")]
+[node name="PlaylistPanel" type="Control" node_paths=PackedStringArray("request", "panel", "status_label", "item_list", "scroll")]
 visible = false
-z_index = 65
+z_index = 72
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 1
+mouse_filter = 2
 script = ExtResource("1_script")
-close_button = NodePath("Backdrop/Card/Margin/Layout/Header/Close")
-playlist_select = NodePath("Backdrop/Card/Margin/Layout/PlaylistRow/Playlist")
-add_button = NodePath("Backdrop/Card/Margin/Layout/PlaylistRow/Add")
-remove_button = NodePath("Backdrop/Card/Margin/Layout/PlaylistRow/Remove")
-delete_button = NodePath("Backdrop/Card/Margin/Layout/PlaylistRow/Delete")
-share_button = NodePath("Backdrop/Card/Margin/Layout/PlaylistRow/Share")
-name_input = NodePath("Backdrop/Card/Margin/Layout/CreateRow/Name")
-create_button = NodePath("Backdrop/Card/Margin/Layout/CreateRow/Create")
-share_code_input = NodePath("Backdrop/Card/Margin/Layout/SharedRow/Code")
-open_shared_button = NodePath("Backdrop/Card/Margin/Layout/SharedRow/Open")
-status_label = NodePath("Backdrop/Card/Margin/Layout/Status")
-items = NodePath("Backdrop/Card/Margin/Layout/Items")
 request = NodePath("Request")
+panel = NodePath("Panel")
+status_label = NodePath("Panel/Margin/Layout/Status")
+item_list = NodePath("Panel/Margin/Layout/Scroll/Items")
+scroll = NodePath("Panel/Margin/Layout/Scroll")
+item_font = ExtResource("3_body")
 
-[node name="Backdrop" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.015, 0.012, 0.03, 0.72)
+[node name="Panel" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 0
+offset_left = 210.0
+offset_top = 62.0
+offset_right = 570.0
+offset_bottom = 398.0
 
-[node name="Card" type="PanelContainer" parent="Backdrop"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -480.0
-offset_top = -390.0
-offset_right = 480.0
-offset_bottom = 390.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleCard")
-
-[node name="Margin" type="MarginContainer" parent="Backdrop/Card"]
+[node name="Margin" type="MarginContainer" parent="Panel"]
 layout_mode = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 26
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
 
-[node name="Layout" type="VBoxContainer" parent="Backdrop/Card/Margin"]
+[node name="Layout" type="VBoxContainer" parent="Panel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 4
 
-[node name="Header" type="HBoxContainer" parent="Backdrop/Card/Margin/Layout"]
+[node name="Status" type="Label" parent="Panel/Margin/Layout"]
+custom_minimum_size = Vector2(0, 21)
 layout_mode = 2
-
-[node name="Title" type="Label" parent="Backdrop/Card/Margin/Layout/Header"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("2_title")
-theme_override_font_sizes/font_size = 38
-text = "PLAYLISTS"
-
-[node name="Close" type="Button" parent="Backdrop/Card/Margin/Layout/Header"]
-custom_minimum_size = Vector2(54, 44)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3_body")
-theme_override_font_sizes/font_size = 24
-text = "X"
-
-[node name="PlaylistRow" type="HBoxContainer" parent="Backdrop/Card/Margin/Layout"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="Playlist" type="OptionButton" parent="Backdrop/Card/Margin/Layout/PlaylistRow"]
-custom_minimum_size = Vector2(280, 46)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("3_body")
-theme_override_font_sizes/font_size = 22
-
-[node name="Add" type="Button" parent="Backdrop/Card/Margin/Layout/PlaylistRow"]
-custom_minimum_size = Vector2(100, 46)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3_body")
-theme_override_font_sizes/font_size = 21
-text = "ADD"
-
-[node name="Remove" type="Button" parent="Backdrop/Card/Margin/Layout/PlaylistRow"]
-custom_minimum_size = Vector2(110, 46)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3_body")
-theme_override_font_sizes/font_size = 21
-text = "REMOVE"
-
-[node name="Delete" type="Button" parent="Backdrop/Card/Margin/Layout/PlaylistRow"]
-custom_minimum_size = Vector2(100, 46)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3_body")
-theme_override_font_sizes/font_size = 21
-text = "DELETE"
-
-[node name="Share" type="Button" parent="Backdrop/Card/Margin/Layout/PlaylistRow"]
-custom_minimum_size = Vector2(100, 46)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3_body")
-theme_override_font_sizes/font_size = 21
-text = "SHARE"
-
-[node name="CreateRow" type="HBoxContainer" parent="Backdrop/Card/Margin/Layout"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="Name" type="LineEdit" parent="Backdrop/Card/Margin/Layout/CreateRow"]
-custom_minimum_size = Vector2(0, 46)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("3_body")
-theme_override_font_sizes/font_size = 21
-placeholder_text = "New playlist name"
-max_length = 64
-
-[node name="Create" type="Button" parent="Backdrop/Card/Margin/Layout/CreateRow"]
-custom_minimum_size = Vector2(160, 46)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3_body")
-theme_override_font_sizes/font_size = 21
-text = "CREATE"
-
-[node name="SharedRow" type="HBoxContainer" parent="Backdrop/Card/Margin/Layout"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="Code" type="LineEdit" parent="Backdrop/Card/Margin/Layout/SharedRow"]
-custom_minimum_size = Vector2(0, 46)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("3_body")
-theme_override_font_sizes/font_size = 21
-placeholder_text = "Shared playlist code"
-max_length = 64
-
-[node name="Open" type="Button" parent="Backdrop/Card/Margin/Layout/SharedRow"]
-custom_minimum_size = Vector2(160, 46)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3_body")
-theme_override_font_sizes/font_size = 21
-text = "OPEN SHARED"
-
-[node name="Status" type="Label" parent="Backdrop/Card/Margin/Layout"]
-custom_minimum_size = Vector2(0, 34)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.68, 0.86, 1)
-theme_override_fonts/font = ExtResource("3_body")
-theme_override_font_sizes/font_size = 19
-text = "Select a playlist."
-vertical_alignment = 1
-
-[node name="Items" type="ItemList" parent="Backdrop/Card/Margin/Layout"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_fonts/font = ExtResource("3_body")
-theme_override_font_sizes/font_size = 24
-allow_reselect = true
-
-[node name="Hint" type="Label" parent="Backdrop/Card/Margin/Layout"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.52, 0.67, 1)
 theme_override_fonts/font = ExtResource("3_body")
 theme_override_font_sizes/font_size = 17
-text = "Double-click a song to open it. Sharing copies an unlisted code."
+text = ""
+vertical_alignment = 1
+text_overrun_behavior = 3
+
+[node name="Scroll" type="ScrollContainer" parent="Panel/Margin/Layout"]
+custom_minimum_size = Vector2(0, 306)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Items" type="VBoxContainer" parent="Panel/Margin/Layout/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
 
 [node name="Request" type="HTTPRequest" parent="."]
 timeout = 20.0

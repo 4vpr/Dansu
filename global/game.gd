@@ -8,6 +8,7 @@ var main_menu_state := MainMenuState.Home
 var current_time := 0.0
 var last_result_score: Score = null
 var replay_playback: Replay = null
+var autoplay_requested := false
 var skin_editor_request = null
 var reopen_editor_without_chart_reload := false
 var editor_playtest_active := false
@@ -15,14 +16,14 @@ var editor_playtest_start_time_ms := 0.0
 var editor_playtest_saved_snapshot: Dictionary = {}
 
 var color_map = {
-	0: Color("cac2f8ff"),
-	5: Color("6466ccff"),
-	10: Color("91cc53ff"),
-	15: Color("d1bd28ff"),
-	20: Color("c94324ff"),
-	25: Color("82171fff"),
-	30: Color("845696ff"), 
-	35: Color("501247ff"),
+	0: Color("9ca3eb"),
+	5: Color("374cd0"),
+	10: Color("91cc53"),
+	15: Color("d1bd28"),
+	20: Color("ee5c3c"),
+	25: Color("ad232d"),
+	30: Color("845696"), 
+	35: Color("483f7d"),
 }
 
 func get_color_from_rating(value: float,fade: bool = false) -> Color:
@@ -47,12 +48,16 @@ func get_color_from_rating(value: float,fade: bool = false) -> Color:
 	return color_map[keys[0]]
 
 
-func play_selected_chart() -> void:
+func play_selected_chart(autoplay: bool = false) -> void:
 	cancel_editor_playtest()
 	replay_playback = null
+	autoplay_requested = autoplay
 	if CM.parse_selected_chart():
-		Scores.record_play_start(CM.selected_chart)
+		if not autoplay:
+			Scores.record_play_start(CM.selected_chart)
 		Transition.transition_to("res://scenes/gameplay/gameplay.tscn",1.0)
+	else:
+		autoplay_requested = false
 
 
 func play_replay(replay: Replay) -> bool:
@@ -66,6 +71,7 @@ func play_replay(replay: Replay) -> bool:
 			or replay.hash.to_lower() != CM.selected_chart.filehash.to_lower():
 		return false
 	replay_playback = replay
+	autoplay_requested = false
 	Transition.transition_to("res://scenes/gameplay/gameplay.tscn", 1.0)
 	return true
 

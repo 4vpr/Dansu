@@ -21,6 +21,8 @@ var _last_judge_y := INF
 var _last_current_time := INF
 
 func prepare_layers() -> void:
+	if rail_layer != null:
+		rail_layer.z_index = 0
 	if chart_panel == null:
 		return
 	if rail_layer != null:
@@ -37,6 +39,7 @@ func mark_layout_dirty() -> void:
 	_layout_dirty = true
 
 func refresh_views() -> void:
+	_mark_preview_dirty()
 	clear_layers()
 	rail_views.clear()
 	note_views.clear()
@@ -55,7 +58,7 @@ func refresh_views() -> void:
 		rail_view.rail = rail
 		rail_view.editor = editor
 		rail_layer.add_child(rail_view)
-		rail_view.set_point_handles_dimmed(not editor.note_passthrough)
+		rail_view.set_point_handles_dimmed(false)
 		rail_views[rail] = rail_view
 
 		for note in rail.notes:
@@ -74,6 +77,7 @@ func refresh_views() -> void:
 
 
 func refresh_note(note: Note) -> void:
+	_mark_preview_dirty()
 	if note == null:
 		return
 	if editor != null and editor.transport != null:
@@ -86,12 +90,23 @@ func refresh_note(note: Note) -> void:
 
 
 func refresh_notes_for_rail(rail: Rail) -> void:
+	_mark_preview_dirty()
 	if rail == null:
 		return
 	for note: Note in rail.notes:
 		var note_view := note_views.get(note) as EditorNote
 		if note_view != null:
 			note_view.queue_redraw()
+
+func refresh_geometry(rails: Array[Rail]) -> void:
+	for rail in rails:
+		refresh_notes_for_rail(rail)
+	mark_layout_dirty()
+	sync_layouts()
+
+func _mark_preview_dirty() -> void:
+	if editor != null and editor.event_controller != null and editor.event_controller.game_view != null:
+		editor.event_controller.game_view.chart_dirty = true
 
 func clear_layers() -> void:
 	if rail_layer != null:
@@ -132,7 +147,7 @@ func sync_layouts() -> void:
 	for note in note_views.keys():
 		var note_view: EditorNote = note_views[note]
 		note_view.sync_layout(panel_size, judge_y, editor.get_pixels_per_ms(), current_time)
-		note_view.set_selected(editor.selection.selected_note == note)
+		note_view.set_selected(editor.selection.selected_notes.has(note))
 
 	editor._update_time_ui(false)
 

@@ -23,8 +23,11 @@ var jump: PlayerAnimation = null
 var land: PlayerAnimation = null
 var hits: Array[PlayerAnimation] = []
 var repeat_idle := false
+var resource_directory := ""
 
 func get_folder_path() -> String:
+	if not resource_directory.is_empty():
+		return resource_directory
 	match type:
 		TYPE.BUILT_IN:
 			return "res://resources/skins/".path_join(folder_name)

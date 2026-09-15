@@ -8,8 +8,10 @@ var hit_index = 0 # 다음에 재생할 기본 노트 히트 애니메이션
 var _animation : PlayerAnimation # 현재 재생중인 애니메이션
 var _frame_index : int = 0 # 현재 재생중인 프레임 인덱스
 var _animation_time : float = 0.0 # 재생중인 애니메이션이 지난 시간
+var hold_last_frame := false
 
 func _setup() -> void:
+	hold_last_frame = false
 	if not skin:
 		return
 	_apply_skin_scale()
@@ -20,7 +22,7 @@ func _process(delta: float) -> void:
 		return
 	_animation_time += delta
 	if _animation_time >= _animation.total_time:
-		if _animation.return_idle:
+		if _animation.return_idle and not hold_last_frame:
 			play_animation(skin.idle)
 	if _frame_index != _animation.get_index(_animation_time):
 		_frame_index = _animation.get_index(_animation_time)

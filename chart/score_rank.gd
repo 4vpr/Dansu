@@ -3,14 +3,14 @@ class_name ScoreRank
 
 const MAX_SCORE := 101.0
 const DATA := [
-	{"label": "D", "min": 0.0, "color": Color("121012")},
-	{"label": "C", "min": 70.0, "color": Color("383137")},
+	{"label": "D", "min": 0.0, "color": Color("e8e6e8ff")},
+	{"label": "C", "min": 70.0, "color": Color("ebf6feff")},
 	{"label": "B", "min": 85.0, "color": Color("d35f71")},
 	{"label": "A", "min": 90.0, "color": Color("c6fba6")},
 	{"label": "S", "min": 95.0, "color": Color("f6ecbe")},
 	{"label": "S+", "min": 99.0, "color": Color("f9deb2")},
 	{"label": "SS", "min": 100.0, "color": Color("e9a4e4")},
-	{"label": "X", "min": 101.0, "color": Color("b3d8ee")},
+	{"label": "X", "min": 101.0, "color": Color("91c5e4ff")},
 ]
 
 static func index_for_score(value: float) -> int:

@@ -40,8 +40,7 @@ func record_play(chart: Chart, score: Score) -> int:
 	chart.best_score = maxf(chart.best_score, score.total_score)
 	chart.play_count += 1
 	chart.current_version_play_count += 1
-	if not submit_play(chart, score):
-		Notification.notice("Score saved locally.")
+	submit_play(chart, score)
 	return play_id
 
 
@@ -211,7 +210,6 @@ func _pump_submissions() -> void:
 		return
 	_active_submission = _submission_queue.pop_front()
 	var score: Score = _active_submission.score
-	Notification.notice("Submitting score…")
 	submission_started.emit(score)
 	_begin_active_submission()
 
@@ -295,7 +293,6 @@ func _on_score_submitted(
 	if result == HTTPRequest.RESULT_SUCCESS and code == 409:
 		score.submitted = true
 		score.submission_error = ""
-		Notification.notice("Score already submitted.")
 		submission_completed.emit(score, {})
 		_finish_active()
 		return
@@ -312,7 +309,6 @@ func _on_score_submitted(
 	score.submission_response = data.duplicate(true)
 	if Auth.has_method("apply_score_submission"):
 		Auth.apply_score_submission(data)
-	Notification.notice("Score submitted!")
 	submission_completed.emit(score, data)
 	_finish_active()
 
@@ -420,13 +416,19 @@ func _exit_tree() -> void:
 
 
 func get_best_play(chart: Chart) -> Score:
-	if chart == null or chart.db_id <= 0 or DB.connection == null:
+	if chart == null or DB.connection == null:
 		return null
-	return DB.connection.get_best_play(chart, _create_score)
+	var query_chart := Chart.new()
+	query_chart.db_id = chart.db_id
+	query_chart.uuid = chart.uuid
+	query_chart.filehash = chart.filehash
+	if query_chart.filehash.is_empty():
+		query_chart.filehash = str(chart.online_metadata.get("checksum_sha256", "")).to_lower()
+	return DB.connection.get_best_play(query_chart, _create_score)
 
 
 func get_chart_plays(chart: Chart, limit: int = 50, offset: int = 0) -> Array:
-	if chart == null or chart.db_id <= 0 or DB.connection == null:
+	if chart == null or DB.connection == null:
 		return []
 	return DB.connection.get_chart_plays(chart, _create_score, limit, offset)
 

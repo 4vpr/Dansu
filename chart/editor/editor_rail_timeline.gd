@@ -28,7 +28,7 @@ func _ready() -> void:
 	clip_contents = false
 	if editor != null and not editor.selection.changed.is_connected(_on_selection_changed):
 		editor.selection.changed.connect(_on_selection_changed)
-	queue_redraw()
+	_on_selection_changed()
 
 
 func _process(_delta: float) -> void:
@@ -160,10 +160,8 @@ func _drag_point_to(local_x: float) -> void:
 	rail.sort_points()
 	editor.selection.selected_point_index = rail.points.find(_dragged_point)
 	if editor.view_controller != null:
-		editor.view_controller.refresh_notes_for_rail(rail)
-		editor.view_controller.mark_layout_dirty()
-		editor.view_controller.sync_layouts()
-	editor.selection_changed.emit()
+		editor.view_controller.refresh_geometry([rail])
+	editor.selection.refresh()
 	queue_redraw()
 
 
@@ -235,7 +233,9 @@ func _get_track_bounds() -> Vector2:
 
 
 func _get_selected_rail() -> Rail:
-	if editor == null or editor.selection == null or not editor.note_passthrough:
+	if editor == null or editor.selection == null:
+		return null
+	if editor.event_controller != null and editor.event_controller.active:
 		return null
 	return editor.selection.selected_rail
 
@@ -261,6 +261,8 @@ func _build_visual_signature() -> String:
 
 
 func _on_selection_changed() -> void:
-	if _dragged_point != null and _get_selected_rail() == null:
+	var rail := _get_selected_rail()
+	visible = rail != null and not rail.points.is_empty()
+	if _dragged_point != null and (rail == null or not rail.points.has(_dragged_point)):
 		_end_drag()
 	queue_redraw()

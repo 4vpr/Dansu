@@ -202,7 +202,7 @@ static func _capture_events(events: Array[ChartEvent]) -> Array[Dictionary]:
 				})
 		elif event is OverlayEvent:
 			event_data["type"] = "overlay"
-			event_data["layer"] = (event as OverlayEvent).layer
+			event_data["x"] = (event as OverlayEvent).x
 			event_data["anchor"] = (event as OverlayEvent).anchor
 			for frame in (event as OverlayEvent).frames:
 				if frame == null:
@@ -255,7 +255,7 @@ static func _restore_events(data: Array) -> Array[ChartEvent]:
 				event = camera
 			"overlay":
 				var overlay := OverlayEvent.new()
-				overlay.layer = int(event_data.get("layer", 0))
+				overlay.x = int(event_data.get("x", 0))
 				for frame_data in event_data.get("frames", []):
 					var frame := OverlayEventFrame.new()
 					frame.time = int(frame_data.get("time", 0))
@@ -301,6 +301,10 @@ static func _restore_events(data: Array) -> Array[ChartEvent]:
 
 static func _capture_selection(selection: ChartEditorSelection) -> Dictionary:
 	if selection != null and selection.selected_event != null:
+		var items: Array = []
+		for item: Dictionary in selection.selected_event_items:
+			var frames: Array = item.event.frames if not item.event is SkinEvent else []
+			items.append({"event_index": CM.parsed_chart.events.find(item.event), "frame_index": frames.find(item.frame)})
 		var event_index := -1
 		if CM.parsed_chart != null:
 			event_index = CM.parsed_chart.events.find(selection.selected_event)
@@ -310,6 +314,7 @@ static func _capture_selection(selection: ChartEditorSelection) -> Dictionary:
 			"event_id": selection.selected_event.id,
 			"event_time": selection.selected_event.time,
 			"frame_index": selection.selected_event_frame_index,
+			"items": items,
 		}
 	if selection == null or selection.selected_rail == null:
 		return {"kind": "clear"}
@@ -319,6 +324,16 @@ static func _capture_selection(selection: ChartEditorSelection) -> Dictionary:
 		"point_index": -1,
 		"note_index": -1,
 	}
+	var notes: Array = []
+	for note: Note in selection.selected_notes:
+		var owner: Rail = selection.selected_notes[note]
+		notes.append({"rail_id": owner.id, "note_index": owner.notes.find(note)})
+	data["notes"] = notes
+	var points: Array = []
+	for point: RailPoint in selection.selected_points:
+		var owner: Rail = selection.selected_points[point]
+		points.append({"rail_id": owner.id, "point_index": owner.points.find(point)})
+	data["points"] = points
 	if selection.selected_note != null:
 		data["kind"] = "note"
 		data["note_index"] = selection.selected_rail.notes.find(selection.selected_note)
@@ -328,6 +343,32 @@ static func _capture_selection(selection: ChartEditorSelection) -> Dictionary:
 	return data
 
 static func _restore_selection(editor: ChartEditor, data: Dictionary) -> void:
+	_restore_primary_selection(editor, data)
+	if CM.parsed_chart == null:
+		return
+	if data.get("kind") == "event" and data.has("items"):
+		editor.selection.selected_event_items.clear()
+		for item: Dictionary in data.items:
+			var index := int(item.event_index)
+			if index < 0 or index >= CM.parsed_chart.events.size():
+				continue
+			var event: ChartEvent = CM.parsed_chart.events[index]
+			var frames: Array = event.frames if not event is SkinEvent else []
+			var fi := int(item.frame_index)
+			editor.selection.selected_event_items.append({"event": event, "frame": frames[fi] if fi >= 0 and fi < frames.size() else null})
+	for entry: Dictionary in data.get("notes", []):
+		for rail: Rail in CM.parsed_chart.rails:
+			var index := int(entry.get("note_index", -1))
+			if rail.id == int(entry.get("rail_id", -1)) and index >= 0 and index < rail.notes.size():
+				editor.selection.selected_notes[rail.notes[index]] = rail
+	for entry: Dictionary in data.get("points", []):
+		for rail: Rail in CM.parsed_chart.rails:
+			var index := int(entry.get("point_index", -1))
+			if rail.id == int(entry.get("rail_id", -1)) and index >= 0 and index < rail.points.size():
+				editor.selection.selected_points[rail.points[index]] = rail
+	editor.selection.refresh()
+
+static func _restore_primary_selection(editor: ChartEditor, data: Dictionary) -> void:
 	var kind := String(data.get("kind", "clear"))
 	if kind == "clear":
 		editor.selection.clear()

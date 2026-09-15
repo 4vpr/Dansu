@@ -1,6 +1,9 @@
 extends Control
 class_name DansuMainMenu
 
+@onready var inline_leaderboard: InlineLeaderboard = $ChartInfo/InlineLeaderboard
+@onready var playlist_selector: Button = $Charts/VBoxContainer/TabBar/PlaylistSelector
+
 const LOGO_IDLE_SCALE := 1.0
 const LOGO_PEAK_SCALE := 1.15
 const LOGO_DIP_SCALE := 0.96
@@ -15,7 +18,7 @@ const LOGIN_LOADING_TTL_SECONDS := 15.0
 @export var current_chartset_label: Label
 @export var search_input: LineEdit
 @export var filter_button: Button
-@export var source_tabs: TabBar
+@export var source_tabs: SourceSwitch
 @export var chart_scroll: ChartScroll
 @export var exit_overlay: ColorRect
 @export var audio_1: AudioStreamPlayer
@@ -34,10 +37,8 @@ const LOGIN_LOADING_TTL_SECONDS := 15.0
 @export var bottom_edit_button: MenuBigButton
 @export var new_chart_button: MenuBigButton
 @export var edit_actions: HBoxContainer
-@export var leaderboard_button: Button
-@export var loved_button: Button
+@export var loved_button: LovedButton
 @export var playlist_button: Button
-@export var leaderboard_panel: ChartLeaderboardPanel
 @export var playlist_panel: PlaylistPanel
 @export var new_difficulty_button: Button
 @export var delete_difficulty_button: Button
@@ -80,6 +81,7 @@ func _enter_tree() -> void:
 		call_deferred("_refresh_chart_browser")
 
 func _ready() -> void:
+	current_chartset_label.hide()
 	_loading_started_msec = Time.get_ticks_msec()
 	_loading_completion_started = Game.stage != Game.GameStage.Loading
 
@@ -111,10 +113,29 @@ func _ready() -> void:
 	delete_chart_dialog.confirmed.connect(_confirm_chart_delete)
 	delete_chart_dialog.canceled.connect(_cancel_chart_delete)
 	delete_chart_dialog.theme = settings_popup.theme
-	leaderboard_button.pressed.connect(func(): leaderboard_panel.open(CM.selected_chart))
 	loved_button.pressed.connect(_catalogue.toggle_loved)
 	playlist_button.pressed.connect(_open_playlists)
-	leaderboard_panel.visibility_set.connect(func(blocked: bool): chart_scroll.input_blocked = blocked)
+	playlist_selector.pressed.connect(_open_playlist_selector)
+	var dropdown_icon := TextureRect.new()
+	dropdown_icon.texture = preload("res://resources/icons/chevron-left.svg")
+	dropdown_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	dropdown_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	dropdown_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	playlist_selector.add_child(dropdown_icon)
+	dropdown_icon.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT)
+	dropdown_icon.position = Vector2(playlist_selector.size.x - 32.0, 14.0)
+	dropdown_icon.size = Vector2(20.0, 20.0)
+	dropdown_icon.pivot_offset = Vector2(10.0, 10.0)
+	dropdown_icon.rotation = -PI / 2.0
+	playlist_panel.playlist_selected.connect(func(id: int, title: String):
+		playlist_selector.text = title
+		playlist_selector.tooltip_text = title
+		_catalogue.set_playlist(id)
+	)
+	playlist_panel.membership_changed.connect(func():
+		if _catalogue.playlist_id > 0:
+			_catalogue.refresh()
+	)
 	playlist_panel.visibility_set.connect(func(blocked: bool): chart_scroll.input_blocked = blocked)
 	playlist_panel.chartset_chosen.connect(_on_playlist_chartset_chosen)
 	_apply_song_select_mode(false)
@@ -147,6 +168,11 @@ func _input(event: InputEvent) -> void:
 	if is_exiting:
 		get_viewport().set_input_as_handled()
 		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F3:
+		if Game.stage == Game.GameStage.Main and Game.main_menu_state == Game.MainMenuState.SongSelect:
+			activate_song_action(true)
+			get_viewport().set_input_as_handled()
+		return
 	if is_community_mode or (_filter_popup != null and _filter_popup.is_open()):
 		return
 
@@ -168,7 +194,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event.is_action_pressed("ui_cancel"):
-		if leaderboard_panel.is_open() or playlist_panel.is_open():
+		if playlist_panel.is_open():
+			playlist_panel.close()
+			get_viewport().set_input_as_handled()
 			return
 		if is_menu_transitioning:
 			get_viewport().set_input_as_handled()
@@ -190,18 +218,19 @@ func begin_song_select(editor_mode: bool = false) -> void:
 		return
 
 	is_menu_transitioning = true
-	is_community_mode = false
-	source_tabs.current_tab = 0
-	source_tabs.visible = not editor_mode
-	menu_audio_switcher.set_online_preview(false)
-	chart_scroll.set_online_mode(false)
-	search_input.max_length = 0
-	search_input.set_block_signals(true)
-	search_input.text = _local_search
-	search_input.set_block_signals(false)
-	chart_scroll.set_filters(_local_filters)
-	chart_scroll.set_search_text(_local_search)
-	_catalogue.set_active(false)
+	var resume_community := is_community_mode and not editor_mode and Auth.is_authenticated()
+	if not resume_community:
+		_catalogue.set_active(false)
+		is_community_mode = false
+		source_tabs.current_tab = 0
+		menu_audio_switcher.set_online_preview(false)
+		chart_scroll.set_online_mode(false)
+		search_input.max_length = 0
+		search_input.set_block_signals(true)
+		search_input.text = _local_search
+		search_input.set_block_signals(false)
+		chart_scroll.set_filters(_local_filters)
+		chart_scroll.set_search_text(_local_search)
 	_publisher.set_selection(CM.selected_chartset if editor_mode else null)
 	_update_filter_button()
 	_apply_song_select_mode(editor_mode)
@@ -230,16 +259,9 @@ func return_to_main_menu() -> void:
 		return
 
 	is_menu_transitioning = true
-	leaderboard_panel.close()
 	playlist_panel.close()
 	_filter_popup.close_popup()
-	_catalogue.set_active(false)
-	if is_community_mode:
-		is_community_mode = false
-		chart_scroll.set_online_mode(false)
-		chart_scroll.set_filters(_local_filters)
-		chart_scroll.set_search_text(_local_search)
-		menu_audio_switcher.set_online_preview(false)
+	_remember_source_selection()
 	edit_actions.hide()
 	new_difficulty_button.disabled = true
 	delete_difficulty_button.disabled = true
@@ -272,7 +294,7 @@ func _apply_song_select_mode(editor_mode: bool) -> void:
 	new_chart_button.visible = editor_mode
 	source_tabs.visible = not editor_mode
 	edit_actions.visible = editor_mode
-	leaderboard_button.visible = not editor_mode
+	inline_leaderboard.visible = not editor_mode
 	loved_button.visible = not editor_mode and is_community_mode
 	_update_playlist_button_visibility()
 	_update_editor_chart_actions()
@@ -288,7 +310,7 @@ func begin_exit() -> void:
 		return
 
 	is_exiting = true
-	leaderboard_panel.close()
+	menu_audio_switcher.prepare_shutdown()
 	playlist_panel.close()
 	_catalogue.set_active(false)
 	_filter_popup.close_popup()
@@ -313,6 +335,7 @@ func begin_exit() -> void:
 	await get_tree().create_timer(EXIT_FADE_DURATION * 0.1).timeout
 	bye_player.play()
 	await tween.finished
+	menu_audio_switcher.stop_audio()
 	get_tree().quit()
 
 func _update_progress(_progress: float) -> void:
@@ -364,7 +387,8 @@ func _submit_username() -> void:
 func _update_loading_status() -> void:
 	if current_chartset_label == null or Game.stage != Game.GameStage.Loading:
 		return
-	current_chartset_label.text = Auth.status_message.to_lower() if _auth_loading_started else "loading charts…"
+	current_chartset_label.visible = _auth_loading_started
+	current_chartset_label.text = Auth.status_message.to_lower() if _auth_loading_started else ""
 
 func _on_database_sync_finished(_success: bool) -> void:
 	if _loading_completion_started:
@@ -421,11 +445,12 @@ func _setup_catalogue() -> void:
 	CM.chartset_selected.connect(func(chartset: ChartSet):
 		_publisher.set_selection(chartset if is_editor_mode else null)
 		_update_editor_chart_actions()
+		_update_playlist_button_visibility()
 	)
 	CM.chart_selected.connect(func(_chart: Chart):
 		_update_catalogue_state()
 		_update_editor_chart_actions()
-		leaderboard_button.disabled = _chart == null
+		_update_playlist_button_visibility()
 	)
 
 func _update_publish_state() -> void:
@@ -446,6 +471,7 @@ func _select_source_tab(tab: int) -> void:
 		source_tabs.set_block_signals(false)
 		tab = 0
 
+	var source_changed := is_community_mode != (tab == 1)
 	is_community_mode = tab == 1
 	_community_selection_restore_pending = is_community_mode
 	loved_button.visible = is_community_mode
@@ -463,6 +489,8 @@ func _select_source_tab(tab: int) -> void:
 		chart_scroll.set_filters(_local_filters)
 		chart_scroll.set_search_text(_local_search)
 		_restore_source_selection(false)
+		if source_changed:
+			animations.replay_charts()
 	_update_filter_button()
 	_update_catalogue_state()
 
@@ -475,6 +503,8 @@ func _on_community_results_changed(chartsets: Array[ChartSet]) -> void:
 		return
 	_restore_source_selection(true)
 	_community_selection_restore_pending = false
+	if Game.main_menu_state == Game.MainMenuState.SongSelect and is_community_mode:
+		animations.replay_charts()
 
 
 func _remember_source_selection() -> void:
@@ -506,28 +536,52 @@ func _restore_source_selection(community: bool) -> void:
 			selected_chart = chartset.charts[0]
 		CM.select_chartset(chartset)
 		CM.select_chart(selected_chart)
-		chart_scroll.rebuild_items()
+		chart_scroll.rebuild_items(true)
 		return
 
 
 func _update_playlist_button_visibility() -> void:
-	playlist_button.visible = is_community_mode and not is_editor_mode and Auth.is_authenticated()
+	playlist_selector.visible = is_community_mode and not is_editor_mode and Auth.is_authenticated()
+	if not Auth.is_authenticated():
+		playlist_selector.text = "All Beatmaps"
+	var has_online_chartset := _selected_online_chartset_id() > 0
+	playlist_button.visible = is_community_mode and not is_editor_mode and Auth.is_authenticated() and has_online_chartset
 	if not playlist_button.visible:
 		playlist_panel.close()
 
 
+func _selected_online_chartset_id() -> int:
+	if CM.selected_chartset == null:
+		return 0
+	var metadata := CM.selected_chartset.online_metadata
+	if metadata.is_empty():
+		return 0
+	return int(metadata.get("id", metadata.get("chartset_id", 0)))
+
+
 func _on_loved_state_changed(loved: bool, busy: bool) -> void:
-	loved_button.text = "Loved ♥" if loved else "Love ♡"
-	loved_button.disabled = busy or not is_community_mode or CM.selected_chartset == null
+	loved_button.set_loved_state(loved, busy or not is_community_mode or CM.selected_chartset == null)
 
 
 func _open_playlists() -> void:
 	if is_menu_transitioning or is_exiting:
 		return
+	if playlist_panel.is_open():
+		playlist_panel.close()
+		return
 	var metadata := {}
 	if CM.selected_chartset != null:
 		metadata = CM.selected_chartset.online_metadata
-	playlist_panel.open(metadata)
+	playlist_panel.open(metadata, playlist_button.get_global_rect())
+
+
+func _open_playlist_selector() -> void:
+	if is_menu_transitioning or is_exiting:
+		return
+	if playlist_panel.is_open():
+		playlist_panel.close()
+		return
+	playlist_panel.open_browser(playlist_selector.get_global_rect(), _catalogue.playlist_id)
 
 
 func _on_playlist_chartset_chosen(metadata: Dictionary) -> void:
@@ -580,16 +634,15 @@ func _update_catalogue_state() -> void:
 	if bottom_play_button.button_text != caption:
 		bottom_play_button.button_text = caption
 	bottom_play_button.set_interaction_enabled(not is_menu_transitioning and not is_exiting and CM.selected_chart != null and not _catalogue.downloading and (not is_community_mode or not _catalogue.loading or _catalogue.loading_more))
-	leaderboard_button.disabled = CM.selected_chart == null
 
-func activate_song_action() -> void:
-	if is_menu_transitioning or is_exiting or leaderboard_panel.is_open() or playlist_panel.is_open() or _filter_popup.is_open() or _catalogue.downloading or _publisher.busy:
+func activate_song_action(autoplay: bool = false) -> void:
+	if is_menu_transitioning or is_exiting or playlist_panel.is_open() or _filter_popup.is_open() or settings_popup.is_open() or username_setup_overlay.visible or _catalogue.downloading or _publisher.busy or CM.selected_chart == null:
 		return
 	_remember_source_selection()
 	if is_community_mode:
-		_catalogue.activate_selection()
+		_catalogue.activate_selection(autoplay)
 	else:
-		Game.play_selected_chart()
+		Game.play_selected_chart(autoplay)
 
 
 func _on_search_text_changed(new_text: String) -> void:
@@ -609,6 +662,8 @@ func _refresh_chart_browser() -> void:
 		_restore_source_selection(is_community_mode)
 	if chart_info_panel != null and chart_info_panel.has_method("refresh_selected_chart"):
 		chart_info_panel.call("refresh_selected_chart")
+	if inline_leaderboard != null and not is_editor_mode:
+		inline_leaderboard.refresh_selected_chart()
 
 func _recalculate_all_chart_ratings() -> void:
 	var result := CM.recalculate_all_ratings()

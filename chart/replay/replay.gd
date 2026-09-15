@@ -7,6 +7,7 @@ const EXTENSION := ".replay"
 var inputs: Array[ReplayInput] = []
 var chart: Chart
 
+
 var chart_uuid := ""
 
 @warning_ignore("shadowed_global_identifier")

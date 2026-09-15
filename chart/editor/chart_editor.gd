@@ -10,6 +10,8 @@ const DEFAULT_PIXELS_PER_MS := 1.0
 const MIN_PIXELS_PER_MS := 0.2
 const MAX_PIXELS_PER_MS := 4.0
 const TRANSPORT_UI_UPDATE_USEC := 33333
+const EventWorkspace := preload("res://chart/editor/event_workspace.gd")
+var event_controller: Node
 
 @export var chart_root: Control
 @export var chart_panel: Control
@@ -28,6 +30,7 @@ const TRANSPORT_UI_UPDATE_USEC := 33333
 @export var spike_button: Button
 @export var title_line_edit: LineEdit
 @export var artist_line_edit: LineEdit
+@export var creator_line_edit: LineEdit
 @export var difficulty_line_edit: LineEdit
 @export var source_line_edit: LineEdit
 @export var tags_line_edit: LineEdit
@@ -73,7 +76,6 @@ func _ready() -> void:
 	previous_file_path = chart.file_path
 	selection.changed.connect(_on_selection_changed)
 
-	transport = EditorTransport.new()
 	transport.name = "EditorTransport"
 	add_child(transport)
 	transport.setup()
@@ -86,6 +88,10 @@ func _ready() -> void:
 	_configure_chart_input()
 	_load_chart_data()
 	_connect_ui()
+	event_controller = EventWorkspace.new()
+	event_controller.editor = self
+	add_child(event_controller)
+	event_controller.setup()
 	refresh_inspector()
 	_update_slider_range()
 	refresh_views()
@@ -106,6 +112,34 @@ func _process(_delta: float) -> void:
 	_sync_view_layouts()
 
 func _input(event: InputEvent) -> void:
+	if event_controller != null and event_controller.canvas != null and event_controller.canvas.gesture_active:
+		if event is InputEventMouseMotion or event is InputEventMouseButton:
+			event_controller.canvas.handle_mouse(event)
+		elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+			event_controller.canvas.cancel_drag()
+		get_viewport().set_input_as_handled()
+		return
+	if edit_controller != null and edit_controller.gesture.active:
+		if event is InputEventMouseMotion:
+			edit_controller.gesture.motion(event.position)
+		elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+			edit_controller.gesture.finish(event.position)
+		elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+			edit_controller.gesture.finish(get_global_mouse_position(), true)
+		get_viewport().set_input_as_handled()
+		return
+	if event_controller != null and not _is_text_input_focused():
+		if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_H:
+			event_controller.toggle()
+			get_viewport().set_input_as_handled()
+			return
+		if event_controller.active and (event is InputEventMouseButton or event is InputEventMouseMotion):
+			event_controller.canvas.handle_mouse(event)
+			return
+		if event_controller.active and event is InputEventKey and event.pressed and not event.echo and event.keycode != KEY_ESCAPE:
+			event_controller.handle_key(event)
+			get_viewport().set_input_as_handled()
+			return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
 		if unsaved_exit_dialog != null and unsaved_exit_dialog.visible:
 			return
@@ -123,10 +157,13 @@ func _input(event: InputEvent) -> void:
 		if event.pressed \
 				and (event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_RIGHT) \
 				and _is_text_input_focused() \
-				and _is_mouse_inside_chart():
+				and chart_panel.get_global_rect().has_point(event.position):
 			UIFocusUtils.release_text_input_focus(get_viewport())
 		if not _is_text_input_focused():
-			_handle_mouse_button(event)
+			if event_controller != null and event_controller.active:
+				event_controller.canvas.handle_mouse(event)
+			else:
+				_handle_mouse_button(event)
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -134,6 +171,8 @@ func _input(event: InputEvent) -> void:
 			_handle_key_input(event)
 
 func refresh_views() -> void:
+	if event_controller != null and event_controller.game_view != null:
+		event_controller.game_view.chart_dirty = true
 	if view_controller != null:
 		view_controller.refresh_views()
 	if bpm_lines != null:
@@ -215,6 +254,8 @@ func _connect_ui() -> void:
 			title_line_edit.text_changed.connect(inspector_controller.on_title_changed)
 		if artist_line_edit != null:
 			artist_line_edit.text_changed.connect(inspector_controller.on_artist_changed)
+		if creator_line_edit != null:
+			creator_line_edit.text_changed.connect(inspector_controller.on_creator_changed)
 		if difficulty_line_edit != null:
 			difficulty_line_edit.text_changed.connect(inspector_controller.on_difficulty_changed)
 		if source_line_edit != null:
@@ -317,11 +358,8 @@ func _open_new_chart_skin_editor_now() -> void:
 	SkinEditorRouter.open_new_chart_skin_editor(chart)
 
 func _open_event_editor() -> void:
-	if chart == null:
-		return
-	CM.selected_chart = chart
-	Game.reopen_editor_without_chart_reload = true
-	Transition.transition_to(EVENT_EDITOR_SCENE_PATH, 0.45)
+	if event_controller != null:
+		event_controller.toggle()
 
 
 func _start_playtest() -> void:
@@ -413,6 +451,8 @@ func _restore_history_snapshot(snapshot: Dictionary) -> void:
 		transport.pause()
 	_is_restoring_history = true
 	EditorHistory.restore(self, snapshot)
+	if event_controller != null:
+		event_controller.on_history_restored()
 	_is_restoring_history = false
 
 # Unsaved changes

@@ -1,7 +1,6 @@
 extends Node3D
 class_name GameNote
 
-const SPAWN_FADE_PORTION := GameplayPlayfield.SPAWN_FADE_PORTION
 const VISUAL_SURFACE_OFFSET := 0.025
 const VISUAL_RENDER_PRIORITY := 1
 
@@ -23,6 +22,7 @@ var waiting_for_long_release := false
 var _note_base_modulate := Color.WHITE
 var _note_shadow_base_modulate := Color.WHITE
 var _spawn_fade_active := false
+var _failed_long_note := false
 
 func _ready() -> void:
 	set_process(false)
@@ -109,19 +109,11 @@ func _initialize_spawn_fade() -> void:
 func _update_spawn_fade() -> void:
 	if not _spawn_fade_active or note == null:
 		return
-	var visible_travel_time := GameplayPlayfield.get_visible_travel_time_ms()
-	if visible_travel_time <= 0.0:
-		_spawn_fade_active = false
-		_set_visual_alpha(1.0)
-		set_process(false)
-		return
-
-	var progress := 1.0 - ((float(note.time) - Game.current_time) / visible_travel_time)
-	var fade_alpha := clampf(progress / SPAWN_FADE_PORTION, 0.0, 1.0)
+	var fade_alpha := GameplayPlayfield.get_spawn_fade_alpha(note.time, Game.current_time)
 	_set_visual_alpha(fade_alpha)
 	if fade_alpha >= 1.0:
 		_spawn_fade_active = false
-		set_process(false)
+		set_process(_failed_long_note)
 
 
 func _set_visual_alpha(alpha: float) -> void:
@@ -134,8 +126,6 @@ func _set_visual_alpha(alpha: float) -> void:
 			_note_shadow_base_modulate.b,
 			_note_shadow_base_modulate.a * alpha
 		)
-	if long_note_visual != null:
-		long_note_visual.set_visual_opacity(alpha)
 
 func consume(judge: int) -> void:
 	if is_consumed:
@@ -144,6 +134,11 @@ func consume(judge: int) -> void:
 	is_consumed = true
 	if judge != Score.MISS and judge != Score.NONE:
 		_spawn_break_effect()
+
+	if _is_long_note() and judge == Score.MISS:
+		_fail_long_note()
+		consumed.emit(judge, self)
+		return
 
 	if _is_long_note() and judge != Score.MISS and judge != Score.NONE:
 		waiting_for_long_release = true
@@ -161,11 +156,27 @@ func finish_long_note(judge: int) -> void:
 	if not waiting_for_long_release:
 		return
 	waiting_for_long_release = false
+	if judge == Score.MISS:
+		_fail_long_note()
+		return
 	if long_note_visual != null:
 		long_note_visual.set_holding(false)
 		if judge != Score.MISS and judge != Score.NONE:
 			_spawn_break_effect_for_sprite(long_note_visual.get_tail_cap())
 	queue_free()
+
+
+func _fail_long_note() -> void:
+	if _failed_long_note:
+		return
+	_failed_long_note = true
+	var brightness := GameplayLongNoteVisual.FAILED_BRIGHTNESS
+	_note_base_modulate = Color(_note_base_modulate.r * brightness, _note_base_modulate.g * brightness, _note_base_modulate.b * brightness, _note_base_modulate.a)
+	_note_shadow_base_modulate = Color(_note_shadow_base_modulate.r * brightness, _note_shadow_base_modulate.g * brightness, _note_shadow_base_modulate.b * brightness, _note_shadow_base_modulate.a)
+	_set_visual_alpha(GameplayPlayfield.get_spawn_fade_alpha(note.time, Game.current_time))
+	if long_note_visual != null:
+		long_note_visual.set_failed()
+	set_process(true)
 
 
 func _is_long_note() -> bool:
@@ -203,3 +214,5 @@ func _spawn_break_effect_for_sprite(sprite: Sprite3D) -> void:
 
 func _process(_delta) -> void:
 	_update_spawn_fade()
+	if _failed_long_note and Game.current_time > note.end_time + Score.T.BAD:
+		queue_free()

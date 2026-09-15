@@ -2,6 +2,12 @@ extends Node
 class_name EditorEditController
 
 @export var editor: ChartEditor
+var clipboard := preload("res://chart/editor/editor_clipboard.gd").new()
+var gesture := preload("res://chart/editor/editor_selection_gesture.gd").new()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and gesture != null and gesture.active:
+		gesture.finish(editor.get_global_mouse_position(), true)
 
 func handle_mouse_button(event: InputEventMouseButton) -> void:
 	if editor == null or not event.pressed:
@@ -26,7 +32,7 @@ func handle_mouse_button(event: InputEventMouseButton) -> void:
 	var mouse_pos := editor.get_global_mouse_position()
 
 	if event.button_index == MOUSE_BUTTON_RIGHT:
-		if editor.note_passthrough and editor.selection.selected_rail != null:
+		if editor.selection.selected_rail != null:
 			add_point_at_mouse(mouse_pos)
 			editor.get_viewport().set_input_as_handled()
 		return
@@ -34,34 +40,20 @@ func handle_mouse_button(event: InputEventMouseButton) -> void:
 	if event.button_index != MOUSE_BUTTON_LEFT:
 		return
 
-	if editor.note_passthrough:
-		var point_hit := editor._find_point_at(mouse_pos)
-		if not point_hit.is_empty():
-			editor.selection.select_point(point_hit["rail"], point_hit["point_index"])
-			editor.point_dragging = true
-			editor._point_drag_history_pending = true
-			editor.get_viewport().set_input_as_handled()
-			return
-
-	var note_hit: Dictionary = {} if editor.note_passthrough else editor._find_note_at(mouse_pos)
-	if not note_hit.is_empty():
-		editor.selection.select_note(note_hit["rail"], note_hit["note"])
-		editor.get_viewport().set_input_as_handled()
-		return
-
-	var rail_hit := editor._find_rail_at(mouse_pos)
-	if rail_hit != null:
-		editor.selection.select_rail(rail_hit)
-		editor.get_viewport().set_input_as_handled()
-		return
-
-	editor.selection.clear()
+	gesture.press(editor, mouse_pos, event.ctrl_pressed, event.shift_pressed)
+	editor.get_viewport().set_input_as_handled()
 
 func handle_key_input(event: InputEventKey) -> void:
 	if editor == null:
 		return
 
 	if event.ctrl_pressed:
+		if event.keycode == KEY_C:
+			copy_selected()
+			return
+		if event.keycode == KEY_V:
+			paste_copied()
+			return
 		if event.keycode == KEY_Z:
 			editor._undo_history()
 			return
@@ -75,15 +67,18 @@ func handle_key_input(event: InputEventKey) -> void:
 		KEY_ESCAPE: editor.exit()
 		KEY_X: create_trace_note()
 		KEY_C: create_spike_note()
-		KEY_TAB:
-			editor.toggle_note_passthrough()
-			editor.get_viewport().set_input_as_handled()
 		KEY_A: create_left_note()
 		KEY_D: create_right_note()
 		KEY_DELETE: delete_selected()
 		KEY_SPACE: editor.transport.toggle()
-		KEY_LEFT: move_selected_rail(-1.0)
-		KEY_RIGHT: move_selected_rail(1.0)
+		KEY_LEFT: move_selected_notes(-1)
+		KEY_RIGHT: move_selected_notes(1)
+
+func copy_selected() -> bool:
+	return editor != null and clipboard.copy(editor.selection)
+
+func paste_copied() -> bool:
+	return editor != null and clipboard.paste(editor)
 
 func set_current_time(value: float) -> void:
 	if editor == null or editor.timeline == null:
@@ -124,7 +119,7 @@ func create_note(note_type: Note.NoteType, dir: int) -> void:
 		return
 	var note_time := editor.timeline.snap_time(int(round(Game.current_time)))
 	if not EditorChartOps.is_note_time_inside_rail(editor.selection.selected_rail, note_time):
-		Notification.notice("레일 밖에는 노트를 배치할 수 없습니다", Notification.Type.WARNING)
+		Notification.notice("You cannot place notes outside the rails.", Notification.Type.WARNING)
 		return
 	editor._push_history_snapshot()
 	var parsed_chart := CM.ensure_parsed_chart()
@@ -143,14 +138,17 @@ func create_note(note_type: Note.NoteType, dir: int) -> void:
 func delete_selected() -> void:
 	if editor == null:
 		return
-	if editor.selection.selected_note == null and not editor.selection.has_point() and editor.selection.selected_rail == null:
+	if editor.selection.selected_notes.is_empty() and not editor.selection.has_point() and editor.selection.selected_rail == null:
 		return
 	editor._push_history_snapshot()
-	if editor.selection.selected_note != null and editor.selection.selected_rail != null:
-		EditorChartOps.remove_note(editor.selection.selected_rail, editor.selection.selected_note)
-	elif editor.selection.has_point():
-		EditorChartOps.remove_point(editor.selection.selected_rail, editor.selection.selected_point_index)
-	elif editor.selection.selected_rail != null:
+	var had_notes := not editor.selection.selected_notes.is_empty()
+	for note: Note in editor.selection.selected_notes:
+		EditorChartOps.remove_note(editor.selection.selected_notes[note], note)
+	if not editor.selection.selected_points.is_empty():
+		for point: RailPoint in editor.selection.selected_points:
+			var _owner: Rail = editor.selection.selected_points[point]
+			EditorChartOps.remove_point(_owner, _owner.points.find(point))
+	elif not had_notes and editor.selection.selected_rail != null:
 		EditorChartOps.remove_rail(editor.selection.selected_rail)
 	editor.selection.clear()
 	editor.refresh_views()
@@ -186,7 +184,7 @@ func adjust_selected_object(is_positive: bool) -> void:
 			editor.view_controller.refresh_note(note)
 		editor.selection_changed.emit()
 		return
-	if editor.note_passthrough and editor.selection.has_point():
+	if editor.selection.has_point():
 		var point := editor.selection.get_point()
 		var next_curve := clampf(point.curve + (0.1 if is_positive else -0.1), -1.0, 1.0)
 		if is_equal_approx(point.curve, next_curve):
@@ -198,11 +196,22 @@ func adjust_selected_object(is_positive: bool) -> void:
 			editor.view_controller.mark_layout_dirty()
 		editor._sync_view_layouts()
 
-func move_selected_rail(direction: float) -> void:
-	if editor == null or editor.selection.selected_rail == null:
+func move_selected_notes(direction: int) -> void:
+	if editor == null or CM.parsed_chart == null:
+		return
+	var moves := EditorChartOps.plan_note_rail_move(CM.parsed_chart.rails, editor.selection.selected_notes, direction)
+	if moves.is_empty():
 		return
 	editor._push_history_snapshot()
-	EditorChartOps.move_rail(editor.selection.selected_rail, direction)
-	if editor.view_controller != null:
-		editor.view_controller.refresh_notes_for_rail(editor.selection.selected_rail)
-		editor.view_controller.mark_layout_dirty()
+	for note: Note in moves:
+		var source: Rail = editor.selection.selected_notes[note]
+		source.notes.erase(note)
+	for note: Note in moves:
+		var target: Rail = moves[note]
+		target.notes.append(note)
+		target.sort_notes()
+		editor.selection.selected_notes[note] = target
+	if editor.selection.selected_note != null:
+		editor.selection.selected_rail = moves[editor.selection.selected_note]
+	editor.selection.refresh()
+	editor.refresh_views()

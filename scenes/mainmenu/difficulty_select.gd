@@ -3,6 +3,7 @@ class_name DifficultySelector
 
 var star: PackedScene = preload("res://scenes/mainmenu/star_button.tscn")
 const STAR_APPEAR_DELAY_STEP := 0.035
+const STAR_APPEAR_MAX_DELAY := 0.16
 
 @export var chart_scroll: ChartScroll
 
@@ -47,6 +48,7 @@ func _rebuild() -> void:
 		sorted_charts = CM.selected_chartset.charts.duplicate()
 		sorted_charts.sort_custom(_sort_by_rating)
 
+	var delay_step := minf(STAR_APPEAR_DELAY_STEP, STAR_APPEAR_MAX_DELAY / maxi(sorted_charts.size() - 1, 1))
 	for index in range(sorted_charts.size()):
 		var chart: Chart = sorted_charts[index]
 		var new_star := star.instantiate() as DifficultyStar
@@ -55,7 +57,7 @@ func _rebuild() -> void:
 		new_star.rating = chart.rating
 		new_star.chart = chart
 		add_child(new_star)
-		new_star.play_appear_animation(index * STAR_APPEAR_DELAY_STEP)
+		new_star.play_appear_animation(index * delay_step)
 
 func _sort_by_rating(a: Chart, b: Chart) -> bool:
 	var ar := a.rating

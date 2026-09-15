@@ -15,6 +15,13 @@
 [ext_resource type="Script" uid="uid://div8cel1k4aam" path="res://chart/editor/editor_edit_controller.gd" id="9_mjlwm"]
 [ext_resource type="PackedScene" uid="uid://cwras8rjfuils" path="res://scenes/editor/shared/unsaved_changes_dialog.tscn" id="10_unsaved"]
 [ext_resource type="Script" uid="uid://s7411x2x10wk" path="res://chart/editor/editor_rail_timeline.gd" id="11_rail_timeline"]
+[ext_resource type="Script" path="res://chart/editor/game_preview.gd" id="12_game_preview"]
+[ext_resource type="Script" path="res://chart/editor/overlay_frame_view.gd" id="13_frame_view"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/gameplay.tscn" id="14_gameplay_preview"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_game_preview"]
+resource_local_to_scene = true
+viewport_path = NodePath("PreviewColumn/GameFrame/GamePreview/SubViewport")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ysqcj"]
 shader = ExtResource("2_37swi")
@@ -73,7 +80,7 @@ bg_color = Color(0.47058824, 0.40392157, 0.8784314, 0.9490196)
 border_width_right = 10
 border_color = Color(1, 1, 1, 1)
 
-[node name="EditorScene" type="Control" unique_id=317898238 node_paths=PackedStringArray("chart_root", "chart_panel", "note_pivot", "bpm_lines", "song_slider", "current_time_label", "back_button", "playtest_button", "save_button", "delete_button", "hit_button", "trace_button", "left_button", "right_button", "spike_button", "title_line_edit", "artist_line_edit", "difficulty_line_edit", "source_line_edit", "tags_line_edit", "beat_division_slider", "beat_division_label", "add_timing_button", "timing_list_container", "timing_template", "skin_file_label", "skin_browser_button", "open_skin_editor_button", "open_event_editor_button", "view_controller", "inspector_controller", "edit_controller", "unsaved_exit_dialog", "fps_label")]
+[node name="EditorScene" type="Control" unique_id=317898238 node_paths=PackedStringArray("chart_root", "chart_panel", "note_pivot", "bpm_lines", "song_slider", "current_time_label", "back_button", "playtest_button", "save_button", "delete_button", "hit_button", "trace_button", "left_button", "right_button", "spike_button", "title_line_edit", "artist_line_edit", "creator_line_edit", "difficulty_line_edit", "source_line_edit", "tags_line_edit", "beat_division_slider", "beat_division_label", "add_timing_button", "timing_list_container", "timing_template", "skin_file_label", "skin_browser_button", "open_skin_editor_button", "open_event_editor_button", "view_controller", "inspector_controller", "edit_controller", "unsaved_exit_dialog", "fps_label")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -89,7 +96,7 @@ bpm_lines = NodePath("Chart/Panel/BPMLines")
 song_slider = NodePath("SongSlider")
 current_time_label = NodePath("SongSlider/CurrentTime")
 back_button = NodePath("TopBar/Margin/Row/Back")
-playtest_button = NodePath("TopBar/Margin/Row/PlayTest")
+playtest_button = NodePath("PreviewColumn/Toolbar/PlayTest")
 save_button = NodePath("Object/Save")
 delete_button = NodePath("Object/Delete")
 hit_button = NodePath("Object/Hit")
@@ -99,6 +106,7 @@ right_button = NodePath("Object/Right")
 spike_button = NodePath("Object/Spike")
 title_line_edit = NodePath("Inspector/Chart/ScrollContainer/Contents/title")
 artist_line_edit = NodePath("Inspector/Chart/ScrollContainer/Contents/artist")
+creator_line_edit = NodePath("Inspector/Chart/ScrollContainer/Contents/creator")
 difficulty_line_edit = NodePath("Inspector/Chart/ScrollContainer/Contents/difficulty")
 source_line_edit = NodePath("Inspector/Chart/ScrollContainer/Contents/source")
 tags_line_edit = NodePath("Inspector/Chart/ScrollContainer/Contents/tags")
@@ -154,6 +162,7 @@ layout_mode = 2
 text = "Skin Editor"
 
 [node name="EventEditor" type="Button" parent="TopBar/Margin/Row" unique_id=1179785375]
+visible = false
 layout_mode = 2
 text = "Event Editor"
 
@@ -178,11 +187,6 @@ custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 size_flags_vertical = 4
 
-[node name="PlayTest" type="Button" parent="TopBar/Margin/Row" unique_id=899135205]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
-text = "play test"
-
 [node name="Controllers" type="Node" parent="." unique_id=1327209880]
 
 [node name="ViewController" type="Node" parent="Controllers" unique_id=2077752679 node_paths=PackedStringArray("editor", "chart_root", "chart_panel", "note_pivot", "bpm_lines", "rail_layer", "note_layer")]
@@ -195,11 +199,12 @@ bpm_lines = NodePath("../../Chart/Panel/BPMLines")
 rail_layer = NodePath("../../Chart/Panel/RailLayer")
 note_layer = NodePath("../../Chart/Panel/NoteLayer")
 
-[node name="InspectorController" type="Node" parent="Controllers" unique_id=953762169 node_paths=PackedStringArray("editor", "title_line_edit", "artist_line_edit", "difficulty_line_edit", "source_line_edit", "tags_line_edit", "beat_division_slider", "beat_division_label", "add_timing_button", "timing_list_container", "timing_template", "skin_file_label", "skin_browser_button", "cover_texture_rect", "cover_file_label", "audio_file_label", "cover_browser_button", "audio_browser_button", "skin_picker_menu", "cover_file_dialog", "audio_file_dialog")]
+[node name="InspectorController" type="Node" parent="Controllers" unique_id=953762169 node_paths=PackedStringArray("editor", "title_line_edit", "artist_line_edit", "creator_line_edit", "difficulty_line_edit", "source_line_edit", "tags_line_edit", "beat_division_slider", "beat_division_label", "add_timing_button", "timing_list_container", "timing_template", "skin_file_label", "skin_browser_button", "cover_texture_rect", "cover_file_label", "audio_file_label", "cover_browser_button", "audio_browser_button", "skin_picker_menu", "cover_file_dialog", "audio_file_dialog")]
 script = ExtResource("7_c2fm2")
 editor = NodePath("../..")
 title_line_edit = NodePath("../../Inspector/Chart/ScrollContainer/Contents/title")
 artist_line_edit = NodePath("../../Inspector/Chart/ScrollContainer/Contents/artist")
+creator_line_edit = NodePath("../../Inspector/Chart/ScrollContainer/Contents/creator")
 difficulty_line_edit = NodePath("../../Inspector/Chart/ScrollContainer/Contents/difficulty")
 source_line_edit = NodePath("../../Inspector/Chart/ScrollContainer/Contents/source")
 tags_line_edit = NodePath("../../Inspector/Chart/ScrollContainer/Contents/tags")
@@ -322,6 +327,17 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 placeholder_text = "artist name"
+alignment = 1
+
+[node name="CreatorLabel" type="Label" parent="Inspector/Chart/ScrollContainer/Contents" unique_id=302793973]
+layout_mode = 2
+text = "creator"
+horizontal_alignment = 1
+
+[node name="creator" type="LineEdit" parent="Inspector/Chart/ScrollContainer/Contents" unique_id=1734135703]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "creator name(s)"
 alignment = 1
 
 [node name="label2" type="Label" parent="Inspector/Chart/ScrollContainer/Contents" unique_id=498360221]
@@ -688,9 +704,9 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 576.0
+offset_left = 183.0
 offset_top = 70.0
-offset_right = -640.0
+offset_right = -1189.0
 offset_bottom = -84.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -850,12 +866,14 @@ text = "1:20/3:20(62,000ms)"
 
 [node name="RailPointContainer" type="Control" parent="SongSlider" unique_id=1918331506]
 layout_mode = 1
+anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = -50.0
 offset_bottom = -28.0
-mouse_filter = 0
+grow_horizontal = 2
+grow_vertical = 0
 script = ExtResource("11_rail_timeline")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1611196157]
@@ -871,11 +889,72 @@ text = "fps:"
 
 [node name="Label2" type="Label" parent="VBoxContainer" unique_id=1809489432]
 layout_mode = 2
-text = "note count: "
+text = "note count:  9999999"
 
 [node name="Label3" type="Label" parent="VBoxContainer" unique_id=1235892994]
 layout_mode = 2
-text = "rail count: "
+text = "rail count: 9999999"
+
+[node name="PreviewColumn" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.39
+anchor_right = 0.73
+anchor_bottom = 1.0
+offset_top = 70.0
+offset_bottom = -84.0
+theme_override_constants/separation = 12
+
+[node name="GameFrame" type="AspectRatioContainer" parent="PreviewColumn"]
+layout_mode = 2
+ratio = 1.7777778
+stretch_mode = 2
+
+[node name="GamePreview" type="TextureRect" parent="PreviewColumn/GameFrame" node_paths=PackedStringArray("editor")]
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+texture = SubResource("ViewportTexture_game_preview")
+script = ExtResource("12_game_preview")
+editor = NodePath("../../..")
+
+[node name="SubViewport" type="SubViewport" parent="PreviewColumn/GameFrame/GamePreview"]
+handle_input_locally = false
+gui_disable_input = true
+own_world_3d = true
+size = Vector2i(1920, 1080)
+render_target_update_mode = 4
+
+[node name="Gameplay" parent="PreviewColumn/GameFrame/GamePreview/SubViewport" instance=ExtResource("14_gameplay_preview")]
+editor_preview = true
+
+[node name="Toolbar" type="HBoxContainer" parent="PreviewColumn"]
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="PreviewColumn/Toolbar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PlayTest" type="Button" parent="PreviewColumn/Toolbar"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Play test"
+
+[node name="OverlayFrameView" type="Control" parent="PreviewColumn" node_paths=PackedStringArray("event_editor")]
+layout_mode = 2
+size_flags_vertical = 3
+clip_contents = true
+script = ExtResource("13_frame_view")
+event_editor = NodePath("../..")
+
+[node name="FrameBackground" type="ColorRect" parent="PreviewColumn/OverlayFrameView"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.063, 0.063, 0.094, 1)
 
 [node name="Dialogs" type="Node" parent="." unique_id=1647625674]
 

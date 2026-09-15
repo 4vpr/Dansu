@@ -12,6 +12,10 @@ static func get_spawn_fade_distance() -> float:
 static func get_visible_travel_time_ms() -> float:
 	return PLAY_AREA_SIZE.y / maxf(Config.note_speed, 0.001) * 1000.0
 
+static func get_spawn_fade_alpha(time_ms: float, current_time: float) -> float:
+	var progress := 1.0 - ((time_ms - current_time) / get_visible_travel_time_ms())
+	return clampf(progress / SPAWN_FADE_PORTION, 0.0, 1.0)
+
 static func normalized_x_to_world(value: float) -> float:
 	return (clampf(value, 0.0, 1.0) - 0.5) * PLAY_AREA_SIZE.x
 

@@ -126,7 +126,7 @@ func get_event_lane(event: ChartEvent) -> int:
 	if event is SkinEvent:
 		return 2
 	if event is OverlayEvent:
-		return OVERLAY_LANE_START + maxi(0, (event as OverlayEvent).layer)
+		return OVERLAY_LANE_START + maxi(0, (event as OverlayEvent).x)
 	return -1
 
 func get_lane_count() -> int:
@@ -193,7 +193,7 @@ func create_event_for_lane(lane: int, requested_time: int = CURRENT_TIME_SENTINE
 			event = skin
 		_:
 			var overlay := OverlayEvent.new()
-			overlay.layer = lane - OVERLAY_LANE_START
+			overlay.x = lane - OVERLAY_LANE_START
 			overlay.frames.append(_create_default_frame(overlay))
 			event = overlay
 	if event == null:
@@ -212,7 +212,7 @@ func select_event(event: ChartEvent, frame_index: int = -1, switch_tab: bool = t
 	if editor == null:
 		return
 	if event is OverlayEvent:
-		_active_overlay_layer = maxi(0, (event as OverlayEvent).layer)
+		_active_overlay_layer = maxi(0, (event as OverlayEvent).x)
 		_overlay_layer_count = maxi(_overlay_layer_count, _active_overlay_layer + 1)
 	var frames := get_frames(event)
 	var safe_index := frame_index
@@ -468,7 +468,7 @@ func refresh_inspector() -> void:
 	if not event is SkinEvent:
 		_add_number_row("Duration", event.duration, 0.0, editor.timeline.get_max_time(), 1.0, _on_event_duration_changed.bind(event))
 	if event is OverlayEvent:
-		_add_number_row("Layer", (event as OverlayEvent).layer, 0.0, 1000.0, 1.0, _on_overlay_layer_changed.bind(event as OverlayEvent))
+		_add_number_row("Layer", (event as OverlayEvent).x, 0.0, 1000.0, 1.0, _on_overlay_layer_changed.bind(event as OverlayEvent))
 		_add_overlay_anchor_row((event as OverlayEvent).anchor, _on_overlay_anchor_changed.bind(event as OverlayEvent))
 
 	if event is SkinEvent:
@@ -692,7 +692,7 @@ func _on_selection_changed() -> void:
 		_selected_frames.clear()
 		_selected_frames.append(SelectedFrame.new(event, frame))
 	if event is OverlayEvent:
-		_active_overlay_layer = maxi(0, (event as OverlayEvent).layer)
+		_active_overlay_layer = maxi(0, (event as OverlayEvent).x)
 		_overlay_layer_count = maxi(_overlay_layer_count, _active_overlay_layer + 1)
 	refresh_inspector()
 	refresh_timeline()
@@ -818,10 +818,10 @@ func _on_overlay_anchor_changed(value: String, event: OverlayEvent) -> void:
 
 func _on_overlay_layer_changed(value: float, event: OverlayEvent) -> void:
 	var next_value := maxi(0, int(round(value)))
-	if _syncing or event.layer == next_value:
+	if _syncing or event.x == next_value:
 		return
 	editor._push_history_snapshot()
-	event.layer = next_value
+	event.x = next_value
 	_active_overlay_layer = next_value
 	_overlay_layer_count = maxi(_overlay_layer_count, next_value + 1)
 	if timeline_view != null:
@@ -927,6 +927,6 @@ func _sync_overlay_layers_from_events() -> void:
 	var required_layers := 1
 	for event in get_events():
 		if event is OverlayEvent:
-			required_layers = maxi(required_layers, maxi(0, (event as OverlayEvent).layer) + 1)
+			required_layers = maxi(required_layers, maxi(0, (event as OverlayEvent).x) + 1)
 	_overlay_layer_count = maxi(_overlay_layer_count, required_layers)
 	_active_overlay_layer = mini(_active_overlay_layer, _overlay_layer_count - 1)

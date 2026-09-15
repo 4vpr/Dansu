@@ -25,15 +25,14 @@ click_player = NodePath("click")
 [node name="Pivot" type="Control" parent="." unique_id=1867853219]
 layout_mode = 1
 anchor_left = 0.5
-anchor_top = 0.37500003
+anchor_top = 0.5
 anchor_right = 0.5
-anchor_bottom = 0.37500003
-offset_top = 7.999998
-offset_bottom = 7.999998
+anchor_bottom = 0.5
 offset_transform_enabled = true
 
 [node name="Background" type="ColorRect" parent="Pivot" unique_id=1024784731]
 modulate = Color(1, 1, 1, 0)
+texture_filter = 6
 layout_mode = 0
 offset_left = -128.0
 offset_top = -30.0
@@ -64,8 +63,8 @@ theme_override_styles/disabled_mirrored = ExtResource("3_b8tx0")
 theme_override_styles/focus = ExtResource("3_b8tx0")
 text = "PLAY"
 alignment = 0
-text_overrun_behavior = 3
-clip_text = true
+text_overrun_behavior = 0
+clip_text = false
 script = SubResource("GDScript_da4vi")
 
 [node name="Icon" type="Sprite2D" parent="Pivot" unique_id=453830182]

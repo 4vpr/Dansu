@@ -18,6 +18,7 @@ var total := 0
 var status := ""
 var filters: Dictionary = SongFilters.defaults(true)
 var search_text := ""
+var playlist_id := 0
 var _list: HTTPRequest
 var _audio: HTTPRequest
 var _detail_cover: HTTPRequest
@@ -29,6 +30,7 @@ var _generation := 0
 var _preview_generation := 0
 var _detail_cover_generation := 0
 var _preview_id := -1
+var _preview_loop := MenuPreviewLoop.new()
 var _cover_queue: Array[ChartSet] = []
 var _cover_requests: Array[HTTPRequest] = []
 var _archive_path := ""
@@ -37,6 +39,7 @@ var _redirects := 0
 var _installer_thread: Thread
 var _automatic_update := false
 var _pending_play := false
+var _pending_autoplay := false
 var _progress_time := 0.0
 var _results: Array[ChartSet] = []
 var _seen_chartsets: Dictionary = {}
@@ -86,7 +89,7 @@ func set_search(value: String) -> void:
 	_list = null
 	loading = true
 	loading_more = false
-	status = "Searching…"
+	status = ""
 	_clear_results()
 	state_changed.emit()
 	search_debounce.start()
@@ -94,6 +97,12 @@ func set_search(value: String) -> void:
 func set_filters(value: Dictionary) -> void:
 	filters = value.duplicate(true)
 	page = 1
+	refresh()
+
+
+func set_playlist(id: int) -> void:
+	playlist_id = id
+	_has_result_snapshot = false
 	refresh()
 
 func load_next_page() -> void:
@@ -109,8 +118,6 @@ func refresh() -> void:
 	_generation += 1
 	_cancel(_list)
 	_clear_covers()
-	_cancel_detail_cover()
-	stop_preview()
 	loading = true
 	loading_more = false
 	_clear_results()
@@ -124,13 +131,15 @@ func refresh() -> void:
 func _request_page(append: bool) -> void:
 	loading = true
 	loading_more = append
-	status = "Loading more songs…" if append else "Loading songs…"
+	status = ""
 	state_changed.emit()
 	var query := filters.duplicate()
 	query.merge({"q": search_text, "p": page, "limit": 20, "origin": "community"}, true)
+	if playlist_id > 0:
+		query["playlist_id"] = playlist_id
 	_list = _request_node(4 * 1024 * 1024)
 	_list.request_completed.connect(_on_list.bind(_generation, append))
-	var headers := Auth.authorization_headers() if filters.has("played") else PackedStringArray()
+	var headers := Auth.authorization_headers() if filters.has("played") or playlist_id > 0 else PackedStringArray()
 	if _list.request(_api_url("/chartset/?") + ServerURLs.query(query), headers) != OK:
 		_list_failed("Could not start the search. Retry.")
 
@@ -284,7 +293,7 @@ func _on_selected(chart: Chart) -> void:
 	_request_detail_cover(chart)
 	var metadata := chart.chart_set.online_metadata
 	var id := int(metadata.get("id", -1))
-	if id == _preview_id and (preview_player.playing or is_instance_valid(_audio)):
+	if id == _preview_id and (preview_player.playing or _preview_loop.is_waiting() or is_instance_valid(_audio)):
 		return
 	stop_preview()
 	_preview_id = id
@@ -358,9 +367,10 @@ func _on_audio(result: int, code: int, _headers: PackedStringArray, bytes: Packe
 	preview_player.stream = stream
 	preview_player.volume_db = -30
 	preview_player.play()
-	create_tween().tween_property(preview_player, "volume_db", 0.0, 0.2)
+	_preview_loop.arm(preview_player, true)
 
 func stop_preview() -> void:
+	_preview_loop.cancel()
 	_preview_generation += 1
 	_preview_id = -1
 	_cancel(_audio)
@@ -436,9 +446,10 @@ func revision_update_available(remote_chartset: ChartSet) -> bool:
 				return true
 	return false
 
-func activate_selection() -> void:
+func activate_selection(autoplay: bool = false) -> void:
 	if not active or (loading and not loading_more) or downloading or CM.selected_chart == null:
 		return
+	_pending_autoplay = autoplay
 	if is_installed(CM.selected_chartset):
 		_play_cached_selection()
 		return
@@ -504,6 +515,8 @@ func _on_download(result: int, code: int, headers: PackedStringArray, _body: Pac
 	state_changed.emit()
 
 func _process(delta: float) -> void:
+	if active:
+		_preview_loop.update(delta)
 	if _installer_thread != null and not _installer_thread.is_alive():
 		var result: Dictionary = _installer_thread.wait_to_finish()
 		_installer_thread = null
@@ -545,14 +558,22 @@ func _play_cached_selection() -> void:
 	if local == null:
 		message.emit("The cached chart is unavailable. Download it again.")
 		return
+	# Menu previews belong to the remote chart; gameplay uses the cached chart.
+	if remote.cover_image != null:
+		local.cover_image = remote.cover_image
+	if remote.detail_cover_image != null:
+		local.detail_cover_image = remote.detail_cover_image
 	stop_preview()
 	CommunityChartCache.touch(local.chart_set)
 	ChartPackageInstaller.prune_cache(local.chart_set.folder_name)
 	CM.select_chartset(local.chart_set)
 	CM.select_chart(local)
-	Game.play_selected_chart()
+	var autoplay := _pending_autoplay
+	_pending_autoplay = false
+	Game.play_selected_chart(autoplay)
 
 func _download_failed(text: String) -> void:
+	_pending_autoplay = false
 	_cancel(_download)
 	_download = null
 	downloading = false
@@ -565,7 +586,11 @@ func _download_failed(text: String) -> void:
 func _on_auth_changed() -> void:
 	if not is_inside_tree():
 		return
-	if active and filters.has("played"):
+	var had_playlist := playlist_id > 0
+	if not Auth.is_authenticated():
+		playlist_id = 0
+		_has_result_snapshot = false
+	if active and (filters.has("played") or had_playlist):
 		refresh()
 	if active and CM.selected_chartset != null:
 		_check_loved(CM.selected_chartset)
@@ -587,6 +612,7 @@ func toggle_loved() -> void:
 		method
 	) != OK:
 		_cancel_loved_request()
+		Notification.notice("Could not update Loved.", Notification.Type.WARNING)
 		loved_state_changed.emit(_selected_loved, false)
 		return
 	loved_state_changed.emit(_selected_loved, true)
@@ -641,7 +667,6 @@ func _on_loved_toggled(
 	_cancel_loved_request()
 	if result == HTTPRequest.RESULT_SUCCESS and code == 204:
 		_selected_loved = not _selected_loved
-		Notification.notice("Added to Loved." if _selected_loved else "Removed from Loved.")
 	elif CM.selected_chartset != null and int(CM.selected_chartset.online_metadata.get("id", 0)) == chartset_id:
 		Notification.notice("Could not update Loved.", Notification.Type.WARNING)
 	loved_state_changed.emit(_selected_loved, false)

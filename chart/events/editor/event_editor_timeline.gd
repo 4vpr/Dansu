@@ -158,7 +158,7 @@ func _draw_events() -> void:
 			if center_x >= LABEL_WIDTH and center_x <= size.x:
 				draw_line(Vector2(center_x, clipped_rect.position.y - 3.0), Vector2(center_x, clipped_rect.end.y + 3.0), color, 2.0)
 		else:
-			var clip_label := "L%d · %s" % [(event as OverlayEvent).layer, event.id] if event is OverlayEvent else event.id
+			var clip_label := "L%d · %s" % [(event as OverlayEvent).x, event.id] if event is OverlayEvent else event.id
 			draw_string(font, Vector2(clipped_rect.position.x + 6.0, clipped_rect.position.y + 20.0), clip_label, HORIZONTAL_ALIGNMENT_LEFT, maxf(0.0, clipped_rect.size.x - 12.0), font_size - 2, Color("0a1118"))
 		_draw_event_frames(event, lane, color)
 

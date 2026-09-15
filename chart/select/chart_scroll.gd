@@ -64,7 +64,7 @@ func _init_charts() -> void:
 	rebuild_items()
 
 
-func rebuild_items() -> void:
+func rebuild_items(preserve_selection: bool = false) -> void:
 	var previous_chart := CM.selected_chart
 	var previous_chartset := CM.selected_chartset
 
@@ -75,7 +75,8 @@ func rebuild_items() -> void:
 	if selected_index == -1 and data_count > 0:
 		selected_index = 0
 
-	_apply_selection_from_index(selected_index, previous_chart)
+	if not preserve_selection or previous_chart == null:
+		_apply_selection_from_index(selected_index, previous_chart)
 	_center_on_index(selected_index)
 	_apply_all()
 	_queue_visible_cover_requests()
@@ -98,10 +99,12 @@ func _on_chart_update(_chartsets) -> void:
 
 func set_search_text(value: String) -> void:
 	search_text = value
-	rebuild_items()
+	rebuild_items(true)
 
 
 func set_online_mode(enabled: bool) -> void:
+	if online_mode == enabled:
+		return
 	online_mode = enabled
 	_load_more_requested_for_count = -1
 	single_chart_mode_changed.emit(is_single_chart_mode())
@@ -116,7 +119,7 @@ func set_online_results(chartsets: Array[ChartSet]) -> void:
 			_refresh_online_items_preserving_scroll()
 		else:
 			_load_more_requested_for_count = -1
-			rebuild_items()
+			rebuild_items(true)
 
 func _is_online_append(chartsets: Array[ChartSet]) -> bool:
 	if online_chartsets.is_empty() or chartsets.size() < online_chartsets.size():
@@ -145,7 +148,7 @@ func set_sort_mode(value: int) -> void:
 	var single_chart_mode := is_single_chart_mode()
 	if single_chart_mode != was_single_chart_mode:
 		single_chart_mode_changed.emit(single_chart_mode)
-	rebuild_items()
+	rebuild_items(true)
 
 
 func set_editor_mode(enabled: bool) -> void:
@@ -285,8 +288,11 @@ func _collect_visible_cover_charts() -> Array[Chart]:
 	)
 
 	var charts: Array[Chart] = []
+	if selected_chart != null:
+		charts.append(selected_chart)
 	for entry in entries:
-		charts.append(entry["chart"])
+		if not charts.has(entry["chart"]):
+			charts.append(entry["chart"])
 	return charts
 
 
@@ -428,6 +434,10 @@ func _find_best_selection_index(previous_chart: Chart, previous_chartset: ChartS
 			var item := visible_items[i]
 			if item.primary_chart == previous_chart or item.charts.has(previous_chart):
 				return i
+			if online_mode and previous_chartset != null and item.chartset.uuid == previous_chartset.uuid:
+				for chart in item.charts:
+					if not chart.uuid.is_empty() and chart.uuid == previous_chart.uuid:
+						return i
 
 	if previous_chartset != null:
 		for i in range(visible_items.size()):

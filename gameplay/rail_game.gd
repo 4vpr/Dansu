@@ -30,6 +30,9 @@ class RailMeshCacheEntry:
 
 static var _mesh_cache: Array[RailMeshCacheEntry] = []
 
+static func clear_mesh_cache() -> void:
+	_mesh_cache.clear()
+
 var rail: Rail
 
 @export var note_container: Node3D

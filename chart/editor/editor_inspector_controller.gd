@@ -6,6 +6,7 @@ const CREATE_NEW_SKIN_ID := 1000000
 @export var editor: ChartEditor
 @export var title_line_edit: LineEdit
 @export var artist_line_edit: LineEdit
+@export var creator_line_edit: LineEdit
 @export var difficulty_line_edit: LineEdit
 @export var source_line_edit: LineEdit
 @export var tags_line_edit: LineEdit
@@ -57,6 +58,7 @@ func refresh_metadata_fields() -> void:
 	_syncing_metadata = true
 	title_line_edit.text = editor.chart.title
 	artist_line_edit.text = editor.chart.artist
+	creator_line_edit.text = editor.chart.creator
 	difficulty_line_edit.text = editor.chart.difficulty
 	source_line_edit.text = editor.chart.source
 	tags_line_edit.text = editor.chart.tags
@@ -154,6 +156,10 @@ func on_difficulty_changed(new_text: String) -> void:
 	else:
 		editor.chart.difficulty = new_text.strip_edges()
 	editor._update_save_button_state()
+
+func on_creator_changed(new_text: String) -> void:
+	if not _syncing_metadata and editor != null and editor.chart != null:
+		editor.chart.creator = new_text
 
 func on_source_changed(new_text: String) -> void:
 	if not _syncing_metadata and editor != null and editor.chart != null:

@@ -3,7 +3,7 @@ extends Node
 enum Type {NOTICE, WARNING, ERROR}
 
 const MAX_VISIBLE := 5
-const DISPLAY_SECONDS := 4.0
+const DISPLAY_SECONDS := 2.5
 const STACK_WIDTH := 680.0
 const STACK_BOTTOM := 22.0
 const ITEM_MIN_HEIGHT := 58.0

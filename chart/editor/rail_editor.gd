@@ -36,6 +36,7 @@ func sync_layout(panel_size: Vector2, judge_y: float, pixels_per_ms: float, curr
 		visible = should_be_visible
 		layout_changed = true
 	if not should_be_visible:
+		_sampled_points.clear()
 		_rail_geometry_signature = geometry_signature
 		return
 
@@ -50,11 +51,13 @@ func sync_layout(panel_size: Vector2, judge_y: float, pixels_per_ms: float, curr
 		size = panel_size
 		layout_changed = true
 	if layout_changed or geometry_changed:
+		_sampled_points = _sample_curve()
 		_update_point_handles()
 		queue_redraw()
 
 func set_selection_state(is_selected: bool, selected_point_index: int) -> void:
 	if _selected == is_selected and _selected_point_index == selected_point_index:
+		_update_point_handles()
 		return
 	_selected = is_selected
 	_selected_point_index = selected_point_index
@@ -69,6 +72,8 @@ func set_point_handles_dimmed(is_dimmed: bool) -> void:
 	_update_point_handles()
 
 func distance_to_curve(global_mouse_position: Vector2) -> float:
+	if not visible:
+		return INF
 	if _sampled_points.size() < 2 and rail != null and rail.points.size() >= 2:
 		_sampled_points = _sample_curve()
 	if _sampled_points.size() < 2:
@@ -104,7 +109,6 @@ func _draw() -> void:
 	if rail == null or rail.points.size() < 2:
 		return
 
-	_sampled_points = _sample_curve()
 	if _sampled_points.size() < 2:
 		return
 
@@ -168,7 +172,7 @@ func _update_point_handles() -> void:
 		var point_position := _point_to_panel(point)
 		handle.position = point_position - handle.size * 0.5
 		handle.visible = true
-		var point_color := Color("ffd166") if _selected and index == _selected_point_index \
+		var point_color := Color("ffd166") if editor != null and editor.selection.selected_points.has(point) \
 			else Color(1, 1, 1, 0.9)
 		if _point_handles_dimmed:
 			point_color.a *= POINT_DIM_ALPHA

@@ -19,9 +19,11 @@ const NORMAL_SCALE := Vector2.ONE
 const SELECTED_SCALE := Vector2(1.05, 1.05)
 const HOVER_SCALE := Vector2(1.1, 1.1)
 const CLICK_SCALE := Vector2(0.96, 0.96)
+const THUMB_FADE_DURATION := 0.5
 
 var hover_tween: Tween
 var click_tween: Tween
+var thumb_tween: Tween
 
 var item: SongListItem = null
 var chartset: ChartSet = null
@@ -95,6 +97,7 @@ func set_item(value: SongListItem) -> void:
 		charts.clear()
 		primary_chart = null
 		current_cover_chart = null
+		_set_thumb(null)
 		_set_hovered_state(false)
 		_clear_rating_displays()
 		visible = false
@@ -119,11 +122,10 @@ func _refresh() -> void:
 	if current_cover_chart != null:
 		if current_cover_chart.cover_image != null:
 			new_texture = current_cover_chart.cover_image
-		else:
-			CoverLoader.request_cover(current_cover_chart)
 
-	if thumb.texture != new_texture:
-		thumb.texture = new_texture
+	_set_thumb(new_texture)
+	if current_cover_chart != null and new_texture == null:
+		CoverLoader.request_cover(current_cover_chart)
 
 	if primary_chart != null:
 		title_label.text = primary_chart.title
@@ -147,6 +149,11 @@ func _refresh() -> void:
 
 func check_is_selected():
 	selected = charts.has(CM.selected_chart)
+	if not selected and CM.selected_chart != null and chartset != null and not chartset.online_metadata.is_empty():
+		for chart in charts:
+			if not chart.uuid.is_empty() and chart.uuid == CM.selected_chart.uuid:
+				selected = true
+				break
 	var brightness := SELECTED_BRIGHTNESS if selected else NORMAL_BRIGHTNESS
 	panel.self_modulate = Color(brightness, brightness, brightness, 1)
 	if not hovered:
@@ -163,14 +170,28 @@ func _on_cover_loaded(chart: Chart, texture: Texture2D) -> void:
 	if chart != current_cover_chart:
 		return
 	
-	if thumb.texture != texture:
-		thumb.texture = texture
+	_set_thumb(texture, true)
 
 func _on_cover_failed(chart: Chart) -> void:
 	if chart != current_cover_chart:
 		return
 
-	thumb.texture = null
+	_set_thumb(null)
+
+func _set_thumb(texture: Texture2D, fade_in: bool = false) -> void:
+	# List rows are recycled, and refreshes can repeat while the image is fading.
+	if texture != null and thumb.texture == texture:
+		return
+	if thumb_tween != null:
+		thumb_tween.kill()
+		thumb_tween = null
+	thumb.texture = texture
+	thumb.self_modulate.a = 0.0 if texture == null or fade_in else 1.0
+	if texture == null or not fade_in:
+		return
+	thumb_tween = create_tween()
+	thumb_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	thumb_tween.tween_property(thumb, "self_modulate:a", 1.0, THUMB_FADE_DURATION)
 
 func _pressed() -> void:
 	_play_click_animation()

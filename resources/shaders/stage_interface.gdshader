@@ -4,9 +4,10 @@ render_mode unshaded, cull_disabled, blend_mix, depth_prepass_alpha;
 uniform vec4 floor_color : source_color;
 uniform vec4 guide_color : source_color;
 uniform vec4 accent_color : source_color;
-uniform float line_opacity : hint_range(0.0, 1.0) = 0.74;
-uniform float floor_opacity : hint_range(0.0, 1.0) = 0.34;
-uniform float volume_alpha_boost : hint_range(0.0, 1.0) = 0.78;
+uniform vec4 detail_color : source_color;
+uniform float line_opacity : hint_range(0.0, 1.0) = 0.58;
+uniform float floor_opacity : hint_range(0.0, 1.0) = 0.10;
+uniform float volume_alpha_boost : hint_range(0.0, 1.0) = 0.34;
 uniform float scroll_offset = 0.0;
 uniform float low_energy : hint_range(0.0, 1.0) = 0.0;
 uniform float mid_energy : hint_range(0.0, 1.0) = 0.0;
@@ -44,22 +45,26 @@ void fragment() {
 	float side_visibility = smoothstep(5.8, 8.8, abs_x);
 
 	float broad_tone = smoothstep(-48.0, 5.0, p.y);
-	vec3 color = floor_color.rgb * mix(0.72, 1.02, broad_tone);
+	vec3 dark_base = floor_color.rgb * mix(0.055, 0.14, broad_tone);
+	vec3 color = dark_base;
 	float rail_corridor = 1.0 - smoothstep(6.0, 9.5, abs_x);
-	color *= 1.0 - rail_corridor * 0.075;
+	color *= 1.0 - rail_corridor * 0.18;
 	float pulse_response = volume_level;
-	color += accent_color.rgb * pulse_response * 0.030 * depth_visibility;
+	float peak_response = smoothstep(0.72, 1.0, pulse_response);
+	vec3 audio_color = mix(guide_color.rgb, accent_color.rgb, 0.22 + mid_energy * 0.28 + high_energy * 0.22);
+	vec3 glow_color = mix(audio_color, vec3(1.0), high_energy * 0.075 + peak_response * 0.16);
+	color += glow_color * pulse_response * 0.052 * depth_visibility;
 
 	float longitudinal_major = repeated_line(p.x, 2.5, 0.018);
 	float longitudinal_minor = repeated_line(p.x + 1.25, 2.5, 0.007);
 	float cross_major = repeated_line(moving_z, 5.5, 0.030);
 	float cross_minor = repeated_line(moving_z, 1.375, 0.006);
 
-	float center_quiet = mix(0.34, 1.0, side_visibility);
-	float grid = longitudinal_major * 0.055 * center_quiet;
-	grid += longitudinal_minor * 0.010 * center_quiet;
-	grid += cross_major * 0.115 * center_quiet;
-	grid += cross_minor * (0.010 + high_energy * 0.010) * center_quiet;
+	float center_quiet = mix(0.78, 1.0, side_visibility);
+	float grid = longitudinal_major * 0.135 * center_quiet;
+	grid += longitudinal_minor * 0.030 * center_quiet;
+	grid += cross_major * 0.240 * center_quiet;
+	grid += cross_minor * 0.040 * center_quiet;
 	grid *= depth_visibility;
 
 	float guide_band = smoothstep(7.1, 7.5, abs_x) * (1.0 - smoothstep(9.0, 9.4, abs_x));
@@ -79,18 +84,22 @@ void fragment() {
 	float panel_band = smoothstep(10.0, 10.3, abs_x) * (1.0 - smoothstep(11.45, 11.75, abs_x));
 	panel *= panel_selector * panel_band * depth_visibility;
 
-	vec3 guide_mix = mix(guide_color.rgb, accent_color.rgb, 0.065 + mid_energy * 0.10);
-	color = mix(color, guide_mix, clamp(grid * line_opacity, 0.0, 0.22));
-	color += guide_mix * ticks * line_opacity * (0.055 + mid_energy * 0.055);
-	color += accent_color.rgb * dots * line_opacity * 0.085;
-	color += guide_color.rgb * panel * line_opacity * 0.032;
-	float feature_alpha = grid * 2.2;
+	vec3 guide_mix = mix(guide_color.rgb, glow_color, 0.26 + pulse_response * 0.44);
+	vec3 grid_color = detail_color.rgb;
+	color = mix(color, grid_color, clamp(grid * line_opacity * 1.16, 0.0, 0.26));
+	color += guide_mix * ticks * line_opacity * (0.010 + mid_energy * 0.082 + peak_response * 0.036);
+	color += glow_color * dots * line_opacity * (0.018 + high_energy * 0.140);
+	color += audio_color * panel * line_opacity * (0.004 + pulse_response * 0.020);
+	float feature_alpha = grid * 3.8;
 	feature_alpha += ticks * 0.10 + dots * 0.14 + panel * 0.07;
-	feature_alpha = clamp(feature_alpha * line_opacity, 0.0, 0.30);
-	float surface_alpha = floor_opacity * mix(0.58, 1.0, broad_tone);
-	float pulse_alpha = pulse_response * depth_visibility * volume_alpha_boost;
+	feature_alpha = clamp(feature_alpha * line_opacity, 0.0, 0.24);
+	float surface_alpha = floor_opacity * mix(0.18, 0.42, broad_tone);
+	float pulse_alpha = pulse_response * depth_visibility * volume_alpha_boost * 0.78;
 
 	ALBEDO = color;
-	EMISSION = accent_color.rgb * line_opacity * (grid * pulse_response * 0.045 + ticks * mid_energy * 0.026 + dots * high_energy * 0.032);
-	ALPHA = clamp(surface_alpha + feature_alpha + pulse_alpha, 0.0, 0.995);
+	EMISSION = grid_color * line_opacity * grid * 0.22 + glow_color * line_opacity * (
+		ticks * (mid_energy * 0.070 + peak_response * 0.050) +
+		dots * (high_energy * 0.085 + peak_response * 0.060)
+	);
+	ALPHA = clamp(surface_alpha + feature_alpha + pulse_alpha, 0.0, 0.72);
 }

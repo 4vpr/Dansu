@@ -4,8 +4,6 @@ class_name MenuBigButton
 
 signal activated()
 
-const BASE_FONT_SIZE := 48
-const MIN_FONT_SIZE := 28
 const TEXT_SIDE_SPACE := 70.0
 
 @export var bg_color : Color = Color("705bde")
@@ -46,12 +44,12 @@ func _ready() -> void:
 	pivot.offset_transform_enabled = true
 	background.offset_transform_enabled = true
 	background.offset_transform_pivot_ratio = Vector2(0.0, 0.5)
-	resized.connect(_update_button)
 
-	background.size = Vector2.ZERO
 	background.scale = Vector2.ONE
 	background.offset_transform_scale = Vector2.ZERO
 	background.modulate.a = 0.0
+	button.theme_changed.connect(_update_background_size)
+	button.resized.connect(_update_background_size)
 	_update_button()
 
 	if not Engine.is_editor_hint():
@@ -92,27 +90,18 @@ func _update_button() -> void:
 		return
 
 	button.text = button_text
-	button.clip_text = true
-	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	button.clip_text = false
+	button.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	_update_background_size()
 
-	var available_width := maxf(size.x, 1.0)
-	var half_width := available_width * 0.5
+
+func _update_background_size() -> void:
+	if not is_node_ready():
+		return
 	var font := button.get_theme_font("font")
-	var text_width := font.get_string_size(button_text, HORIZONTAL_ALIGNMENT_LEFT, -1, BASE_FONT_SIZE).x
-	var available_text_width := maxf(available_width - TEXT_SIDE_SPACE, 1.0)
-	var fitted_font_size := BASE_FONT_SIZE
-	if text_width > available_text_width:
-		fitted_font_size = maxi(int(floor(BASE_FONT_SIZE * available_text_width / text_width)), MIN_FONT_SIZE)
-	button.add_theme_font_size_override("font_size", fitted_font_size)
-	button.position.x = -half_width
-	button.size.x = available_width
-	icon.position.x = -half_width + 24.0
-
-	var fitted_text_width := font.get_string_size(button_text, HORIZONTAL_ALIGNMENT_LEFT, -1, fitted_font_size).x
-	background.position.x = -half_width
-	background.size.x = minf(fitted_text_width + TEXT_SIDE_SPACE, available_width)
-	background.size.y = button.get_combined_minimum_size().y + 10
-	background.offset_transform_scale = Vector2.ZERO
+	var font_size := button.get_theme_font_size("font_size")
+	var text_width := font.get_string_size(button_text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	background.size = Vector2(text_width + TEXT_SIDE_SPACE, button.get_combined_minimum_size().y + 10.0)
 
 
 func _hover_enter() -> void:

@@ -176,7 +176,7 @@ func _refresh_best_play(chart: Chart) -> void:
 	full_combo_label.visible = false
 	all_just_label.visible = false
 	perfect_label.visible = false
-	never_played_label.visible = chart != null and not has_record
+	# never_played_label.visible = chart != null and not has_record
 
 	if not has_record:
 		return
@@ -396,10 +396,6 @@ func _build_desc_text(chart: Chart) -> String:
 		parts.append(timing_text)
 	if not difficulty_text.is_empty():
 		parts.append(difficulty_text)
-	if chart.rating > 0.0:
-		parts.append("%.1f★" % chart.rating)
-	if not chart.source.is_empty() and chart.source != "":
-		parts.append(chart.source)
 
 	return "      ".join(parts)
 

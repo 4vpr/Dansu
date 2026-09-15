@@ -5,6 +5,40 @@ const DEFAULT_RAIL_DURATION := 1250
 const DEFAULT_RAIL_X := 0.5
 const RAIL_MOVE_STEP := 0.01
 
+# Resolve the whole move before mutating any rail, including occupied destinations.
+static func plan_note_rail_move(rails: Array[Rail], notes: Dictionary, direction: int) -> Dictionary:
+	if notes.is_empty() or absi(direction) != 1:
+		return {}
+	var anchor_time: int = notes.keys()[0].time
+	for note: Note in notes:
+		anchor_time = mini(anchor_time, note.time)
+	var ordered: Array[Rail] = []
+	for rail: Rail in rails:
+		if rail != null and (is_note_time_inside_rail(rail, anchor_time) or notes.values().has(rail)):
+			ordered.append(rail)
+	ordered.sort_custom(func(a: Rail, b: Rail) -> bool:
+		var ax := a._get_rail_x_at_time(anchor_time)
+		var bx := b._get_rail_x_at_time(anchor_time)
+		return a.id < b.id if is_equal_approx(ax, bx) else ax < bx
+	)
+	var moves: Dictionary = {}
+	for note: Note in notes:
+		var source: Rail = notes[note]
+		var index := ordered.find(source)
+		var next := index + direction
+		if index < 0 or next < 0 or next >= ordered.size() or not source.notes.has(note):
+			return {}
+		var target := ordered[next]
+		if not is_note_time_inside_rail(target, note.time) or note.end_time > target.end_time:
+			return {}
+		for other: Note in target.notes:
+			if notes.has(other):
+				continue
+			if absi(other.time - note.time) <= 1 or (note.time < other.end_time and other.time < note.end_time):
+				return {}
+		moves[note] = target
+	return moves
+
 
 static func discard_editor_difficulty(chart: Chart, saved_file_path: String) -> Error:
 	if chart == null:
@@ -363,6 +397,7 @@ static func save_chart(chart: Chart, previous_file_path: String) -> bool:
 		chart.chart_set = CM.selected_chartset
 	if chart.chart_set == null:
 		return false
+	var previous_folder_path := chart.folder_path
 	if chart.chart_set.db_id <= 0 and chart.chart_set.charts.is_empty():
 		chart.chart_set.folder_name = CM.make_unique_editor_chartset_folder_name(chart.title.strip_edges())
 		chart.folder_name = chart.chart_set.folder_name
@@ -374,6 +409,7 @@ static func save_chart(chart: Chart, previous_file_path: String) -> bool:
 		Notification.notice("difficulty cannot be used as a file name", Notification.Type.WARNING)
 		return false
 	chart.file_name = safe_difficulty + Config.FILE_EXTENSION
+	_preserve_unsaved_chartset_folder(previous_folder_path, chart.folder_path)
 	FileSystem.ensure_dir(chart.folder_path)
 
 	if CM.parsed_chart == null:
@@ -388,6 +424,24 @@ static func save_chart(chart: Chart, previous_file_path: String) -> bool:
 		success = CM.register_saved_editor_chart(chart)
 	return success
 
+static func _preserve_unsaved_chartset_folder(previous_folder_path: String, target_folder_path: String) -> void:
+	var previous_absolute := ProjectSettings.globalize_path(previous_folder_path).simplify_path()
+	var target_absolute := ProjectSettings.globalize_path(target_folder_path).simplify_path()
+	if previous_absolute.is_empty() or target_absolute.is_empty() or previous_absolute == target_absolute:
+		return
+	if not DirAccess.dir_exists_absolute(previous_absolute) or DirAccess.dir_exists_absolute(target_absolute):
+		return
+	var rename_error := DirAccess.rename_absolute(previous_absolute, target_absolute)
+	if rename_error != OK:
+		push_warning("Failed to move unsaved chartset folder: %s -> %s" % [previous_absolute, target_absolute])
+
+static func _default_creator() -> String:
+	if Auth.is_authenticated():
+		var username = Auth.user.get("username", "")
+		if username is String and not username.strip_edges().is_empty():
+			return username.strip_edges()
+	return "unkown"
+
 static func prepare_new_chartset_chart() -> Chart:
 	var chart_set := ChartSet.new()
 	chart_set.build_uuid()
@@ -398,6 +452,7 @@ static func prepare_new_chartset_chart() -> Chart:
 	chart.storage_root = FileSystem.editor_chart_path
 	chart.chart_set = chart_set
 	chart.folder_name = chart_set.folder_name
+	chart.creator = _default_creator()
 
 	CM.parsed_chart = ParsedChart.new(chart)
 	CM.select_chartset(chart_set)
@@ -421,6 +476,7 @@ static func prepare_new_difficulty_chart() -> Chart:
 	chart.chart_set = chart_set
 	chart.folder_name = chart_set.folder_name
 	chart.copy_shared_metadata_from(source_chart)
+	chart.creator = _default_creator()
 	chart.rating = 0.0
 
 	CM.parsed_chart = ParsedChart.new(chart)

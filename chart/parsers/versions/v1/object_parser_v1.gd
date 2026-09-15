@@ -86,11 +86,8 @@ func _parse_event_line(line: String, current_event: ChartEvent, parsed_chart: Pa
 	return current_event
 
 func _parse_camera_event(line: String) -> CameraEvent:
-	var values := _parse_clip_header(line, "camera:")
-	if values.is_empty():
-		return null
 	var event := CameraEvent.new()
-	_assign_clip_header(event, values)
+	event.id = line.trim_prefix("camera:").strip_edges()
 	return event
 
 func _parse_overlay_event(line: String) -> OverlayEvent:
@@ -103,10 +100,10 @@ func _parse_overlay_event(line: String) -> OverlayEvent:
 	for index in range(3, parts.size()):
 		var token := _parse_optional_token(parts[index])
 		match String(token.get("key", "")):
-			"l":
+			"x":
 				var layer_text := String(token.get("value", ""))
 				if layer_text.is_valid_int():
-					event.layer = maxi(0, int(layer_text))
+					event.x = clampi(int(layer_text), 0, 9)
 			"a":
 				var anchor := String(token.get("value", ""))
 				if OverlayEventFrame.is_valid_anchor(anchor):
@@ -116,11 +113,8 @@ func _parse_overlay_event(line: String) -> OverlayEvent:
 	return event
 
 func _parse_theme_event(line: String) -> ThemeEvent:
-	var values := _parse_clip_header(line, "theme:")
-	if values.is_empty():
-		return null
 	var event := ThemeEvent.new()
-	_assign_clip_header(event, values)
+	event.id = line.trim_prefix("theme:").strip_edges()
 	return event
 
 func _parse_skin_event(line: String) -> SkinEvent:

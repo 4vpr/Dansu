@@ -33,7 +33,7 @@ class OverlayInteraction:
 	func is_empty() -> bool:
 		return kind.is_empty() or overlay == null
 
-@export var event_editor: EventEditor
+@export var event_editor: Node
 
 var _texture_cache_paths: Array[String] = []
 var _texture_cache_values: Array[Texture2D] = []
@@ -65,7 +65,7 @@ func _ready() -> void:
 
 func _draw() -> void:
 	_drawn_overlays.clear()
-	var chart := event_editor.chart if event_editor != null else null
+	var chart: Chart = event_editor.chart if event_editor != null else null
 	var events: Array[ChartEvent] = []
 	if CM.parsed_chart != null:
 		events = CM.parsed_chart.events
@@ -171,9 +171,9 @@ func _draw_overlays(chart: Chart, events: Array, time_ms: float) -> void:
 		if event is OverlayEvent and time_ms >= event.time and time_ms <= event.end_time:
 			overlays.append(event)
 	overlays.sort_custom(func(a: OverlayEvent, b: OverlayEvent) -> bool:
-		if a.layer == b.layer:
+		if a.x == b.x:
 			return a.time < b.time
-		return a.layer < b.layer
+		return a.x < b.x
 	)
 	for overlay in overlays:
 		var state := ChartEventEvaluator.evaluate_overlay(overlay, time_ms - overlay.time)
@@ -256,7 +256,7 @@ func _overlay_to_screen(overlay_data: OverlayDrawState, local_point: Vector2) ->
 func _is_selected_overlay(overlay_data: OverlayDrawState) -> bool:
 	if event_editor == null or event_editor.selection.selected_event != overlay_data.event:
 		return false
-	var selected_index := event_editor.selection.selected_event_frame_index
+	var selected_index: int = event_editor.selection.selected_event_frame_index
 	return selected_index < 0 or selected_index == overlay_data.frame_index
 
 func _get_overlay_handles(overlay_data: OverlayDrawState) -> Array:
