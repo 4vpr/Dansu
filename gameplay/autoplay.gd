@@ -57,7 +57,6 @@ func setup(rails: Array[Rail], start_time: int = 0, note_order: Dictionary = {})
 					return int(note_order.get(a.note, 0)) < int(note_order.get(b.note, 0))
 				)
 			var target := _required_rail(entries)
-			# Positioning is between scoring events, including long-note tails.
 			var move_time := previous_time + (time - previous_time) / 2
 			if time > previous_time:
 				move_time = maxi(previous_time + 1, move_time)
