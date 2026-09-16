@@ -72,9 +72,9 @@ func _draw() -> void:
 
 	var center_y := size.y * 0.5
 	var note_bounds := EditorChartOps.get_rail_note_time_bounds(rail)
-	if not note_bounds.is_empty():
-		var first_note_x := _time_to_x(int(note_bounds["first"]))
-		var last_note_x := _time_to_x(int(note_bounds["last"]))
+	if note_bounds != null:
+		var first_note_x := _time_to_x(int(note_bounds.first))
+		var last_note_x := _time_to_x(int(note_bounds.last))
 		_draw_note_boundary(first_note_x)
 		if not is_equal_approx(first_note_x, last_note_x):
 			_draw_note_boundary(last_note_x)
@@ -255,8 +255,8 @@ func _build_visual_signature() -> String:
 	for point: RailPoint in rail.points:
 		parts.append(str(point.time))
 	var note_bounds := EditorChartOps.get_rail_note_time_bounds(rail)
-	if not note_bounds.is_empty():
-		parts.append("n%s:%s" % [note_bounds["first"], note_bounds["last"]])
+	if note_bounds != null:
+		parts.append("n%s:%s" % [note_bounds.first, note_bounds.last])
 	return "|".join(parts)
 
 

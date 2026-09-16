@@ -2,12 +2,12 @@ extends Control
 class_name SongFilterPopup
 
 ## Shared modal for local song selection and the online catalogue.
-signal applied(filters: Dictionary)
+signal applied(filters: SongFilters)
 signal visibility_set(blocked: bool)
 
 var _online := false
 var _open := false
-var _saved: Dictionary = {}
+var _saved: SongFilters
 @export_group("Node References")
 @export var _sort: OptionButton
 @export var _status: OptionButton
@@ -29,32 +29,26 @@ var _saved: Dictionary = {}
 @export var reset_button: Button
 @export var cancel_button: Button
 @export var apply_button: Button
-var _fields: Dictionary
+var _fields: Array[LineEdit]
 var _server_rows: Array[Control]
 var _tween: Tween
 var _previous_focus: Control
 
 func _ready() -> void:
-	_fields = {
-		"min_length_ms": min_length,
-		"max_length_ms": max_length,
-		"min_rating": min_rating,
-		"max_rating": max_rating,
-		"max_size_bytes": max_size,
-	}
+	_fields = [min_length, max_length, min_rating, max_rating, max_size]
 	_server_rows = [rank_status_row, content_row, max_download_row]
 	_overlay.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			close_popup()
 	)
 	close_button.pressed.connect(close_popup)
-	reset_button.pressed.connect(func(): _sync(SongFilters.defaults(_online)))
+	reset_button.pressed.connect(func(): _sync(SongFilters.new(_online)))
 	cancel_button.pressed.connect(close_popup)
 	apply_button.pressed.connect(_apply)
 
-func show_popup(online: bool, values: Dictionary, authenticated: bool = false) -> void:
+func show_popup(online: bool, values: SongFilters, authenticated: bool = false) -> void:
 	_online = online
-	_saved = values.duplicate(true)
+	_saved = values.copy()
 	_sort.clear()
 	var options := {"Newest": "newest", "Length": "length", "Farming": "farming", "Popularity": "popularity"} if online else {"Title": "title", "Artist": "artist", "Difficulty": "rating", "Recently played": "recent", "Length": "length"}
 	for caption in options:
@@ -71,42 +65,54 @@ func show_popup(online: bool, values: Dictionary, authenticated: bool = false) -
 	_animate(true)
 	_sort.grab_focus()
 
-func _sync(values: Dictionary) -> void:
+func _sync(values: SongFilters) -> void:
 	for i in range(_sort.item_count):
-		if _sort.get_item_metadata(i) == values.get("sort"):
+		if _sort.get_item_metadata(i) == values.sort:
 			_sort.select(i)
-	_reverse.button_pressed = values.get("reverse", false)
-	_nsfl.button_pressed = values.get("nsfl", false)
-	_status.select(maxi(0, ["", "ranked", "approved", "unranked"].find(values.get("status", ""))))
-	_played.select(0 if not values.has("played") else (1 if values.played else 2))
-	for key in _fields:
-		var divisor := 1000.0 if key.ends_with("_ms") else (1048576.0 if key == "max_size_bytes" else 1.0)
-		_fields[key].text = str(float(values[key]) / divisor) if values.has(key) else ""
+	_reverse.button_pressed = values.reverse
+	_nsfl.button_pressed = values.nsfl
+	_status.select(maxi(0, ["", "ranked", "approved", "unranked"].find(values.status)))
+	_played.select(values.played)
+	min_length.text = _format_bound(values.min_length_ms, 1000.0)
+	max_length.text = _format_bound(values.max_length_ms, 1000.0)
+	min_rating.text = _format_bound(values.min_rating)
+	max_rating.text = _format_bound(values.max_rating)
+	max_size.text = _format_bound(values.max_size_bytes, 1048576.0)
 	_error.text = ""
 
+func _format_bound(value: float, divisor: float = 1.0) -> String:
+	return str(value / divisor) if value >= 0 else ""
+
+func _read_bound(field: LineEdit, multiplier: float = 1.0) -> float:
+	var text_value := field.text.strip_edges()
+	return -1.0 if text_value.is_empty() else float(text_value) * multiplier
+
 func _apply() -> void:
-	var values := {"sort": _sort.get_selected_metadata(), "reverse": _reverse.button_pressed, "nsfl": _nsfl.button_pressed if _online else false}
-	for key in _fields:
-		if not _online and key == "max_size_bytes":
+	for field in _fields:
+		if not _online and field == max_size:
 			continue
-		var text_value: String = _fields[key].text.strip_edges()
-		if text_value.is_empty():
-			continue
-		if not text_value.is_valid_float() or not is_finite(float(text_value)) or float(text_value) < 0:
+		var text_value := field.text.strip_edges()
+		if not text_value.is_empty() and (not text_value.is_valid_float() or not is_finite(float(text_value)) or float(text_value) < 0):
 			_error.text = "Enter a non-negative number, or leave the field empty."
 			return
-		var multiplier := 1000.0 if key.ends_with("_ms") else (1048576.0 if key == "max_size_bytes" else 1.0)
-		values[key] = float(text_value) * multiplier
-		if multiplier != 1.0:
-			values[key] = int(values[key])
-	for suffix in ["rating", "length_ms"]:
-		if values.has("min_" + suffix) and values.has("max_" + suffix) and values["min_" + suffix] > values["max_" + suffix]:
-			_error.text = "The minimum must not exceed the maximum."
-			return
+	var values := SongFilters.new(_online)
+	values.sort = _sort.get_selected_metadata()
+	values.reverse = _reverse.button_pressed
+	values.nsfl = _online and _nsfl.button_pressed
+	values.min_rating = _read_bound(min_rating)
+	values.max_rating = _read_bound(max_rating)
+	values.min_length_ms = int(_read_bound(min_length, 1000.0))
+	values.max_length_ms = int(_read_bound(max_length, 1000.0))
+	if _online:
+		values.max_size_bytes = int(_read_bound(max_size, 1048576.0))
+	if (values.min_rating >= 0 and values.max_rating >= 0 and values.min_rating > values.max_rating) \
+			or (values.min_length_ms >= 0 and values.max_length_ms >= 0 and values.min_length_ms > values.max_length_ms):
+		_error.text = "The minimum must not exceed the maximum."
+		return
 	if _online and _status.selected > 0:
 		values.status = ["", "ranked", "approved", "unranked"][_status.selected]
-	if not _played.disabled and _played.selected > 0:
-		values.played = _played.selected == 1
+	if not _played.disabled:
+		values.played = _played.selected as SongFilters.PlayHistory
 	applied.emit(values)
 	close_popup()
 

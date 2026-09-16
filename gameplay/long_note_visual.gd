@@ -196,7 +196,6 @@ func _setup_material() -> void:
 	_material = _get_material_template(_note.type).duplicate() as ShaderMaterial
 	_material.render_priority = 0
 	_material.set_shader_parameter("spawn_fade_distance", GameplayPlayfield.get_spawn_fade_distance())
-	# Mesh vertices are in the head owner's space, including its scale.
 	var owner_transform := _head_owner.transform
 	_material.set_shader_parameter("owner_z_axis", Vector3(
 		owner_transform.basis.x.z, owner_transform.basis.y.z, owner_transform.basis.z.z

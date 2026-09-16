@@ -9,8 +9,16 @@ const STACK_BOTTOM := 22.0
 const ITEM_MIN_HEIGHT := 58.0
 const ITEM_GAP := 10
 
+class PendingNotice extends RefCounted:
+	var message: String
+	var type: Type
+
+	func _init(p_message: String, p_type: Type) -> void:
+		message = p_message
+		type = p_type
+
 var _stack: VBoxContainer
-var _pending: Array[Dictionary] = []
+var _pending: Array[PendingNotice] = []
 var _dismiss_queue: Array[Control] = []
 var _visible_count := 0
 var _dismissing := false
@@ -32,7 +40,7 @@ func notice(message: String, type: Type = Type.NOTICE) -> void:
 			push_warning(clean_message)
 		Type.NOTICE:
 			print(clean_message)
-	_pending.append({"message": clean_message, "type": type})
+	_pending.append(PendingNotice.new(clean_message, type))
 	call_deferred("_pump")
 
 
@@ -69,8 +77,8 @@ func _pump() -> void:
 	if _stack == null or not is_instance_valid(_stack):
 		return
 	while _visible_count < MAX_VISIBLE and not _pending.is_empty():
-		var entry: Dictionary = _pending.pop_front()
-		_show_alert(str(entry.message), int(entry.type))
+		var entry: PendingNotice = _pending.pop_front()
+		_show_alert(entry.message, entry.type)
 
 
 func _show_alert(message: String, type: Type) -> void:

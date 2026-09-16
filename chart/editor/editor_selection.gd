@@ -10,7 +10,7 @@ var selected_points: Dictionary = {}
 var selected_point_index := -1
 var selected_event: ChartEvent = null
 var selected_event_frame_index := -1
-var selected_event_items: Array[Dictionary] = []
+var selected_event_items: Array[EditorEventItem] = []
 
 func clear() -> void:
 	selected_event_items.clear()
@@ -81,7 +81,7 @@ func select_event(event: ChartEvent, frame_index: int = -1) -> void:
 	selected_event_items.clear()
 	if event != null:
 		var frames: Array = event.frames if event is ThemeEvent or event is CameraEvent or event is OverlayEvent else []
-		selected_event_items.append({"event": event, "frame": frames[frame_index] if frame_index >= 0 and frame_index < frames.size() else null})
+		selected_event_items.append(EditorEventItem.new(event, frames[frame_index] if frame_index >= 0 and frame_index < frames.size() else null))
 	selected_points.clear()
 	selected_notes.clear()
 	selected_rail = null

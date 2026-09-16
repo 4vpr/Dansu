@@ -14,7 +14,7 @@ var _request: HTTPRequest
 var _generation := 0
 @export var dialog: ConfirmationDialog
 var _thread: Thread
-var _package: Dictionary = {}
+var _package := ChartPackageBuilder.BuildResult.new()
 var _target: ChartSet
 var _submitter := -1
 var _upload: HTTPRequest
@@ -110,7 +110,7 @@ func show_publish(theme_value: Theme) -> void:
 	_submitter = int(Auth.user.get("id", -1))
 	_publish_as_builtin = false
 	busy = true
-	_package.clear()
+	_package = ChartPackageBuilder.BuildResult.new()
 	dialog.theme = theme_value
 	dialog.get_cancel_button().disabled = false
 	dialog.popup_centered(Vector2i(720, 440))
@@ -118,7 +118,7 @@ func show_publish(theme_value: Theme) -> void:
 	_thread = Thread.new()
 	if _thread.start(ChartPackageBuilder.build.bind(_target.charts[0].folder_path)) != OK:
 		_thread = null
-		_package = {"error": "Could not start the package builder."}
+		_package = ChartPackageBuilder.BuildResult.failure("Could not start the package builder.")
 	_update_dialog()
 	state_changed.emit()
 
@@ -143,12 +143,12 @@ func _update_dialog() -> void:
 		text += "Checking the published version and preparing files…"
 	elif not lookup_error.is_empty():
 		text += lookup_error
-	elif _package.has("error"):
+	elif not _package.error.is_empty():
 		text += _package.error
 	elif not restriction().is_empty() and not builtin_available:
 		text += restriction()
 	else:
-		text += "%d files · %.2f MiB\n\n" % [int(_package.get("files", 0)), float(_package.get("bytes", 0)) / 1048576.0]
+		text += "%d files · %.2f MiB\n\n" % [int(_package.files), float(_package.bytes) / 1048576.0]
 		if not restriction().is_empty():
 			text += "The regular update is locked. The built-in action will replace it as an official ranked chartset."
 		else:
@@ -156,7 +156,7 @@ func _update_dialog() -> void:
 		text += "\n\nIncludes charts, audio, images and skin files from this folder."
 	dialog.dialog_text = text
 	dialog.get_ok_button().text = "Upload" if remote.is_empty() else "Update"
-	var common_disabled := checking or _thread != null or _upload != null or not lookup_error.is_empty() or _package.has("error") or not _package.has("path")
+	var common_disabled := checking or _thread != null or _upload != null or not lookup_error.is_empty() or not _package.error.is_empty() or _package.path.is_empty()
 	dialog.get_ok_button().disabled = common_disabled or not restriction().is_empty()
 	if is_instance_valid(_builtin_button):
 		_builtin_button.visible = can_publish_builtin()
@@ -211,28 +211,28 @@ func _on_uploaded(result: int, code: int, _headers: PackedStringArray, bytes: Pa
 		_publish_as_builtin or (data is Dictionary and data.get("chartset_uuid") == _target.uuid)
 	)
 	if upload_succeeded:
-		var builtin_result := {}
+		var builtin_result := ChartPackageInstaller.InstallResult.new()
 		if _publish_as_builtin:
 			var package_file := FileAccess.open(_package.path, FileAccess.WRITE)
 			if package_file == null:
-				builtin_result = {"error": "Could not save the server chart package."}
+				builtin_result = ChartPackageInstaller.InstallResult.failure("Could not save the server chart package.")
 			else:
 				package_file.store_buffer(bytes)
 				package_file.flush()
 				var write_error := package_file.get_error()
 				package_file.close()
 				if write_error != OK:
-					builtin_result = {"error": "Could not finish saving the server chart package."}
+					builtin_result = ChartPackageInstaller.InstallResult.failure("Could not finish saving the server chart package.")
 				else:
 					builtin_result = FileSystem.install_packaged_chartset(_package.path, _target.uuid, _target.folder_name)
 		dialog.hide()
 		busy = false
 		_remove_package()
-		if builtin_result.has("error"):
+		if not builtin_result.error.is_empty():
 			Notification.notice("Published to the server, but built-in installation failed: " + str(builtin_result.error), Notification.Type.WARNING)
 		else:
 			Notification.notice("Chartset published and added as a built-in map." if _publish_as_builtin else "Chartset published successfully.", Notification.Type.NOTICE)
-		if _publish_as_builtin and not builtin_result.has("error"):
+		if _publish_as_builtin and builtin_result.error.is_empty():
 			CM.rescan_library()
 		_publish_as_builtin = false
 		_lookup()
@@ -268,9 +268,9 @@ func _on_auth_changed() -> void:
 	state_changed.emit()
 
 func _remove_package() -> void:
-	if _package.has("path"):
+	if not _package.path.is_empty():
 		ChartTransfer.cleanup(str(_package.path).get_base_dir())
-	_package.clear()
+	_package = ChartPackageBuilder.BuildResult.new()
 
 func _cancel_request() -> void:
 	if is_instance_valid(_request):

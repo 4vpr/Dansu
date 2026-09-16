@@ -34,7 +34,7 @@ func _ready() -> void:
 	gui_input.connect(_on_gui_input)
 	CM.chart_selected.connect(_update_selected_state)
 
-	base_color = Game.get_color_from_rating(rating)
+	base_color = Rating.get_color_from_rating(rating)
 	rating_label.text = str(int(rating))
 	_update_selected_state(CM.selected_chart)
 

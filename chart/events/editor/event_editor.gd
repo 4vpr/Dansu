@@ -23,7 +23,7 @@ var transport := EditorTransport.new()
 
 var _history := EditorHistoryStack.new()
 var _restoring := false
-var _saved_snapshot: Dictionary = {}
+var _saved_snapshot: EventEditorSnapshot
 
 func _ready() -> void:
 	chart = CM.selected_chart
@@ -117,39 +117,39 @@ func _push_history_snapshot() -> void:
 		return
 	_history.push(_capture_snapshot())
 
-func _capture_snapshot() -> Dictionary:
+func _capture_snapshot() -> EventEditorSnapshot:
 	var event_index := -1
 	if selection.selected_event != null:
 		event_index = CM.parsed_chart.events.find(selection.selected_event)
-	return {
-		"events": EditorHistory.capture_events_data(CM.parsed_chart.events),
-		"event_index": event_index,
-		"frame_index": selection.selected_event_frame_index,
-		"current_time": Game.current_time,
-	}
+	var snapshot := EventEditorSnapshot.new()
+	snapshot.events = EditorHistory.capture_events_data(CM.parsed_chart.events)
+	snapshot.event_index = event_index
+	snapshot.frame_index = selection.selected_event_frame_index
+	snapshot.current_time = Game.current_time
+	return snapshot
 
 func _undo_history() -> void:
-	var snapshot := _history.undo(_capture_snapshot())
-	if not snapshot.is_empty():
+	var snapshot := _history.undo(_capture_snapshot()) as EventEditorSnapshot
+	if snapshot != null:
 		_restore_snapshot(snapshot)
 
 func _redo_history() -> void:
-	var snapshot := _history.redo(_capture_snapshot())
-	if not snapshot.is_empty():
+	var snapshot := _history.redo(_capture_snapshot()) as EventEditorSnapshot
+	if snapshot != null:
 		_restore_snapshot(snapshot)
 
-func _restore_snapshot(snapshot: Dictionary) -> void:
+func _restore_snapshot(snapshot: EventEditorSnapshot) -> void:
 	if transport.playing:
 		transport.pause()
 	_restoring = true
-	CM.parsed_chart.events = EditorHistory.restore_events_data(snapshot.get("events", []))
+	CM.parsed_chart.events = EditorHistory.restore_events_data(snapshot.events)
 	CM.parsed_chart.sort_events()
-	var event_index := int(snapshot.get("event_index", -1))
+	var event_index := int(snapshot.event_index)
 	if event_index >= 0 and event_index < CM.parsed_chart.events.size():
-		selection.select_event(CM.parsed_chart.events[event_index], int(snapshot.get("frame_index", -1)))
+		selection.select_event(CM.parsed_chart.events[event_index], int(snapshot.frame_index))
 	else:
 		selection.clear()
-	Game.current_time = timeline.clamp_time(float(snapshot.get("current_time", Game.current_time)))
+	Game.current_time = timeline.clamp_time(float(snapshot.current_time))
 	_restoring = false
 	if event_controller != null:
 		event_controller.on_history_restored()
@@ -185,13 +185,11 @@ func mark_saved_state() -> void:
 	_saved_snapshot = _capture_saved_state()
 
 func _has_unsaved_changes() -> bool:
-	return not _saved_snapshot.is_empty() and not EditorHistory.same_snapshot(_saved_snapshot, _capture_saved_state())
+	return _saved_snapshot != null and not EditorHistory.same_snapshot(_saved_snapshot, _capture_saved_state())
 
-func _capture_saved_state() -> Dictionary:
+func _capture_saved_state() -> EventEditorSnapshot:
 	var snapshot := _capture_snapshot()
-	snapshot.erase("event_index")
-	snapshot.erase("frame_index")
-	snapshot.erase("current_time")
+	snapshot.clear_editor_state()
 	return snapshot
 
 func _connect_exit_dialog() -> void:

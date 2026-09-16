@@ -8,9 +8,18 @@ signal submission_failed(score: Score, message: String)
 const MAX_SUBMISSION_ATTEMPTS := 2
 const RETRY_DELAY_SECONDS := 1.0
 
+class Submission extends RefCounted:
+	var chart: Chart
+	var score: Score
+	var attempt: int = 0
+
+	func _init(p_chart: Chart, p_score: Score) -> void:
+		chart = p_chart
+		score = p_score
+
 var scores: Array[Score] = []
-var _submission_queue: Array[Dictionary] = []
-var _active_submission: Dictionary = {}
+var _submission_queue: Array[Submission] = []
+var _active_submission: Submission
 var _request: HTTPRequest
 var _play_start_requests: Array[HTTPRequest] = []
 
@@ -145,12 +154,12 @@ func submit_play(chart: Chart, score: Score) -> bool:
 	if score.submission_id.is_empty():
 		return false
 	for queued in _submission_queue:
-		if queued.get("score") == score:
+		if queued.score == score:
 			return true
-	if _active_submission.get("score") == score:
+	if _active_submission != null and _active_submission.score == score:
 		return true
 	score.submission_error = ""
-	_submission_queue.append({"chart": chart, "score": score, "attempt": 0})
+	_submission_queue.append(Submission.new(chart, score))
 	_pump_submissions()
 	return true
 
@@ -206,7 +215,7 @@ func build_submission_payload(
 
 
 func _pump_submissions() -> void:
-	if not _active_submission.is_empty() or _submission_queue.is_empty():
+	if _active_submission != null or _submission_queue.is_empty():
 		return
 	_active_submission = _submission_queue.pop_front()
 	var score: Score = _active_submission.score
@@ -215,7 +224,7 @@ func _pump_submissions() -> void:
 
 
 func _begin_active_submission() -> void:
-	if _active_submission.is_empty():
+	if _active_submission == null:
 		return
 	if not Auth.is_authenticated():
 		_fail_active("Score was saved locally because the session is offline.")
@@ -331,8 +340,8 @@ func _retry_or_fail(
 ) -> void:
 	_dispose_request()
 	var transient := result != HTTPRequest.RESULT_SUCCESS or code == 0 or code == 408 or code == 429 or code >= 500
-	var attempt := int(_active_submission.get("attempt", 0)) + 1
-	_active_submission["attempt"] = attempt
+	var attempt := int(_active_submission.attempt) + 1
+	_active_submission.attempt = attempt
 	if transient and attempt < MAX_SUBMISSION_ATTEMPTS and is_inside_tree():
 		get_tree().create_timer(RETRY_DELAY_SECONDS).timeout.connect(_begin_active_submission)
 		return
@@ -340,7 +349,7 @@ func _retry_or_fail(
 
 
 func _fail_active(message: String) -> void:
-	if _active_submission.is_empty():
+	if _active_submission == null:
 		return
 	var score: Score = _active_submission.score
 	score.submission_error = message
@@ -351,7 +360,7 @@ func _fail_active(message: String) -> void:
 
 func _finish_active() -> void:
 	_dispose_request()
-	_active_submission.clear()
+	_active_submission = null
 	call_deferred("_pump_submissions")
 
 

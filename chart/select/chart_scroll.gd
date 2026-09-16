@@ -1,6 +1,17 @@
 extends Control
 class_name ChartScroll
 
+class CoverPriority extends RefCounted:
+	var chart: Chart
+	var distance: float
+	var is_selected: bool
+
+	func _init(p_chart: Chart, p_distance: float, p_selected: bool) -> void:
+		chart = p_chart
+		distance = p_distance
+		is_selected = p_selected
+
+
 signal single_chart_mode_changed(enabled: bool)
 signal load_more_requested
 
@@ -33,7 +44,7 @@ var editor_mode := false
 var online_mode := false
 var input_blocked := false
 var online_chartsets: Array[ChartSet] = []
-var filters: Dictionary = SongFilters.defaults(false)
+var filters: SongFilters = SongFilters.new(false)
 var _last_cover_request_ids: Array[int] = []
 var _load_more_requested_for_count := -1
 
@@ -87,8 +98,6 @@ func refresh_after_resume() -> void:
 	rebuild_items()
 
 func _on_chart_update(_chartsets) -> void:
-	# Local database rescans do not change the server-backed Browse list. Rebuilding
-	# it here loses the remote selection while the chart manager swaps local objects.
 	if online_mode:
 		return
 	if nodes.is_empty():
@@ -137,9 +146,9 @@ func _refresh_online_items_preserving_scroll() -> void:
 	_request_more_if_near_end()
 
 
-func set_filters(value: Dictionary) -> void:
-	filters = value.duplicate(true)
-	set_sort_mode({"title": 0, "artist": 1, "rating": 2, "recent": 3, "length": 4}.get(value.get("sort"), 0))
+func set_filters(value: SongFilters) -> void:
+	filters = value.copy()
+	set_sort_mode({"title": 0, "artist": 1, "rating": 2, "recent": 3, "length": 4}.get(value.sort, 0))
 
 
 func set_sort_mode(value: int) -> void:
@@ -261,7 +270,7 @@ func _queue_visible_cover_requests() -> void:
 
 
 func _collect_visible_cover_charts() -> Array[Chart]:
-	var entries: Array[Dictionary] = []
+	var entries: Array[CoverPriority] = []
 	var center_y := size.y * 0.5
 	var selected_chart := CM.selected_chart
 
@@ -275,24 +284,20 @@ func _collect_visible_cover_charts() -> Array[Chart]:
 			continue
 
 		var node_center_y := control.position.y + content.position.y + item_height * 0.5
-		entries.append({
-			"chart": chart,
-			"distance": absf(node_center_y - center_y),
-			"is_selected": chart == selected_chart,
-		})
+		entries.append(CoverPriority.new(chart, absf(node_center_y - center_y), chart == selected_chart))
 
-	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		if a["is_selected"] != b["is_selected"]:
-			return a["is_selected"]
-		return a["distance"] < b["distance"]
+	entries.sort_custom(func(a: CoverPriority, b: CoverPriority) -> bool:
+		if a.is_selected != b.is_selected:
+			return a.is_selected
+		return a.distance < b.distance
 	)
 
 	var charts: Array[Chart] = []
 	if selected_chart != null:
 		charts.append(selected_chart)
 	for entry in entries:
-		if not charts.has(entry["chart"]):
-			charts.append(entry["chart"])
+		if not charts.has(entry.chart):
+			charts.append(entry.chart)
 	return charts
 
 
@@ -327,7 +332,7 @@ func _build_visible_items() -> Array[SongListItem]:
 	for chartset in source_chartsets:
 		var matched_charts: Array[Chart] = []
 		for chart in chartset.charts:
-			if not SongFilters.matches_local(chart, filters):
+			if not filters.matches_local(chart):
 				continue
 			if lowered_word.is_empty() or chart.search_string_lower.contains(lowered_word):
 				matched_charts.append(chart)
@@ -364,7 +369,7 @@ func _build_visible_items() -> Array[SongListItem]:
 			items.sort_custom(_sort_item_by_recent_desc)
 		SortMode.LENGTH:
 			items.sort_custom(func(a: SongListItem, b: SongListItem): return a.primary_chart.play_time_ms < b.primary_chart.play_time_ms)
-	if filters.get("reverse", false):
+	if filters.reverse:
 		items.reverse()
 
 	return items

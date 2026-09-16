@@ -3,7 +3,7 @@ class_name Score
 
 # name
 enum {NONE,MISS,PERFECT_PLUS,PERFECT,GREAT,OK,BAD}
-# Timing
+# Timings
 enum T {NONE=-1,MISS=105,PERFECT_PLUS=21,PERFECT=42,GREAT=63,OK=84,BAD=105}
 # Scores
 enum S {MISS=0,PERFECT_PLUS=100,PERFECT=99,GREAT=50,OK=25,BAD=10}
@@ -45,7 +45,7 @@ var db_id := -1
 var chart_db_id := -1
 var played_at := 0
 var scoring_version := 2
-var unstable_rate := 0.0 # TODO: calculate from signed_timings
+var unstable_rate := 0.0
 var stored_total_score := -1.0
 var submission_id := ""
 var submitted := false
@@ -161,18 +161,23 @@ var rank_str: String:
 
 var total_score: float:
 	get:
+
 		if stored_total_score >= 0.0:
 			return stored_total_score
+		
+		# Avoid / 0
 		if notes == 0:
-			return 0.0
-		if _is_all_just_result():
+			return 101.0
+		
+		# All Just
+		if great == 0 and ok == 0 and bad == 0 and miss == 0:
 			return _get_all_just_display_score()
+
 		if max_score <= 0.0:
 			return 0.0
+		
+		# raw_score
 		return score / max_score * 100.0
-
-func _is_all_just_result() -> bool:
-	return great == 0 and ok == 0 and bad == 0 and miss == 0
 
 func _get_all_just_display_score() -> float:
 	var just_ratio := clampf(float(perfect_plus) / float(notes), 0.0, 1.0)

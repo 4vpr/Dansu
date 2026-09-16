@@ -1,6 +1,15 @@
 extends RefCounted
 class_name EditorChartOps
 
+class NoteTimeBounds extends RefCounted:
+	var first: int
+	var last: int
+
+	func _init(p_first: int, p_last: int) -> void:
+		first = p_first
+		last = p_last
+
+
 const DEFAULT_RAIL_DURATION := 1250
 const DEFAULT_RAIL_X := 0.5
 const RAIL_MOVE_STEP := 0.01
@@ -193,9 +202,9 @@ static func add_point(rail: Rail, time_ms: int, x: float) -> int:
 	return rail.points.find(point)
 
 
-static func get_rail_note_time_bounds(rail: Rail) -> Dictionary:
+static func get_rail_note_time_bounds(rail: Rail) -> NoteTimeBounds:
 	if rail == null or rail.notes.is_empty():
-		return {}
+		return null
 
 	var first_time := 0
 	var last_time := 0
@@ -212,8 +221,8 @@ static func get_rail_note_time_bounds(rail: Rail) -> Dictionary:
 			last_time = maxi(last_time, note.end_time)
 
 	if not has_note:
-		return {}
-	return {"first": first_time, "last": last_time}
+		return null
+	return NoteTimeBounds.new(first_time, last_time)
 
 
 static func constrain_rail_point_time(rail: Rail, point: RailPoint, proposed_time: int) -> int:
@@ -221,11 +230,11 @@ static func constrain_rail_point_time(rail: Rail, point: RailPoint, proposed_tim
 		return proposed_time
 
 	var note_bounds := get_rail_note_time_bounds(rail)
-	if note_bounds.is_empty():
+	if note_bounds == null:
 		return proposed_time
 
-	var first_note_time := int(note_bounds["first"])
-	var last_note_time := int(note_bounds["last"])
+	var first_note_time := int(note_bounds.first)
+	var last_note_time := int(note_bounds.last)
 	var another_point_covers_start := false
 	var another_point_covers_end := false
 	for other_point: RailPoint in rail.points:

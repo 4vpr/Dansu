@@ -59,7 +59,7 @@ var is_exiting := false
 var is_menu_transitioning := false
 var is_editor_mode := false
 var is_community_mode := false
-var _local_filters: Dictionary = SongFilters.defaults(false)
+var _local_filters: SongFilters = SongFilters.new(false)
 var _local_search := ""
 var _official_chartset_uuid := ""
 var _official_chart_uuid := ""
@@ -615,7 +615,7 @@ func _show_filters() -> void:
 		return
 	_filter_popup.show_popup(is_community_mode, _catalogue.filters if is_community_mode else _local_filters, Auth.is_authenticated())
 
-func _on_filters_applied(values: Dictionary) -> void:
+func _on_filters_applied(values: SongFilters) -> void:
 	if is_community_mode:
 		_catalogue.set_filters(values)
 	else:
@@ -624,7 +624,7 @@ func _on_filters_applied(values: Dictionary) -> void:
 	_update_filter_button()
 
 func _update_filter_button() -> void:
-	var count := SongFilters.active_count(_catalogue.filters if is_community_mode else _local_filters)
+	var count := (_catalogue.filters if is_community_mode else _local_filters).active_count()
 	filter_button.text = "Filter" if count == 0 else "Filter (%d)" % count
 
 func _update_catalogue_state() -> void:
@@ -667,9 +667,9 @@ func _refresh_chart_browser() -> void:
 
 func _recalculate_all_chart_ratings() -> void:
 	var result := CM.recalculate_all_ratings()
-	var updated := int(result.get("updated", 0))
-	var failed := int(result.get("failed", 0))
-	var total := int(result.get("total", 0))
+	var updated := result.updated
+	var failed := result.failed
+	var total := result.total
 	var message := "[rating] all charts are recalculated: %d/%d" % [updated, total]
 	if failed > 0:
 		message += " (failed: %d)" % failed

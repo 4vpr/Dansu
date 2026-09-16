@@ -16,7 +16,7 @@ var page := 1
 var total_pages := 0
 var total := 0
 var status := ""
-var filters: Dictionary = SongFilters.defaults(true)
+var filters: SongFilters = SongFilters.new(true)
 var search_text := ""
 var playlist_id := 0
 var _list: HTTPRequest
@@ -94,8 +94,8 @@ func set_search(value: String) -> void:
 	state_changed.emit()
 	search_debounce.start()
 
-func set_filters(value: Dictionary) -> void:
-	filters = value.duplicate(true)
+func set_filters(value: SongFilters) -> void:
+	filters = value.copy()
 	page = 1
 	refresh()
 
@@ -123,7 +123,7 @@ func refresh() -> void:
 	_clear_results()
 	page = 1
 	_has_result_snapshot = false
-	if filters.has("played") and not Auth.is_authenticated():
+	if filters.has_play_history() and not Auth.is_authenticated():
 		_list_failed("Sign in to use the play history filter.")
 		return
 	_request_page(false)
@@ -133,13 +133,13 @@ func _request_page(append: bool) -> void:
 	loading_more = append
 	status = ""
 	state_changed.emit()
-	var query := filters.duplicate()
+	var query := filters.to_query()
 	query.merge({"q": search_text, "p": page, "limit": 20, "origin": "community"}, true)
 	if playlist_id > 0:
 		query["playlist_id"] = playlist_id
 	_list = _request_node(4 * 1024 * 1024)
 	_list.request_completed.connect(_on_list.bind(_generation, append))
-	var headers := Auth.authorization_headers() if filters.has("played") or playlist_id > 0 else PackedStringArray()
+	var headers := Auth.authorization_headers() if filters.has_play_history() or playlist_id > 0 else PackedStringArray()
 	if _list.request(_api_url("/chartset/?") + ServerURLs.query(query), headers) != OK:
 		_list_failed("Could not start the search. Retry.")
 
@@ -518,10 +518,10 @@ func _process(delta: float) -> void:
 	if active:
 		_preview_loop.update(delta)
 	if _installer_thread != null and not _installer_thread.is_alive():
-		var result: Dictionary = _installer_thread.wait_to_finish()
+		var result: ChartPackageInstaller.InstallResult = _installer_thread.wait_to_finish()
 		_installer_thread = null
 		_remove_archive()
-		if result.has("error"):
+		if not result.error.is_empty():
 			_download_failed(result.error)
 		else:
 			var installed := CommunityChartCache.load_chartset(_download_metadata)
@@ -590,7 +590,7 @@ func _on_auth_changed() -> void:
 	if not Auth.is_authenticated():
 		playlist_id = 0
 		_has_result_snapshot = false
-	if active and (filters.has("played") or had_playlist):
+	if active and (filters.has_play_history() or had_playlist):
 		refresh()
 	if active and CM.selected_chartset != null:
 		_check_loved(CM.selected_chartset)

@@ -3,14 +3,22 @@ class_name Autoplay
 
 enum Action { RELEASE, PREPARE, NOTES }
 
+class NoteEntry extends RefCounted:
+	var note: Note
+	var rail: Rail
+
+	func _init(p_note: Note, p_rail: Rail) -> void:
+		note = p_note
+		rail = p_rail
+
 class Event:
 	var time: int
 	var action: Action
-	var entries: Array[Dictionary]
+	var entries: Array[NoteEntry]
 	var target: Rail
 	var note_time: int
 
-	func _init(at: int, kind: Action, items: Array[Dictionary], rail: Rail = null, due: int = 0) -> void:
+	func _init(at: int, kind: Action, items: Array[NoteEntry], rail: Rail = null, due: int = 0) -> void:
 		time = at
 		action = kind
 		entries = items
@@ -34,11 +42,11 @@ func setup(rails: Array[Rail], start_time: int = 0, note_order: Dictionary = {})
 				continue
 			if not groups.has(note.time):
 				groups[note.time] = []
-			groups[note.time].append({"note": note, "rail": rail})
+			groups[note.time].append(NoteEntry.new(note, rail))
 			if note.length > 0 and note.type in [Note.NoteType.HIT, Note.NoteType.MOVE]:
 				if not releases.has(note.end_time):
 					releases[note.end_time] = []
-				releases[note.end_time].append({"note": note, "rail": rail})
+				releases[note.end_time].append(NoteEntry.new(note, rail))
 	var boundary_set := groups.duplicate()
 	boundary_set.merge(releases, true)
 	var boundaries := boundary_set.keys()
@@ -46,14 +54,14 @@ func setup(rails: Array[Rail], start_time: int = 0, note_order: Dictionary = {})
 	var previous_time := start_time
 	for time: int in boundaries:
 		if releases.has(time):
-			var tails: Array[Dictionary] = []
+			var tails: Array[NoteEntry] = []
 			tails.assign(releases[time])
 			events.append(Event.new(time, Action.RELEASE, tails))
 		if groups.has(time):
-			var entries: Array[Dictionary] = []
+			var entries: Array[NoteEntry] = []
 			entries.assign(groups[time])
 			if not note_order.is_empty():
-				entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+				entries.sort_custom(func(a: NoteEntry, b: NoteEntry) -> bool:
 					return int(note_order.get(a.note, 0)) < int(note_order.get(b.note, 0))
 				)
 			var target := _required_rail(entries)
@@ -106,7 +114,7 @@ func advance(gameplay: Node, time: int) -> void:
 							gameplay._move_action(note.dir, event.time, false)
 
 
-func _required_rail(entries: Array[Dictionary]) -> Rail:
+func _required_rail(entries: Array[NoteEntry]) -> Rail:
 	for entry in entries:
 		if entry.note.type in [Note.NoteType.HIT, Note.NoteType.MOVE]:
 			return entry.rail

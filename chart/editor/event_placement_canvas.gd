@@ -1,8 +1,17 @@
 extends Control
 
 var workspace: Node
-var _hits: Array[Dictionary] = []
-var _drag: Dictionary = {}
+class Hit extends EditorEventItem:
+	var rect: Rect2
+	var resize: bool
+
+	func _init(p_rect: Rect2, p_event: ChartEvent, p_frame: ChartEventFrame = null, p_resize: bool = false) -> void:
+		super(p_event, p_frame)
+		rect = p_rect
+		resize = p_resize
+
+var _hits: Array[Hit] = []
+var _drag: Hit
 const DRAG_THRESHOLD := 5.0
 var gesture_active := false
 var _dragging := false
@@ -10,10 +19,10 @@ var _box := false
 var _origin := Vector2.ZERO
 var _cursor := Vector2.ZERO
 var _anchor_time := 0
-var _initial_items: Array[Dictionary] = []
-var _state: Dictionary = {}
-var _snapshot: Dictionary = {}
-var _range_anchor: Dictionary = {}
+var _initial_items: Array[EditorEventItem] = []
+var _state: EventEditState
+var _snapshot: EditorSnapshot
+var _range_anchor: Hit
 
 func _time_y(time: int) -> float:
 	return workspace.editor.get_judge_y() - (time - Game.current_time) * workspace.editor.get_pixels_per_ms()
@@ -49,17 +58,17 @@ func _draw() -> void:
 				continue
 			draw_rect(rect, Color(color, 0.45))
 			draw_line(Vector2(x, rect.position.y), Vector2(x, rect.end.y), color, 2)
-			_hits.append({"rect": rect.grow(5), "event": event, "frame": null, "resize": false})
+			_hits.append(Hit.new(rect.grow(5), event, null, false))
 			for endpoint in [start, end]:
 				draw_circle(Vector2(x, endpoint), 8, color)
 				draw_line(Vector2(x - 12, endpoint), Vector2(x + 12, endpoint), color, 3)
-				_hits.append({"rect": Rect2(x - 14, endpoint - 10, 28, 20), "event": event, "frame": null, "resize": endpoint == end})
+				_hits.append(Hit.new(Rect2(x - 14, endpoint - 10, 28, 20), event, null, endpoint == end))
 			for frame in event.frames:
 				var y := _time_y(event.time + frame.time)
 				var selected: bool = workspace.selection_ops.is_selected(event, frame) or workspace.selection_ops.is_selected(event, null)
 				var points := PackedVector2Array([Vector2(x, y - 6), Vector2(x + 6, y), Vector2(x, y + 6), Vector2(x - 6, y)])
 				draw_colored_polygon(points, Color.WHITE if selected else Color("ffe8a5"))
-				_hits.append({"rect": Rect2(x - 7, y - 7, 14, 14), "event": event, "frame": frame, "resize": false})
+				_hits.append(Hit.new(Rect2(x - 7, y - 7, 14, 14), event, frame, false))
 			if workspace.selection_ops.is_selected(event, null):
 				draw_rect(rect.grow(3), Color.WHITE, false, 1)
 			continue
@@ -80,7 +89,7 @@ func _draw_marker(point: Vector2, letter: String, color: Color, event: ChartEven
 	draw_circle(point, 12, Color("101018"))
 	draw_arc(point, 12, 0, TAU, 32, Color.WHITE if selected else color, 2, true)
 	draw_string(font, point + Vector2(-4, 5), letter, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, color)
-	_hits.append({"rect": Rect2(point - Vector2.ONE * 14, Vector2.ONE * 28), "event": event, "frame": frame, "resize": false})
+	_hits.append(Hit.new(Rect2(point - Vector2.ONE * 14, Vector2.ONE * 28), event, frame, false))
 
 func handle_mouse(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and gesture_active:
@@ -117,49 +126,49 @@ func handle_mouse(event: InputEvent) -> void:
 	workspace.editor.get_viewport().set_input_as_handled()
 
 func _press(point: Vector2, ctrl: bool, shift: bool) -> void:
-	var hit: Dictionary = {}
+	var hit: Hit
 	for index in range(_hits.size() - 1, -1, -1):
 		if _hits[index].rect.has_point(point):
 			hit = _hits[index]
 			break
 	if shift and _select_range(hit):
 		return
-	if not hit.is_empty():
+	if hit != null:
 		if ctrl:
 			workspace.selection_ops.toggle(hit.event, hit.frame)
-			_range_anchor = hit.duplicate()
+			_range_anchor = hit
 			return
 		if not workspace.selection_ops.is_selected(hit.event, hit.frame):
 			workspace.select_event(hit.event, workspace.get_frames(hit.event).find(hit.frame))
-		_range_anchor = hit.duplicate()
-		_drag = hit.duplicate()
+		_range_anchor = hit
+		_drag = hit
 		_anchor_time = hit.event.end_time if hit.resize else hit.event.time + (hit.frame.time if hit.frame != null else 0)
 	else:
-		_drag.clear()
+		_drag = null
 	gesture_active = true
 	_dragging = false
-	_box = hit.is_empty()
+	_box = hit == null
 	_origin = point
 	_cursor = point
 	_initial_items.clear()
 	if ctrl or not _box:
 		_initial_items.assign(workspace.selection_ops.items())
 	_state = workspace.selection_ops.capture()
-	_snapshot = {}
+	_snapshot = null
 
-func _select_range(hit: Dictionary) -> bool:
-	if hit.is_empty() or hit.frame == null or _range_anchor.is_empty():
+func _select_range(hit: Hit) -> bool:
+	if hit == null or hit.frame == null or _range_anchor == null:
 		return false
 	if hit.event != _range_anchor.event or _range_anchor.frame == null:
 		return false
 	if not workspace.get_frames(hit.event).has(_range_anchor.frame):
 		return false
-	var selected: Array[Dictionary] = []
+	var selected: Array[EditorEventItem] = []
 	var low := mini(hit.frame.time, _range_anchor.frame.time)
 	var high := maxi(hit.frame.time, _range_anchor.frame.time)
 	for frame in workspace.get_frames(hit.event):
 		if frame.time >= low and frame.time <= high:
-			selected.append({"event": hit.event, "frame": frame})
+			selected.append(EditorEventItem.new(hit.event, frame))
 	workspace.selection_ops.set_items(selected)
 	return true
 
@@ -178,54 +187,54 @@ func _motion(point: Vector2) -> void:
 		dt = workspace.editor.timeline.snap_time(_anchor_time + roundi((_origin.y - point.y) / workspace.editor.get_pixels_per_ms())) - _anchor_time
 	var dx := _slot_at(point.x) - _slot_at(_origin.x)
 	var resize: ChartEvent = _drag.event if _drag.resize and _state.items.size() == 1 else null
-	if _snapshot.is_empty():
+	if _snapshot == null:
 		_snapshot = EditorHistory.capture(workspace.editor)
 	workspace.selection_ops.move(_state, dt, dx, resize)
 
 func _select_box(rect: Rect2) -> void:
 	rect = rect.intersection(Rect2(Vector2.ZERO, size))
-	var selected: Array[Dictionary] = _initial_items.duplicate()
+	var selected: Array[EditorEventItem] = _initial_items.duplicate()
 	for event in workspace.get_events():
 		if event is OverlayEvent:
 			var x := slot_x(event.x)
 			var start := Vector2(x, _time_y(event.time))
 			var end := Vector2(x, _time_y(event.end_time))
 			if rect.has_point(start) and rect.has_point(end):
-				selected.append({"event": event, "frame": null})
+				selected.append(EditorEventItem.new(event, null))
 				continue
 			var frame_found := false
 			for frame in event.frames:
 				if rect.has_point(Vector2(x, _time_y(event.time + frame.time))):
-					selected.append({"event": event, "frame": frame})
+					selected.append(EditorEventItem.new(event, frame))
 					frame_found = true
 			if not frame_found and x >= rect.position.x and x <= rect.end.x and end.y <= rect.end.y and start.y >= rect.position.y:
-				selected.append({"event": event, "frame": null})
+				selected.append(EditorEventItem.new(event, null))
 		else:
 			var x := size.x * (0.1 if event is ThemeEvent else 0.22 if event is CameraEvent else 0.34)
 			if event is SkinEvent:
 				if rect.has_point(Vector2(x, _time_y(event.time))):
-					selected.append({"event": event, "frame": null})
+					selected.append(EditorEventItem.new(event, null))
 			else:
 				for frame in workspace.get_frames(event):
 					if rect.has_point(Vector2(x, _time_y(event.time + frame.time))):
-						selected.append({"event": event, "frame": frame})
+						selected.append(EditorEventItem.new(event, frame))
 	workspace.selection_ops.set_items(selected)
 	queue_redraw()
 
 func _has_changes() -> bool:
-	for event in _state.get("events", {}):
-		var original: Dictionary = _state.events[event]
+	for event in _state.events:
+		var original: EventEditState.Placement = _state.events[event]
 		if event.time != original.time or event.duration != original.duration:
 			return true
 		if event is OverlayEvent and event.x != original.x:
 			return true
-	for frame in _state.get("frames", {}):
+	for frame in _state.frames:
 		if frame.time != _state.frames[frame]:
 			return true
 	return false
 
 func _finish() -> void:
-	if not _box and not _snapshot.is_empty() and _has_changes():
+	if not _box and _snapshot != null and _has_changes():
 		workspace.editor._history.push(_snapshot)
 	elif _box and not _dragging:
 		workspace.selection_ops.set_items(_initial_items)
@@ -233,15 +242,15 @@ func _finish() -> void:
 	workspace.refresh_inspector()
 
 func cancel_drag(restore: bool = true) -> void:
-	if restore and gesture_active and not _state.is_empty():
+	if restore and gesture_active and _state != null:
 		if not _box and _has_changes():
 			workspace.selection_ops.apply_values(_state.events, _state.frames)
 		workspace.selection_ops.set_items(_state.items)
 	gesture_active = false
 	_dragging = false
-	_drag.clear()
-	_state.clear()
-	_snapshot = {}
+	_drag = null
+	_state = null
+	_snapshot = null
 	queue_redraw()
 
 func _notification(what: int) -> void:

@@ -1,6 +1,23 @@
 extends Node
 class_name EditorViewController
 
+class NoteHit extends RefCounted:
+	var note: Note
+	var rail: Rail
+
+	func _init(p_note: Note, p_rail: Rail) -> void:
+		note = p_note
+		rail = p_rail
+
+class PointHit extends RefCounted:
+	var rail: Rail
+	var point_index: int
+
+	func _init(p_rail: Rail, p_index: int) -> void:
+		rail = p_rail
+		point_index = p_index
+
+
 const POINT_HIT_RADIUS := 12.0
 @export var editor: ChartEditor
 @export var chart_root: Control
@@ -157,12 +174,12 @@ func set_note_passthrough(enabled: bool) -> void:
 	for rail_view in rail_views.values():
 		rail_view.set_point_handles_dimmed(not enabled)
 
-func find_note_at(global_mouse_pos: Vector2) -> Dictionary:
+func find_note_at(global_mouse_pos: Vector2) -> NoteHit:
 	for note in note_views.keys():
 		var note_view: EditorNote = note_views[note]
 		if note_view.is_head_hit(global_mouse_pos):
-			return {"note": note, "rail": note_view.rail}
-	return {}
+			return NoteHit.new(note, note_view.rail)
+	return null
 
 func find_rail_at(global_mouse_pos: Vector2) -> Rail:
 	var closest_rail: Rail = null
@@ -174,7 +191,7 @@ func find_rail_at(global_mouse_pos: Vector2) -> Rail:
 			closest_rail = rail
 	return closest_rail
 
-func find_point_at(global_mouse_pos: Vector2) -> Dictionary:
+func find_point_at(global_mouse_pos: Vector2) -> PointHit:
 	var closest_rail: Rail = null
 	var closest_index := -1
 	var closest_distance := INF
@@ -190,8 +207,8 @@ func find_point_at(global_mouse_pos: Vector2) -> Dictionary:
 			closest_rail = rail
 			closest_index = point_index
 	if closest_rail == null:
-		return {}
-	return {"rail": closest_rail, "point_index": closest_index}
+		return null
+	return PointHit.new(closest_rail, closest_index)
 
 func drag_selected_point(global_mouse_pos: Vector2) -> void:
 	if editor == null or chart_panel == null:
@@ -223,11 +240,11 @@ func finalize_selected_point_drag(global_mouse_pos: Vector2) -> void:
 	var source_rail := editor.selection.selected_rail
 	var source_point_index := editor.selection.selected_point_index
 	var target_hit := _find_merge_target_for_selected_point(global_mouse_pos, source_rail, source_point_index)
-	if target_hit.is_empty():
+	if target_hit == null:
 		return
 
-	var target_rail := target_hit["rail"] as Rail
-	var target_point_index := int(target_hit["point_index"])
+	var target_rail := target_hit.rail as Rail
+	var target_point_index := int(target_hit.point_index)
 	if not EditorChartOps.can_merge_rails(source_rail, source_point_index, target_rail, target_point_index):
 		Notification.notice("rails can only merge when their time ranges do not overlap", Notification.Type.WARNING)
 		return
@@ -243,14 +260,14 @@ func finalize_selected_point_drag(global_mouse_pos: Vector2) -> void:
 	editor.selection.select_rail(merged_rail)
 	refresh_views()
 
-func _find_merge_target_for_selected_point(global_mouse_pos: Vector2, source_rail: Rail, source_point_index: int) -> Dictionary:
+func _find_merge_target_for_selected_point(global_mouse_pos: Vector2, source_rail: Rail, source_point_index: int) -> PointHit:
 	if source_rail == null or source_rail.points.is_empty():
-		return {}
+		return null
 
 	var is_source_first := source_point_index == 0
 	var is_source_last := source_point_index == source_rail.points.size() - 1
 	if not is_source_first and not is_source_last:
-		return {}
+		return null
 
 	var closest_rail: Rail = null
 	var closest_index := -1
@@ -274,5 +291,5 @@ func _find_merge_target_for_selected_point(global_mouse_pos: Vector2, source_rai
 		closest_index = target_index
 
 	if closest_rail == null:
-		return {}
-	return {"rail": closest_rail, "point_index": closest_index}
+		return null
+	return PointHit.new(closest_rail, closest_index)

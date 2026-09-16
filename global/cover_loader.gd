@@ -3,12 +3,20 @@ extends Node
 signal cover_loaded(chart: Chart, texture: Texture2D)
 signal cover_failed(chart: Chart)
 
+class CoverResult extends RefCounted:
+	var chart: Chart
+	var image: Image
+
+	func _init(p_chart: Chart, p_image: Image) -> void:
+		chart = p_chart
+		image = p_image
+
 var worker := Thread.new()
 var mutex := Mutex.new()
 var semaphore := Semaphore.new()
 var queued_charts: Array[Chart] = []
 var queued_ids := {}
-var completed_results: Array[Dictionary] = []
+var completed_results: Array[CoverResult] = []
 var is_stopping := false
 
 
@@ -73,7 +81,7 @@ func _enqueue_charts(charts: Array[Chart], replace_existing: bool) -> void:
 
 
 func _process(_delta: float) -> void:
-	var results: Array[Dictionary] = []
+	var results: Array[CoverResult] = []
 
 	mutex.lock()
 	if not completed_results.is_empty():
@@ -82,7 +90,7 @@ func _process(_delta: float) -> void:
 	mutex.unlock()
 
 	for result in results:
-		var chart: Chart = result.get("chart")
+		var chart: Chart = result.chart
 		if chart == null:
 			continue
 
@@ -90,7 +98,7 @@ func _process(_delta: float) -> void:
 		queued_ids.erase(chart.get_instance_id())
 		mutex.unlock()
 
-		var image: Image = result.get("image")
+		var image: Image = result.image
 		if image == null:
 			cover_failed.emit(chart)
 			continue
@@ -121,8 +129,5 @@ func _worker_loop() -> void:
 		var image := chart.load_cover_image_data()
 
 		mutex.lock()
-		completed_results.append({
-			"chart": chart,
-			"image": image,
-		})
+		completed_results.append(CoverResult.new(chart, image))
 		mutex.unlock()

@@ -1,6 +1,21 @@
 extends RefCounted
 class_name ChartPackageInstaller
 
+class InstallResult extends RefCounted:
+	var error: String = ""
+	var folder: String = ""
+
+	static func failure(message: String) -> InstallResult:
+		var result := InstallResult.new()
+		result.error = message
+		return result
+
+	static func completed(folder_name: String) -> InstallResult:
+		var result := InstallResult.new()
+		result.folder = folder_name
+		return result
+
+
 ## Runs on a worker. Extract into a private staging directory, then atomically publish.
 const MAX_EXPANDED_BYTES := 100 * 1024 * 1024
 const MAX_FILES := 5000
@@ -8,6 +23,15 @@ const DOWNLOAD_FOLDER_MAX_LENGTH := 200
 const REVISION_MANIFEST_NAME := ".dansu-online.json"
 const CACHE_ROOT := FileSystem.community_cache_path
 const MAX_CACHED_CHARTSETS := 200
+
+class CachedFolder extends RefCounted:
+	var name: String
+	var last_used_at: int
+
+	func _init(p_name: String, p_last_used_at: int) -> void:
+		name = p_name
+		last_used_at = p_last_used_at
+
 
 static func safe_relative(path: String) -> bool:
 	if path.is_empty() or path.begins_with("/") or "\\" in path or ":" in path:
@@ -55,26 +79,26 @@ static func read_revision_manifest(folder_path: String) -> Dictionary:
 	var parsed = JSON.parse_string(file.get_as_text())
 	return parsed if parsed is Dictionary else {}
 
-static func install(archive_path: String, metadata: Dictionary) -> Dictionary:
+static func install(archive_path: String, metadata: Dictionary) -> InstallResult:
 	var transfer_root := archive_path.get_base_dir()
 	if not _bounded_zip(archive_path):
 		ChartTransfer.cleanup(transfer_root)
-		return {"error": "The ZIP is invalid or exceeds the 100 MiB extraction limit."}
+		return InstallResult.failure("The ZIP is invalid or exceeds the 100 MiB extraction limit.")
 	var zip := ZIPReader.new()
 	if zip.open(archive_path) != OK:
 		ChartTransfer.cleanup(transfer_root)
-		return {"error": "The downloaded file is not a valid chart package."}
+		return InstallResult.failure("The downloaded file is not a valid chart package.")
 	var names := zip.get_files()
 	var seen := {}
 	if names.is_empty() or names.size() > MAX_FILES:
 		zip.close()
 		ChartTransfer.cleanup(transfer_root)
-		return {"error": "The chart package has an invalid file count."}
+		return InstallResult.failure("The chart package has an invalid file count.")
 	for path in names:
 		if not safe_relative(path) or seen.has(path.to_lower()):
 			zip.close()
 			ChartTransfer.cleanup(transfer_root)
-			return {"error": "The chart package contains an unsafe or duplicate path."}
+			return InstallResult.failure("The chart package contains an unsafe or duplicate path.")
 		seen[path.to_lower()] = true
 	var staging := transfer_root.path_join("staging")
 	var backup_root := transfer_root.path_join("backup")
@@ -82,7 +106,7 @@ static func install(archive_path: String, metadata: Dictionary) -> Dictionary:
 	if DirAccess.make_dir_recursive_absolute(staging) != OK:
 		zip.close()
 		ChartTransfer.cleanup(transfer_root)
-		return {"error": "Could not create the download staging folder."}
+		return InstallResult.failure("Could not create the download staging folder.")
 	var expanded := 0
 	var error := ""
 	for path in names:
@@ -136,9 +160,9 @@ static func install(archive_path: String, metadata: Dictionary) -> Dictionary:
 		for original in backups:
 			DirAccess.rename_absolute(backups[original], original)
 		ChartTransfer.cleanup(transfer_root)
-		return {"error": error}
+		return InstallResult.failure(error)
 	ChartTransfer.cleanup(transfer_root)
-	return {"folder": destination.get_file()}
+	return InstallResult.completed(destination.get_file())
 
 static func _write_revision_manifest(staging: String, metadata: Dictionary) -> String:
 	var charts: Array = metadata.get("charts", [])
@@ -169,16 +193,13 @@ static func _write_revision_manifest(staging: String, metadata: Dictionary) -> S
 
 
 static func prune_cache(keep_folder: String = "") -> void:
-	var folders: Array[Dictionary] = []
+	var folders: Array[CachedFolder] = []
 	for folder_name in DirAccess.get_directories_at(CACHE_ROOT):
 		var manifest := read_revision_manifest(CACHE_ROOT.path_join(folder_name))
-		folders.append({
-			"name": folder_name,
-			"last_used_at": int(manifest.get("last_used_at", 0)),
-		})
+		folders.append(CachedFolder.new(folder_name, int(manifest.get("last_used_at", 0))))
 	if folders.size() <= MAX_CACHED_CHARTSETS:
 		return
-	folders.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+	folders.sort_custom(func(a: CachedFolder, b: CachedFolder) -> bool:
 		return int(a.last_used_at) < int(b.last_used_at)
 	)
 	var remove_count := folders.size() - MAX_CACHED_CHARTSETS

@@ -13,7 +13,7 @@ var skin_editor_request = null
 var reopen_editor_without_chart_reload := false
 var editor_playtest_active := false
 var editor_playtest_start_time_ms := 0.0
-var editor_playtest_saved_snapshot: Dictionary = {}
+var editor_playtest_saved_snapshot: EditorSnapshot
 
 var color_map = {
 	0: Color("9ca3eb"),
@@ -76,10 +76,11 @@ func play_replay(replay: Replay) -> bool:
 	return true
 
 
-func begin_editor_playtest(start_time_ms: float, saved_snapshot: Dictionary) -> void:
+func begin_editor_playtest(start_time_ms: float, saved_snapshot: EditorSnapshot) -> void:
 	editor_playtest_active = true
 	editor_playtest_start_time_ms = start_time_ms
-	editor_playtest_saved_snapshot = saved_snapshot.duplicate(true)
+	# Captured snapshots are immutable after publication to history or saved state.
+	editor_playtest_saved_snapshot = saved_snapshot
 
 
 func finish_editor_playtest() -> void:
@@ -91,10 +92,10 @@ func finish_editor_playtest() -> void:
 func cancel_editor_playtest() -> void:
 	editor_playtest_active = false
 	editor_playtest_start_time_ms = 0.0
-	editor_playtest_saved_snapshot.clear()
+	editor_playtest_saved_snapshot = null
 
 
-func take_editor_playtest_saved_snapshot() -> Dictionary:
+func take_editor_playtest_saved_snapshot() -> EditorSnapshot:
 	var snapshot := editor_playtest_saved_snapshot
-	editor_playtest_saved_snapshot = {}
+	editor_playtest_saved_snapshot = null
 	return snapshot

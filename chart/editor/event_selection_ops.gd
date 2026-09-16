@@ -1,10 +1,20 @@
 extends RefCounted
 
 var workspace: Node
-var clipboard: Array[Dictionary] = []
+class ClipboardEntry extends RefCounted:
+	var data: EditorSnapshot.EventData
+	var indices: Array[int]
+	var whole: bool
+
+	func _init(p_data: EditorSnapshot.EventData, p_indices: Array[int], p_whole: bool) -> void:
+		data = p_data
+		indices = p_indices
+		whole = p_whole
+
+var clipboard: Array[ClipboardEntry] = []
 var first_time := 0
 
-func items() -> Array[Dictionary]:
+func items() -> Array[EditorEventItem]:
 	return workspace.editor.selection.selected_event_items
 
 func is_selected(event: ChartEvent, frame: ChartEventFrame) -> bool:
@@ -13,8 +23,8 @@ func is_selected(event: ChartEvent, frame: ChartEventFrame) -> bool:
 			return true
 	return false
 
-func set_items(values: Array[Dictionary]) -> void:
-	var normalized: Array[Dictionary] = []
+func set_items(values: Array[EditorEventItem]) -> void:
+	var normalized: Array[EditorEventItem] = []
 	for item in values:
 		if not workspace.get_events().has(item.event):
 			continue
@@ -28,12 +38,12 @@ func set_items(values: Array[Dictionary]) -> void:
 			continue
 		if item.frame == null:
 			normalized = normalized.filter(func(other): return other.event != item.event)
-		normalized.append({"event": item.event, "frame": item.frame})
+		normalized.append(EditorEventItem.new(item.event, item.frame))
 	var selection: ChartEditorSelection = workspace.editor.selection
 	if normalized.is_empty():
 		selection.clear()
 		return
-	if normalized == selection.selected_event_items:
+	if _same_items(normalized, selection.selected_event_items):
 		return
 	var primary = normalized.back()
 	selection.selected_rail = null
@@ -46,6 +56,14 @@ func set_items(values: Array[Dictionary]) -> void:
 	selection.selected_event_items = normalized
 	selection.refresh()
 
+func _same_items(a: Array[EditorEventItem], b: Array[EditorEventItem]) -> bool:
+	if a.size() != b.size():
+		return false
+	for i in range(a.size()):
+		if not a[i].same_item(b[i]):
+			return false
+	return true
+
 func toggle(event: ChartEvent, frame: ChartEventFrame) -> void:
 	var next := items().duplicate()
 	if is_selected(event, frame):
@@ -53,23 +71,24 @@ func toggle(event: ChartEvent, frame: ChartEventFrame) -> void:
 	else:
 		if frame != null:
 			next = next.filter(func(item): return item.event != event or item.frame != null)
-		next.append({"event": event, "frame": frame})
+		next.append(EditorEventItem.new(event, frame))
 	set_items(next)
 
-func capture() -> Dictionary:
-	var state := {"items": items().duplicate(), "events": {}, "frames": {}}
+func capture() -> EventEditState:
+	var state := EventEditState.new()
+	state.items = items().duplicate()
 	for item in items():
 		var event: ChartEvent = item.event
-		state.events[event] = {"time": event.time, "duration": event.duration, "x": event.x if event is OverlayEvent else 0}
+		state.events[event] = EventEditState.Placement.new(event)
 		for frame in workspace.get_frames(event):
 			state.frames[frame] = frame.time
 	return state
 
-func move(state: Dictionary, dt: int, dx: int, resize: ChartEvent = null) -> bool:
-	var events: Dictionary = {}
+func move(state: EventEditState, dt: int, dx: int, resize: ChartEvent = null) -> bool:
+	var events: Dictionary[ChartEvent, EventEditState.Placement] = {}
 	for event in state.events:
-		events[event] = state.events[event].duplicate()
-	var frames: Dictionary = state.frames.duplicate()
+		events[event] = state.events[event].copy()
+	var frames: Dictionary[ChartEventFrame, int] = state.frames.duplicate()
 	for item in state.items:
 		var event: ChartEvent = item.event
 		if item.frame != null:
@@ -85,27 +104,27 @@ func move(state: Dictionary, dt: int, dx: int, resize: ChartEvent = null) -> boo
 	apply_values(events, frames)
 	return true
 
-func validate(values: Dictionary, frame_times: Dictionary, additions: Dictionary = {}) -> bool:
+func validate(values: Dictionary[ChartEvent, EventEditState.Placement], frame_times: Dictionary[ChartEventFrame, int], additions: Dictionary = {}) -> bool:
 	var all_events: Array = workspace.get_events().duplicate()
 	for event in values:
 		if not all_events.has(event):
 			all_events.append(event)
 	for event in values:
-		var value: Dictionary = values[event]
+		var value: EventEditState.Placement = values[event]
 		if event is OverlayEvent:
 			if value.time < workspace.editor.timeline.get_min_time() or value.duration <= 0 or value.x < 0 or value.x >= workspace.SLOT_COUNT:
 				return false
 			for other in all_events:
 				if other == event or not other is OverlayEvent:
 					continue
-				var o: Dictionary = values.get(other, {"time": other.time, "duration": other.duration, "x": other.x})
+				var o: EventEditState.Placement = values.get(other, EventEditState.Placement.new(other))
 				if value.x == o.x and value.time < o.time + o.duration and value.time + value.duration > o.time:
 					return false
 		elif event is SkinEvent:
 			if value.time < workspace.editor.timeline.get_min_time():
 				return false
 			for other in all_events:
-				if other != event and other is SkinEvent and absi(int(value.time) - int(values.get(other, {"time": other.time}).time)) <= 1:
+				if other != event and other is SkinEvent and absi(int(value.time) - int(values.get(other, EventEditState.Placement.new(other)).time)) <= 1:
 					return false
 		var times: Array[int] = []
 		var event_frames: Array = workspace.get_frames(event).duplicate()
@@ -123,7 +142,7 @@ func validate(values: Dictionary, frame_times: Dictionary, additions: Dictionary
 				return false
 	return true
 
-func apply_values(events: Dictionary, frames: Dictionary) -> void:
+func apply_values(events: Dictionary[ChartEvent, EventEditState.Placement], frames: Dictionary[ChartEventFrame, int]) -> void:
 	var primary: ChartEventFrame = workspace._get_selected_frame()
 	for event in events:
 		event.time = events[event].time
@@ -172,17 +191,17 @@ func copy_selected() -> bool:
 			if item.frame != null:
 				indices.append(workspace.get_frames(event).find(item.frame))
 			first_time = mini(first_time, event.time + (item.frame.time if item.frame != null else 0))
-		clipboard.append({"data": EditorHistory.capture_events_data([event])[0], "indices": indices, "whole": whole})
+		clipboard.append(ClipboardEntry.new(EditorHistory.capture_events_data([event])[0], indices, whole))
 	return true
 
 func paste() -> bool:
 	if clipboard.is_empty():
 		return false
 	var shift: int = workspace.editor.timeline.snap_time(int(Game.current_time)) - first_time
-	var events: Dictionary = {}
+	var events: Dictionary[ChartEvent, EventEditState.Placement] = {}
 	var new_events: Array[ChartEvent] = []
 	var additions: Dictionary = {}
-	var selection: Array[Dictionary] = []
+	var selection: Array[EditorEventItem] = []
 	for entry in clipboard:
 		var source: ChartEvent = EditorHistory.restore_events_data([entry.data])[0]
 		var selected: Array[ChartEventFrame] = []
@@ -221,8 +240,8 @@ func paste() -> bool:
 			for frame in selected:
 				frame.time += source.time + shift - target.time
 				additions[target].append(frame)
-				selection.append({"event": target, "frame": frame})
-			events[target] = {"time": target.time, "duration": target.duration, "x": target.x if target is OverlayEvent else 0}
+				selection.append(EditorEventItem.new(target, frame))
+			events[target] = EventEditState.Placement.new(target)
 		else:
 			if source is OverlayEvent and not entry.whole:
 				selected.sort_custom(func(a, b): return a.time < b.time)
@@ -234,8 +253,8 @@ func paste() -> bool:
 					frame.time -= offset
 			source.time += shift
 			new_events.append(source)
-			events[source] = {"time": source.time, "duration": source.duration, "x": source.x if source is OverlayEvent else 0}
-			selection.append({"event": source, "frame": null})
+			events[source] = EventEditState.Placement.new(source)
+			selection.append(EditorEventItem.new(source, null))
 	# Shift the overlay group rigidly to the closest available columns.
 	var original_slots: Dictionary = {}
 	for event in new_events:

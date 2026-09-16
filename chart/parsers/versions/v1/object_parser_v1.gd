@@ -1,6 +1,25 @@
 extends ObjectParser
 class_name ObjectParserV1
 
+class ClipHeader extends RefCounted:
+	var id: String
+	var time: int
+	var duration: int
+
+	func _init(p_id: String, p_time: int, p_duration: int) -> void:
+		id = p_id
+		time = p_time
+		duration = p_duration
+
+class OptionalToken extends RefCounted:
+	var key: String
+	var value: String
+
+	func _init(p_key: String = "", p_value: String = "") -> void:
+		key = p_key
+		value = p_value
+
+
 enum { OBJECT, HITSOUNDS, EVENTS }
 
 func parse(file: FileAccess, chart: Chart) -> ParsedChart:
@@ -92,20 +111,20 @@ func _parse_camera_event(line: String) -> CameraEvent:
 
 func _parse_overlay_event(line: String) -> OverlayEvent:
 	var values := _parse_clip_header(line, "overlay:")
-	if values.is_empty():
+	if values == null:
 		return null
 	var event := OverlayEvent.new()
 	_assign_clip_header(event, values)
 	var parts := line.trim_prefix("overlay:").split(",", false)
 	for index in range(3, parts.size()):
 		var token := _parse_optional_token(parts[index])
-		match String(token.get("key", "")):
+		match token.key:
 			"x":
-				var layer_text := String(token.get("value", ""))
+				var layer_text := token.value
 				if layer_text.is_valid_int():
 					event.x = clampi(int(layer_text), 0, 9)
 			"a":
-				var anchor := String(token.get("value", ""))
+				var anchor := token.value
 				if OverlayEventFrame.is_valid_anchor(anchor):
 					event.anchor = anchor
 				else:
@@ -135,27 +154,23 @@ func _parse_skin_event(line: String) -> SkinEvent:
 	event.skin_json = skin_json
 	return event
 
-func _parse_clip_header(line: String, prefix: String) -> Dictionary:
+func _parse_clip_header(line: String, prefix: String) -> ClipHeader:
 	var parts := line.trim_prefix(prefix).split(",", false)
 	if parts.size() < 3:
 		push_error("FILE : WRONG EVENT HEADER FORMAT : %s" % line)
-		return {}
+		return null
 	var event_id := parts[0].strip_edges()
 	var time_text := parts[1].strip_edges()
 	var duration_text := parts[2].strip_edges()
 	if event_id.is_empty() or not time_text.is_valid_int() or not duration_text.is_valid_int():
 		push_error("FILE : WRONG EVENT HEADER FORMAT : %s" % line)
-		return {}
-	return {
-		"id": event_id,
-		"time": int(time_text),
-		"duration": int(duration_text),
-	}
+		return null
+	return ClipHeader.new(event_id, int(time_text), int(duration_text))
 
-func _assign_clip_header(event: ChartEvent, values: Dictionary) -> void:
-	event.id = String(values["id"])
-	event.time = int(values["time"])
-	event.duration = int(values["duration"])
+func _assign_clip_header(event: ChartEvent, values: ClipHeader) -> void:
+	event.id = values.id
+	event.time = values.time
+	event.duration = values.duration
 
 func _parse_camera_frame(line: String) -> CameraEventFrame:
 	var parts := _parse_frame_parts(line)
@@ -201,26 +216,26 @@ func _parse_overlay_frame(line: String) -> OverlayEventFrame:
 		optional_start = 8
 	for index in range(optional_start, parts.size()):
 		var token := _parse_optional_token(parts[index])
-		match String(token.get("key", "")):
+		match token.key:
 			"a":
-				var anchor := String(token.get("value", ""))
+				var anchor := token.value
 				if OverlayEventFrame.is_valid_anchor(anchor):
 					frame.anchor = anchor
 				else:
 					push_error("FILE : WRONG OVERLAY ANCHOR PRESET : %s" % anchor)
 			"s":
-				var sprite := String(token.get("value", ""))
+				var sprite := token.value
 				if EventResourceRef.is_valid(sprite):
 					frame.sprite = sprite
 				else:
 					push_error("FILE : WRONG EVENT RESOURCE REFERENCE : %s" % sprite)
 			"o":
-				var opacity_text := String(token.get("value", ""))
+				var opacity_text := token.value
 				if opacity_text.is_valid_float():
 					frame.opacity = float(opacity_text)
 					frame.has_opacity = true
 			"e":
-				frame.ease = String(token.get("value", ""))
+				frame.ease = token.value
 	return frame
 
 func _parse_theme_frame(line: String) -> ThemeEventFrame:
@@ -253,19 +268,16 @@ func _are_valid_floats(parts: PackedStringArray, from_index: int, to_index: int)
 func _parse_ease(parts: PackedStringArray, from_index: int) -> String:
 	for index in range(from_index, parts.size()):
 		var token := _parse_optional_token(parts[index])
-		if String(token.get("key", "")) == "e":
-			return String(token.get("value", ""))
+		if token.key == "e":
+			return token.value
 	return ""
 
-func _parse_optional_token(text: String) -> Dictionary:
+func _parse_optional_token(text: String) -> OptionalToken:
 	var token := text.strip_edges()
 	var separator_index := token.find(":")
 	if separator_index <= 0:
-		return {}
-	return {
-		"key": token.substr(0, separator_index).strip_edges(),
-		"value": token.substr(separator_index + 1).strip_edges(),
-	}
+		return OptionalToken.new()
+	return OptionalToken.new(token.substr(0, separator_index).strip_edges(), token.substr(separator_index + 1).strip_edges())
 
 func _parse_note_line(line: String) -> Note:
 	var parts := line.split(",", false)

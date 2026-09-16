@@ -13,8 +13,8 @@ var initial_notes: Dictionary = {}
 var initial_points: Dictionary = {}
 var note_times: Dictionary = {}
 var point_values: Dictionary = {}
-var initial_selection: Dictionary = {}
-var snapshot: Dictionary = {}
+var initial_selection: EditorSnapshot.SelectionData
+var snapshot: EditorSnapshot
 var click_rail: Rail
 var marquee: Panel
 var delta_time := 0
@@ -26,7 +26,7 @@ func press(owner: ChartEditor, position: Vector2, ctrl: bool, shift: bool) -> vo
 	var points := editor._find_point_at(position)
 	if shift and select_range(position):
 		return
-	if not points.is_empty():
+	if points != null:
 		var rail: Rail = points.rail
 		var point: RailPoint = rail.points[points.point_index]
 		if ctrl:
@@ -36,7 +36,7 @@ func press(owner: ChartEditor, position: Vector2, ctrl: bool, shift: bool) -> vo
 			editor.selection.select_point(rail, points.point_index)
 		begin(position, false)
 		anchor_time = point.time
-	elif not notes.is_empty():
+	elif notes != null:
 		var note: Note = notes.note
 		range_anchor = note
 		range_rail = notes.rail
@@ -61,7 +61,7 @@ func begin(position: Vector2, box: bool) -> void:
 	origin = local_position(position)
 	delta_time = 0
 	delta_x = 0.0
-	snapshot = {}
+	snapshot = null
 	initial_selection = EditorHistory._capture_selection(editor.selection)
 	initial_notes = editor.selection.selected_notes.duplicate()
 	initial_points = editor.selection.selected_points.duplicate()
@@ -185,7 +185,7 @@ func apply_delta(proposed: int, dx: float) -> void:
 				return
 	if dt == delta_time and is_equal_approx(dx, delta_x):
 		return
-	if snapshot.is_empty():
+	if snapshot == null:
 		snapshot = EditorHistory.capture(editor)
 	delta_time = dt
 	delta_x = dx
@@ -237,7 +237,7 @@ func finish(position: Vector2, cancel: bool = false) -> void:
 			editor.selection.select_rail(click_rail)
 		else:
 			editor.selection.clear()
-	elif not box_mode and not snapshot.is_empty() and (delta_time != 0 or not is_zero_approx(delta_x)):
+	elif not box_mode and snapshot != null and (delta_time != 0 or not is_zero_approx(delta_x)):
 		if initial_notes.is_empty() and initial_points.size() == 1:
 			editor._point_drag_history_pending = false
 			editor.view_controller.finalize_selected_point_drag(position)
@@ -247,7 +247,7 @@ func finish(position: Vector2, cancel: bool = false) -> void:
 	editor.transport.rebuild_playback_notes()
 	active = false
 	dragging = false
-	snapshot = {}
+	snapshot = null
 
 func local_position(position: Vector2) -> Vector2:
 	return editor.chart_panel.get_global_transform_with_canvas().affine_inverse() * position

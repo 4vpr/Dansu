@@ -48,29 +48,29 @@ static func packaged_chartset_folders() -> PackedStringArray:
 	return folders
 
 
-static func install_packaged_chartset(archive_path: String, chartset_uuid: String, preferred_folder_name: String) -> Dictionary:
+static func install_packaged_chartset(archive_path: String, chartset_uuid: String, preferred_folder_name: String) -> ChartPackageInstaller.InstallResult:
 	if not OS.has_feature("editor"):
-		return {"error": "Built-in chartsets can only be installed while running from the editor."}
+		return ChartPackageInstaller.InstallResult.failure("Built-in chartsets can only be installed while running from the editor.")
 	var uuid := chartset_uuid.strip_edges().to_lower()
 	if not _is_chartset_uuid(uuid):
-		return {"error": "The chartset UUID is invalid."}
+		return ChartPackageInstaller.InstallResult.failure("The chartset UUID is invalid.")
 	var archive_absolute := ProjectSettings.globalize_path(archive_path)
 	if not FileAccess.file_exists(archive_absolute):
-		return {"error": "The server chart package is missing."}
+		return ChartPackageInstaller.InstallResult.failure("The server chart package is missing.")
 
 	if not FileAccess.file_exists(packaged_chartsets_manifest_path):
-		return {"error": "The built-in chartset JSON is missing."}
+		return ChartPackageInstaller.InstallResult.failure("The built-in chartset JSON is missing.")
 	var raw_manifest = JSON.parse_string(FileAccess.get_file_as_string(packaged_chartsets_manifest_path))
 	if not raw_manifest is Dictionary:
-		return {"error": "The built-in chartset JSON is invalid."}
+		return ChartPackageInstaller.InstallResult.failure("The built-in chartset JSON is invalid.")
 	var manifest := packaged_chartsets()
 	if manifest.size() != raw_manifest.size():
-		return {"error": "The built-in chartset JSON contains invalid entries."}
+		return ChartPackageInstaller.InstallResult.failure("The built-in chartset JSON contains invalid entries.")
 	var folder_name := str(manifest.get(uuid, ""))
 	if folder_name.is_empty():
 		folder_name = _unique_packaged_folder_name(preferred_folder_name, manifest)
 	if folder_name.is_empty():
-		return {"error": "Could not choose a built-in chartset folder name."}
+		return ChartPackageInstaller.InstallResult.failure("Could not choose a built-in chartset folder name.")
 
 	var root_absolute := ProjectSettings.globalize_path(official_chart_path)
 	ensure_dir(root_absolute)
@@ -82,26 +82,26 @@ static func install_packaged_chartset(archive_path: String, chartset_uuid: Strin
 	var extraction_error := _extract_packaged_chartset_archive(archive_absolute, staging_absolute, uuid)
 	if not extraction_error.is_empty():
 		_remove_directory_tree(staging_absolute)
-		return {"error": extraction_error}
+		return ChartPackageInstaller.InstallResult.failure(extraction_error)
 
 	var had_target := DirAccess.dir_exists_absolute(target_absolute)
 	if had_target and DirAccess.rename_absolute(target_absolute, backup_absolute) != OK:
 		_remove_directory_tree(staging_absolute)
-		return {"error": "Could not replace the existing built-in chartset folder."}
+		return ChartPackageInstaller.InstallResult.failure("Could not replace the existing built-in chartset folder.")
 	if DirAccess.rename_absolute(staging_absolute, target_absolute) != OK:
 		if had_target:
 			DirAccess.rename_absolute(backup_absolute, target_absolute)
 		_remove_directory_tree(staging_absolute)
-		return {"error": "Could not finish copying the built-in chartset folder."}
+		return ChartPackageInstaller.InstallResult.failure("Could not finish copying the built-in chartset folder.")
 
 	manifest[uuid] = folder_name
 	if not write_text_atomic(packaged_chartsets_manifest_path, JSON.stringify(manifest, "\t") + "\n"):
 		_remove_directory_tree(target_absolute)
 		if had_target:
 			DirAccess.rename_absolute(backup_absolute, target_absolute)
-		return {"error": "Could not update the built-in chartset JSON."}
+		return ChartPackageInstaller.InstallResult.failure("Could not update the built-in chartset JSON.")
 	_remove_directory_tree(backup_absolute)
-	return {"folder": folder_name}
+	return ChartPackageInstaller.InstallResult.completed(folder_name)
 
 
 static func _unique_packaged_folder_name(preferred_name: String, manifest: Dictionary) -> String:

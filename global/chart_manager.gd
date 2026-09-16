@@ -198,10 +198,13 @@ func reload_editor_library() -> void:
 	editor_chart_update.emit(editor_chartsets)
 
 
-func recalculate_all_ratings() -> Dictionary:
-	var total := 0
-	var updated := 0
-	var failed := 0
+class RatingRecalculation extends RefCounted:
+	var total: int = 0
+	var updated: int = 0
+	var failed: int = 0
+
+func recalculate_all_ratings() -> RatingRecalculation:
+	var result := RatingRecalculation.new()
 	var parser := Parser.new()
 
 	for chart_set: ChartSet in chartsets:
@@ -210,11 +213,11 @@ func recalculate_all_ratings() -> Dictionary:
 		for chart: Chart in chart_set.charts:
 			if chart == null:
 				continue
-			total += 1
+			result.total += 1
 
 			var parse_result := parser.parse_object(chart)
 			if not parse_result.success or parse_result.parsed_chart == null:
-				failed += 1
+				result.failed += 1
 				continue
 
 			var parsed: ParsedChart = parse_result.parsed_chart
@@ -222,18 +225,14 @@ func recalculate_all_ratings() -> Dictionary:
 			chart.rating_calculated = true
 			chart.build_search_string()
 			if not _index_saved_chart(chart):
-				failed += 1
+				result.failed += 1
 				continue
-			updated += 1
+			result.updated += 1
 
-	if updated > 0:
+	if result.updated > 0:
 		_emit_update()
 
-	return {
-		"total": total,
-		"updated": updated,
-		"failed": failed,
-	}
+	return result
 
 
 func _load(_is_reload: bool) -> void:

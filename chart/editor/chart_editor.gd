@@ -66,7 +66,7 @@ var _last_transport_ui_usec := 0
 var _history := EditorHistoryStack.new()
 var _is_restoring_history := false
 var _point_drag_history_pending := false
-var _saved_snapshot: Dictionary = {}
+var _saved_snapshot: EditorSnapshot
 var _pending_exit_target := ""
 
 func _ready() -> void:
@@ -308,14 +308,14 @@ func _set_current_time(value: float) -> void:
 
 # Hit testing 
 
-func _find_note_at(global_mouse_pos: Vector2) -> Dictionary:
-	return view_controller.find_note_at(global_mouse_pos) if view_controller != null else {}
+func _find_note_at(global_mouse_pos: Vector2) -> EditorViewController.NoteHit:
+	return view_controller.find_note_at(global_mouse_pos) if view_controller != null else null
 
 func _find_rail_at(global_mouse_pos: Vector2) -> Rail:
 	return view_controller.find_rail_at(global_mouse_pos) if view_controller != null else null
 
-func _find_point_at(global_mouse_pos: Vector2) -> Dictionary:
-	return view_controller.find_point_at(global_mouse_pos) if view_controller != null else {}
+func _find_point_at(global_mouse_pos: Vector2) -> EditorViewController.PointHit:
+	return view_controller.find_point_at(global_mouse_pos) if view_controller != null else null
 
 func _drag_selected_point(global_mouse_pos: Vector2) -> void:
 	if view_controller != null:
@@ -437,16 +437,16 @@ func _push_history_snapshot() -> void:
 	_history.push(EditorHistory.capture(self))
 
 func _undo_history() -> void:
-	var snapshot := _history.undo(EditorHistory.capture(self))
-	if not snapshot.is_empty():
+	var snapshot := _history.undo(EditorHistory.capture(self)) as EditorSnapshot
+	if snapshot != null:
 		_restore_history_snapshot(snapshot)
 
 func _redo_history() -> void:
-	var snapshot := _history.redo(EditorHistory.capture(self))
-	if not snapshot.is_empty():
+	var snapshot := _history.redo(EditorHistory.capture(self)) as EditorSnapshot
+	if snapshot != null:
 		_restore_history_snapshot(snapshot)
 
-func _restore_history_snapshot(snapshot: Dictionary) -> void:
+func _restore_history_snapshot(snapshot: EditorSnapshot) -> void:
 	if transport.playing:
 		transport.pause()
 	_is_restoring_history = true
@@ -463,21 +463,19 @@ func mark_saved_state() -> void:
 
 func _restore_or_mark_saved_state() -> void:
 	var playtest_saved_snapshot := Game.take_editor_playtest_saved_snapshot()
-	if playtest_saved_snapshot.is_empty():
+	if playtest_saved_snapshot == null:
 		mark_saved_state()
 	else:
 		_saved_snapshot = playtest_saved_snapshot
 
 func _has_unsaved_changes() -> bool:
-	if _saved_snapshot.is_empty():
+	if _saved_snapshot == null:
 		return false
 	return not EditorHistory.same_snapshot(_saved_snapshot, _capture_saved_state())
 
-func _capture_saved_state() -> Dictionary:
+func _capture_saved_state() -> EditorSnapshot:
 	var snapshot := EditorHistory.capture(self)
-	snapshot.erase("selection")
-	snapshot.erase("current_time")
-	snapshot.erase("beat_division")
+	snapshot.clear_editor_state()
 	return snapshot
 
 func _request_exit(target: String) -> void:

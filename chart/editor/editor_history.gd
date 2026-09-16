@@ -1,402 +1,378 @@
 extends RefCounted
 class_name EditorHistory
 
-static func capture(editor: ChartEditor) -> Dictionary:
+static func capture(editor: ChartEditor) -> EditorSnapshot:
 	var parsed_chart := CM.ensure_parsed_chart()
-	return {
-		"chart": _capture_chart(editor.chart),
-		"timings": _capture_timings(editor.chart),
-		"hitsounds": _capture_hitsounds(parsed_chart.hitsounds),
-		"rails": _capture_rails(parsed_chart.rails),
-		"events": _capture_events(parsed_chart.events),
-		"selection": _capture_selection(editor.selection),
-		"current_time": Game.current_time,
-		"beat_division": editor.timeline.beat_division if editor.timeline != null else 4,
-	}
+	var snapshot := EditorSnapshot.new()
+	snapshot.chart = _capture_chart(editor.chart)
+	snapshot.timings = _capture_timings(editor.chart)
+	snapshot.hitsounds = _capture_hitsounds(parsed_chart.hitsounds)
+	snapshot.rails = _capture_rails(parsed_chart.rails)
+	snapshot.events = _capture_events(parsed_chart.events)
+	snapshot.selection = _capture_selection(editor.selection)
+	snapshot.current_time = Game.current_time
+	snapshot.beat_division = editor.timeline.beat_division if editor.timeline != null else 4
+	return snapshot
 
-static func restore(editor: ChartEditor, snapshot: Dictionary) -> void:
-	if editor == null or editor.chart == null:
+static func restore(editor: ChartEditor, snapshot: EditorSnapshot) -> void:
+	if editor == null or editor.chart == null or snapshot == null:
 		return
-	_restore_chart(editor.chart, snapshot.get("chart", {}))
+	_restore_chart(editor.chart, snapshot.chart)
 	editor.chart.cover_image = null
 	editor.transport.chart = editor.chart
 	editor.transport.load_stream()
-	editor.chart.timings = _restore_timings(snapshot.get("timings", []))
+	editor.chart.timings = _restore_timings(snapshot.timings)
 	CM.parsed_chart = ParsedChart.new(editor.chart)
-	CM.parsed_chart.hitsounds = _restore_hitsounds(editor.chart, snapshot.get("hitsounds", []))
-	CM.parsed_chart.rails = _restore_rails(snapshot.get("rails", []))
-	CM.parsed_chart.events = _restore_events(snapshot.get("events", []))
+	CM.parsed_chart.hitsounds = _restore_hitsounds(editor.chart, snapshot.hitsounds)
+	CM.parsed_chart.rails = _restore_rails(snapshot.rails)
+	CM.parsed_chart.events = _restore_events(snapshot.events)
 	CM.parsed_chart.sort_events()
 	editor.timeline = EditorTimeline.new(editor.chart, editor.transport.stream_length_sec)
-	editor.timeline.beat_division = int(snapshot.get("beat_division", 4))
+	editor.timeline.beat_division = snapshot.beat_division
 	editor.transport.timeline = editor.timeline
-	Game.current_time = editor.timeline.clamp_time(float(snapshot.get("current_time", 0.0)))
+	Game.current_time = editor.timeline.clamp_time(snapshot.current_time)
 	editor.hitsound_manager.rebuild_cache()
 	editor.selection.clear()
 	editor.refresh_inspector()
 	editor._update_slider_range()
 	editor.refresh_views()
-	_restore_selection(editor, snapshot.get("selection", {}))
+	_restore_selection(editor, snapshot.selection)
 	editor._update_time_ui(true)
 	editor._update_save_button_state()
 	editor.hitsounds_changed.emit()
 
-static func same_snapshot(a: Dictionary, b: Dictionary) -> bool:
-	return var_to_str(a) == var_to_str(b)
+static func same_snapshot(a: EditorSnapshotValue, b: EditorSnapshotValue) -> bool:
+	return a == b or (a != null and b != null and var_to_str(a.comparison_values()) == var_to_str(b.comparison_values()))
 
-static func capture_events_data(events: Array[ChartEvent]) -> Array[Dictionary]:
+static func capture_events_data(events: Array[ChartEvent]) -> Array[EditorSnapshot.EventData]:
 	return _capture_events(events)
 
-static func restore_events_data(data: Array) -> Array[ChartEvent]:
+static func restore_events_data(data: Array[EditorSnapshot.EventData]) -> Array[ChartEvent]:
 	return _restore_events(data)
 
-static func _capture_chart(chart: Chart) -> Dictionary:
+static func _capture_chart(chart: Chart) -> EditorSnapshot.ChartData:
 	if chart == null:
-		return {}
-	return {
-		"version": chart.version,
-		"uuid": chart.uuid,
-		"folder_name": chart.folder_name,
-		"file_name": chart.file_name,
-		"title": chart.title,
-		"artist": chart.artist,
-		"creator": chart.creator,
-		"source": chart.source,
-		"tags": chart.tags,
-		"difficulty": chart.difficulty,
-		"rating": chart.rating,
-		"preview_time": chart.preview_time,
-		"file_audio": chart.file_audio,
-		"file_cover_art": chart.file_cover_art,
-		"file_skin": chart.file_skin,
-		"default_hitsounds": chart.default_hitsounds,
-	}
+		return null
+	var data := EditorSnapshot.ChartData.new()
+	data.version = chart.version
+	data.uuid = chart.uuid
+	data.folder_name = chart.folder_name
+	data.file_name = chart.file_name
+	data.title = chart.title
+	data.artist = chart.artist
+	data.creator = chart.creator
+	data.source = chart.source
+	data.tags = chart.tags
+	data.difficulty = chart.difficulty
+	data.rating = chart.rating
+	data.preview_time = chart.preview_time
+	data.file_audio = chart.file_audio
+	data.file_cover_art = chart.file_cover_art
+	data.file_skin = chart.file_skin
+	data.default_hitsounds = chart.default_hitsounds.duplicate()
+	return data
 
-static func _restore_chart(chart: Chart, data: Dictionary) -> void:
-	chart.version = int(data.get("version", chart.version))
-	chart.uuid = String(data.get("uuid", chart.uuid))
-	chart.folder_name = String(data.get("folder_name", chart.folder_name))
-	chart.file_name = String(data.get("file_name", chart.file_name))
-	chart.title = String(data.get("title", chart.title))
-	chart.artist = String(data.get("artist", chart.artist))
-	chart.creator = String(data.get("creator", chart.creator))
-	chart.source = String(data.get("source", chart.source))
-	chart.tags = String(data.get("tags", chart.tags))
-	chart.difficulty = String(data.get("difficulty", chart.difficulty))
-	chart.rating = float(data.get("rating", chart.rating))
-	chart.preview_time = float(data.get("preview_time", chart.preview_time))
-	chart.file_audio = String(data.get("file_audio", chart.file_audio))
-	chart.file_cover_art = String(data.get("file_cover_art", chart.file_cover_art))
-	chart.file_skin = String(data.get("file_skin", chart.file_skin))
-	chart.default_hitsounds = PackedInt32Array(data.get("default_hitsounds", PackedInt32Array([-1, -1, -1, -1, -1])))
+static func _restore_chart(chart: Chart, data: EditorSnapshot.ChartData) -> void:
+	if data == null:
+		return
+	chart.version = data.version
+	chart.uuid = data.uuid
+	chart.folder_name = data.folder_name
+	chart.file_name = data.file_name
+	chart.title = data.title
+	chart.artist = data.artist
+	chart.creator = data.creator
+	chart.source = data.source
+	chart.tags = data.tags
+	chart.difficulty = data.difficulty
+	chart.rating = data.rating
+	chart.preview_time = data.preview_time
+	chart.file_audio = data.file_audio
+	chart.file_cover_art = data.file_cover_art
+	chart.file_skin = data.file_skin
+	chart.default_hitsounds = data.default_hitsounds.duplicate()
 
-static func _capture_timings(chart: Chart) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
+static func _capture_timings(chart: Chart) -> Array[EditorSnapshot.TimingData]:
+	var result: Array[EditorSnapshot.TimingData] = []
 	if chart == null:
 		return result
 	for timing in chart.timings:
 		if timing == null:
 			continue
-		result.append({"time": timing.time, "bpm": timing.bpm})
+		result.append(EditorSnapshot.TimingData.new(timing.time, timing.bpm))
 	return result
 
-static func _restore_timings(data: Array) -> Array[Timing]:
+static func _restore_timings(data: Array[EditorSnapshot.TimingData]) -> Array[Timing]:
 	var result: Array[Timing] = []
 	for item in data:
 		var timing := Timing.new()
-		timing.time = int(item.get("time", 0))
-		timing.bpm = float(item.get("bpm", 120.0))
+		timing.time = item.time
+		timing.bpm = item.bpm
 		result.append(timing)
 	return result
 
-static func _capture_hitsounds(hitsounds: Array[HitSound]) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
+static func _capture_hitsounds(hitsounds: Array[HitSound]) -> Array[EditorSnapshot.HitSoundData]:
+	var result: Array[EditorSnapshot.HitSoundData] = []
 	for hitsound in hitsounds:
 		if hitsound == null:
 			continue
-		result.append({
-			"id": hitsound.id,
-			"file_name": hitsound.file_name,
-		})
+		result.append(EditorSnapshot.HitSoundData.new(hitsound.id, hitsound.file_name))
 	return result
 
-static func _restore_hitsounds(chart: Chart, data: Array) -> Array[HitSound]:
+static func _restore_hitsounds(chart: Chart, data: Array[EditorSnapshot.HitSoundData]) -> Array[HitSound]:
 	var result: Array[HitSound] = []
 	for item in data:
 		var hitsound := HitSound.new()
-		hitsound.setup(chart, int(item.get("id", -1)), String(item.get("file_name", "")))
+		hitsound.setup(chart, item.id, item.file_name)
 		result.append(hitsound)
 	return result
 
-static func _capture_rails(rails: Array[Rail]) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
+static func _capture_rails(rails: Array[Rail]) -> Array[EditorSnapshot.RailData]:
+	var result: Array[EditorSnapshot.RailData] = []
 	for rail in rails:
 		if rail == null:
 			continue
-		var rail_data := {"id": rail.id, "points": [], "notes": []}
+		var rail_data := EditorSnapshot.RailData.new()
+		rail_data.id = rail.id
 		for point in rail.points:
 			if point == null:
 				continue
-			rail_data["points"].append({"x": point.x, "curve": point.curve, "time": point.time})
+			rail_data.points.append(EditorSnapshot.PointData.new(point.x, point.curve, point.time))
 		for note in rail.notes:
 			if note == null:
 				continue
-			rail_data["notes"].append({
-				"time": note.time,
-				"type": int(note.type),
-				"dir": int(note.dir),
-				"length": note.length,
-				"animation": note.animation,
-				"hitsound": note.hitsound,
-			})
+			rail_data.notes.append(EditorSnapshot.NoteData.new(note.time, note.type, note.dir, note.length, note.animation, note.hitsound))
 		result.append(rail_data)
 	return result
 
-static func _restore_rails(data: Array) -> Array[Rail]:
+static func _restore_rails(data: Array[EditorSnapshot.RailData]) -> Array[Rail]:
 	var result: Array[Rail] = []
 	for rail_data in data:
 		var rail := Rail.new()
-		rail.id = int(rail_data.get("id", -1))
-		for point_data in rail_data.get("points", []):
+		rail.id = rail_data.id
+		for point_data in rail_data.points:
 			var point := RailPoint.new()
-			point.x = float(point_data.get("x", 0.5))
-			point.curve = float(point_data.get("curve", 0.0))
-			point.time = int(point_data.get("time", 0))
+			point.x = point_data.x
+			point.curve = point_data.curve
+			point.time = point_data.time
 			rail.points.append(point)
-		for note_data in rail_data.get("notes", []):
+		for note_data in rail_data.notes:
 			var note := Note.new()
-			note.time = int(note_data.get("time", 0))
-			note.type = int(note_data.get("type", int(Note.NoteType.HIT))) as Note.NoteType
-			note.dir = int(note_data.get("dir", int(Note.Dir.NONE))) as Note.Dir
-			note.length = int(note_data.get("length", 0))
-			note.animation = int(note_data.get("animation", 0))
-			note.hitsound = int(note_data.get("hitsound", -1))
+			note.time = note_data.time
+			note.type = note_data.type
+			note.dir = note_data.dir
+			note.length = note_data.length
+			note.animation = note_data.animation
+			note.hitsound = note_data.hitsound
 			rail.notes.append(note)
 		rail.sort_points()
 		rail.sort_notes()
 		result.append(rail)
 	return result
 
-static func _capture_events(events: Array[ChartEvent]) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
+static func _capture_events(events: Array[ChartEvent]) -> Array[EditorSnapshot.EventData]:
+	var result: Array[EditorSnapshot.EventData] = []
 	for event in events:
 		if event == null:
 			continue
-		var event_data := {
-			"id": event.id,
-			"time": event.time,
-			"duration": event.duration,
-			"frames": [],
-		}
+		var event_data := EditorSnapshot.EventData.new()
+		event_data.id = event.id
+		event_data.time = event.time
+		event_data.duration = event.duration
 		if event is CameraEvent:
-			event_data["type"] = "camera"
+			event_data.type = EditorSnapshot.EventData.Kind.CAMERA
 			for frame in (event as CameraEvent).frames:
 				if frame == null:
 					continue
-				event_data["frames"].append({
-					"time": frame.time,
-					"ease": frame.ease,
-					"follow_character": frame.follow_character,
-					"position": frame.position,
-					"zoom": frame.zoom,
-				})
+				var frame_data := EditorSnapshot.FrameData.new()
+				frame_data.time = frame.time
+				frame_data.ease = frame.ease
+				frame_data.follow_character = frame.follow_character
+				frame_data.position = frame.position
+				frame_data.zoom = frame.zoom
+				event_data.frames.append(frame_data)
 		elif event is OverlayEvent:
-			event_data["type"] = "overlay"
-			event_data["x"] = (event as OverlayEvent).x
-			event_data["anchor"] = (event as OverlayEvent).anchor
+			event_data.type = EditorSnapshot.EventData.Kind.OVERLAY
+			event_data.x = (event as OverlayEvent).x
+			event_data.anchor = (event as OverlayEvent).anchor
 			for frame in (event as OverlayEvent).frames:
 				if frame == null:
 					continue
-				event_data["frames"].append({
-					"time": frame.time,
-					"ease": frame.ease,
-					"position": frame.position,
-					"scale": frame.scale,
-					"rotation": frame.rotation,
-					"sprite": frame.sprite,
-					"opacity": frame.opacity,
-					"has_opacity": frame.has_opacity,
-				})
+				var frame_data := EditorSnapshot.FrameData.new()
+				frame_data.time = frame.time
+				frame_data.ease = frame.ease
+				frame_data.position = frame.position
+				frame_data.scale = frame.scale
+				frame_data.rotation = frame.rotation
+				frame_data.sprite = frame.sprite
+				frame_data.opacity = frame.opacity
+				frame_data.has_opacity = frame.has_opacity
+				event_data.frames.append(frame_data)
 		elif event is ThemeEvent:
-			event_data["type"] = "theme"
+			event_data.type = EditorSnapshot.EventData.Kind.THEME
 			for frame in (event as ThemeEvent).frames:
 				if frame == null:
 					continue
-				event_data["frames"].append({
-					"time": frame.time,
-					"ease": frame.ease,
-					"bg_color": frame.bg_color,
-					"bg_color_2": frame.bg_color_2,
-					"rail_color": frame.rail_color,
-				})
+				var frame_data := EditorSnapshot.FrameData.new()
+				frame_data.time = frame.time
+				frame_data.ease = frame.ease
+				frame_data.bg_color = frame.bg_color
+				frame_data.bg_color_2 = frame.bg_color_2
+				frame_data.rail_color = frame.rail_color
+				event_data.frames.append(frame_data)
 		elif event is SkinEvent:
-			event_data["type"] = "skin"
-			event_data["skin_json"] = (event as SkinEvent).skin_json
+			event_data.type = EditorSnapshot.EventData.Kind.SKIN
+			event_data.skin_json = (event as SkinEvent).skin_json
 		else:
 			continue
 		result.append(event_data)
 	return result
 
-static func _restore_events(data: Array) -> Array[ChartEvent]:
+static func _restore_events(data: Array[EditorSnapshot.EventData]) -> Array[ChartEvent]:
 	var result: Array[ChartEvent] = []
 	for event_data in data:
 		var event: ChartEvent = null
-		match String(event_data.get("type", "")):
-			"camera":
+		match event_data.type:
+			EditorSnapshot.EventData.Kind.CAMERA:
 				var camera := CameraEvent.new()
-				for frame_data in event_data.get("frames", []):
+				for frame_data in event_data.frames:
 					var frame := CameraEventFrame.new()
-					frame.time = int(frame_data.get("time", 0))
-					frame.ease = String(frame_data.get("ease", ""))
-					frame.follow_character = bool(frame_data.get("follow_character", false))
-					frame.position = frame_data.get("position", Vector2.ZERO)
-					frame.zoom = float(frame_data.get("zoom", 1.0))
+					frame.time = frame_data.time
+					frame.ease = frame_data.ease
+					frame.follow_character = frame_data.follow_character
+					frame.position = frame_data.position
+					frame.zoom = frame_data.zoom
 					camera.frames.append(frame)
 				event = camera
-			"overlay":
+			EditorSnapshot.EventData.Kind.OVERLAY:
 				var overlay := OverlayEvent.new()
-				overlay.x = int(event_data.get("x", 0))
-				for frame_data in event_data.get("frames", []):
+				overlay.x = event_data.x
+				for frame_data in event_data.frames:
 					var frame := OverlayEventFrame.new()
-					frame.time = int(frame_data.get("time", 0))
-					frame.ease = String(frame_data.get("ease", ""))
-					frame.position = frame_data.get("position", Vector2.ZERO)
-					var anchor_value = frame_data.get("anchor", "center")
-					var frame_anchor := String(anchor_value) if anchor_value is String \
-						else OverlayEventFrame.vector_to_anchor(anchor_value as Vector2)
-					frame.scale = frame_data.get("scale", Vector2.ONE)
-					frame.rotation = float(frame_data.get("rotation", 0.0))
-					frame.sprite = String(frame_data.get("sprite", ""))
-					frame.opacity = float(frame_data.get("opacity", 1.0))
-					frame.has_opacity = bool(frame_data.get("has_opacity", false))
+					frame.time = frame_data.time
+					frame.ease = frame_data.ease
+					frame.position = frame_data.position
+					frame.scale = frame_data.scale
+					frame.rotation = frame_data.rotation
+					frame.sprite = frame_data.sprite
+					frame.opacity = frame_data.opacity
+					frame.has_opacity = frame_data.has_opacity
 					overlay.frames.append(frame)
-					if overlay.anchor == "center" and frame_anchor != "center":
-						overlay.anchor = frame_anchor
-				var overlay_anchor := String(event_data.get("anchor", overlay.anchor))
+				var overlay_anchor := event_data.anchor
 				if OverlayEventFrame.is_valid_anchor(overlay_anchor):
 					overlay.anchor = overlay_anchor
 				event = overlay
-			"theme":
+			EditorSnapshot.EventData.Kind.THEME:
 				var theme := ThemeEvent.new()
-				for frame_data in event_data.get("frames", []):
+				for frame_data in event_data.frames:
 					var frame := ThemeEventFrame.new()
-					frame.time = int(frame_data.get("time", 0))
-					frame.ease = String(frame_data.get("ease", ""))
-					frame.bg_color = frame_data.get("bg_color", Color.BLACK)
-					frame.bg_color_2 = frame_data.get("bg_color_2", Color.BLACK)
-					frame.rail_color = frame_data.get("rail_color", Color.WHITE)
+					frame.time = frame_data.time
+					frame.ease = frame_data.ease
+					frame.bg_color = frame_data.bg_color
+					frame.bg_color_2 = frame_data.bg_color_2
+					frame.rail_color = frame_data.rail_color
 					theme.frames.append(frame)
 				event = theme
-			"skin":
+			EditorSnapshot.EventData.Kind.SKIN:
 				var skin := SkinEvent.new()
-				skin.skin_json = String(event_data.get("skin_json", ""))
+				skin.skin_json = event_data.skin_json
 				event = skin
 		if event == null:
 			continue
-		event.id = String(event_data.get("id", ""))
-		event.time = int(event_data.get("time", 0))
-		event.duration = int(event_data.get("duration", 0))
+		event.id = event_data.id
+		event.time = event_data.time
+		event.duration = event_data.duration
 		result.append(event)
 	return result
 
-static func _capture_selection(selection: ChartEditorSelection) -> Dictionary:
+static func _capture_selection(selection: ChartEditorSelection) -> EditorSnapshot.SelectionData:
+	var data := EditorSnapshot.SelectionData.new()
 	if selection != null and selection.selected_event != null:
-		var items: Array = []
-		for item: Dictionary in selection.selected_event_items:
+		data.kind = EditorSnapshot.SelectionData.Kind.EVENT
+		for item: EditorEventItem in selection.selected_event_items:
 			var frames: Array = item.event.frames if not item.event is SkinEvent else []
-			items.append({"event_index": CM.parsed_chart.events.find(item.event), "frame_index": frames.find(item.frame)})
-		var event_index := -1
-		if CM.parsed_chart != null:
-			event_index = CM.parsed_chart.events.find(selection.selected_event)
-		return {
-			"kind": "event",
-			"event_index": event_index,
-			"event_id": selection.selected_event.id,
-			"event_time": selection.selected_event.time,
-			"frame_index": selection.selected_event_frame_index,
-			"items": items,
-		}
+			data.items.append(EditorSnapshot.EventIndex.new(CM.parsed_chart.events.find(item.event), frames.find(item.frame)))
+		data.event_index = CM.parsed_chart.events.find(selection.selected_event) if CM.parsed_chart != null else -1
+		data.event_id = selection.selected_event.id
+		data.event_time = selection.selected_event.time
+		data.frame_index = selection.selected_event_frame_index
+		return data
 	if selection == null or selection.selected_rail == null:
-		return {"kind": "clear"}
-	var data := {
-		"kind": "rail",
-		"rail_id": selection.selected_rail.id,
-		"point_index": -1,
-		"note_index": -1,
-	}
-	var notes: Array = []
+		return data
+	data.kind = EditorSnapshot.SelectionData.Kind.RAIL
+	data.rail_id = selection.selected_rail.id
 	for note: Note in selection.selected_notes:
 		var owner: Rail = selection.selected_notes[note]
-		notes.append({"rail_id": owner.id, "note_index": owner.notes.find(note)})
-	data["notes"] = notes
-	var points: Array = []
+		data.notes.append(EditorSnapshot.NoteIndex.new(owner.id, owner.notes.find(note)))
 	for point: RailPoint in selection.selected_points:
 		var owner: Rail = selection.selected_points[point]
-		points.append({"rail_id": owner.id, "point_index": owner.points.find(point)})
-	data["points"] = points
+		data.points.append(EditorSnapshot.PointIndex.new(owner.id, owner.points.find(point)))
 	if selection.selected_note != null:
-		data["kind"] = "note"
-		data["note_index"] = selection.selected_rail.notes.find(selection.selected_note)
+		data.kind = EditorSnapshot.SelectionData.Kind.NOTE
+		data.note_index = selection.selected_rail.notes.find(selection.selected_note)
 	elif selection.has_point():
-		data["kind"] = "point"
-		data["point_index"] = selection.selected_point_index
+		data.kind = EditorSnapshot.SelectionData.Kind.POINT
+		data.point_index = selection.selected_point_index
 	return data
 
-static func _restore_selection(editor: ChartEditor, data: Dictionary) -> void:
+static func _restore_selection(editor: ChartEditor, data: EditorSnapshot.SelectionData) -> void:
+	if data == null:
+		editor.selection.clear()
+		return
 	_restore_primary_selection(editor, data)
 	if CM.parsed_chart == null:
 		return
-	if data.get("kind") == "event" and data.has("items"):
+	if data.kind == EditorSnapshot.SelectionData.Kind.EVENT:
 		editor.selection.selected_event_items.clear()
-		for item: Dictionary in data.items:
-			var index := int(item.event_index)
+		for item: EditorSnapshot.EventIndex in data.items:
+			var index := item.event_index
 			if index < 0 or index >= CM.parsed_chart.events.size():
 				continue
 			var event: ChartEvent = CM.parsed_chart.events[index]
 			var frames: Array = event.frames if not event is SkinEvent else []
-			var fi := int(item.frame_index)
-			editor.selection.selected_event_items.append({"event": event, "frame": frames[fi] if fi >= 0 and fi < frames.size() else null})
-	for entry: Dictionary in data.get("notes", []):
+			var fi := item.frame_index
+			editor.selection.selected_event_items.append(EditorEventItem.new(event, frames[fi] if fi >= 0 and fi < frames.size() else null))
+	for entry: EditorSnapshot.NoteIndex in data.notes:
 		for rail: Rail in CM.parsed_chart.rails:
-			var index := int(entry.get("note_index", -1))
-			if rail.id == int(entry.get("rail_id", -1)) and index >= 0 and index < rail.notes.size():
+			var index := entry.note_index
+			if rail.id == entry.rail_id and index >= 0 and index < rail.notes.size():
 				editor.selection.selected_notes[rail.notes[index]] = rail
-	for entry: Dictionary in data.get("points", []):
+	for entry: EditorSnapshot.PointIndex in data.points:
 		for rail: Rail in CM.parsed_chart.rails:
-			var index := int(entry.get("point_index", -1))
-			if rail.id == int(entry.get("rail_id", -1)) and index >= 0 and index < rail.points.size():
+			var index := entry.point_index
+			if rail.id == entry.rail_id and index >= 0 and index < rail.points.size():
 				editor.selection.selected_points[rail.points[index]] = rail
 	editor.selection.refresh()
 
-static func _restore_primary_selection(editor: ChartEditor, data: Dictionary) -> void:
-	var kind := String(data.get("kind", "clear"))
-	if kind == "clear":
+static func _restore_primary_selection(editor: ChartEditor, data: EditorSnapshot.SelectionData) -> void:
+	var kind := data.kind
+	if kind == EditorSnapshot.SelectionData.Kind.CLEAR:
 		editor.selection.clear()
 		return
-	if kind == "event":
+	if kind == EditorSnapshot.SelectionData.Kind.EVENT:
 		if CM.parsed_chart == null:
 			editor.selection.clear()
 			return
 		var target_event: ChartEvent = null
-		var event_index := int(data.get("event_index", -1))
+		var event_index := data.event_index
 		if event_index >= 0 and event_index < CM.parsed_chart.events.size():
 			target_event = CM.parsed_chart.events[event_index]
 		if target_event == null \
-				or target_event.id != String(data.get("event_id", "")) \
-				or target_event.time != int(data.get("event_time", target_event.time)):
+				or target_event.id != data.event_id \
+				or target_event.time != data.event_time:
 			target_event = null
 			for event in CM.parsed_chart.events:
 				if event != null \
-						and event.id == String(data.get("event_id", "")) \
-						and event.time == int(data.get("event_time", event.time)):
+						and event.id == data.event_id \
+						and event.time == data.event_time:
 					target_event = event
 					break
 		if target_event == null:
 			editor.selection.clear()
 			return
-		editor.selection.select_event(target_event, int(data.get("frame_index", -1)))
+		editor.selection.select_event(target_event, data.frame_index)
 		return
-	var rail_id := int(data.get("rail_id", -1))
+	var rail_id := data.rail_id
 	var target_rail: Rail = null
 	if CM.parsed_chart == null:
 		editor.selection.clear()
@@ -408,13 +384,13 @@ static func _restore_primary_selection(editor: ChartEditor, data: Dictionary) ->
 	if target_rail == null:
 		editor.selection.clear()
 		return
-	if kind == "note":
-		var note_index := int(data.get("note_index", -1))
+	if kind == EditorSnapshot.SelectionData.Kind.NOTE:
+		var note_index := data.note_index
 		if note_index >= 0 and note_index < target_rail.notes.size():
 			editor.selection.select_note(target_rail, target_rail.notes[note_index])
 			return
-	if kind == "point":
-		var point_index := int(data.get("point_index", -1))
+	if kind == EditorSnapshot.SelectionData.Kind.POINT:
+		var point_index := data.point_index
 		if point_index >= 0 and point_index < target_rail.points.size():
 			editor.selection.select_point(target_rail, point_index)
 			return

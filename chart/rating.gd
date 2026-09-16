@@ -1,6 +1,11 @@
 extends RefCounted
 class_name Rating
 
+class OccupancyState extends RefCounted:
+	var occupied_rail_id: int = -1
+	var free_x: float = 0.0
+
+
 const SEGMENT_DURATION_MS := 3000
 const POWER := 9.0
 const WEIGHT := 3.2
@@ -21,6 +26,38 @@ const HIT_NOTE_INPUT_WEIGHT := 1.0
 const MOVE_NOTE_INPUT_WEIGHT := 1.1
 const TRACE_NOTE_INPUT_WEIGHT := 0.3
 const HIDDEN_MOVE_INPUT_WEIGHT := 1.2
+
+static func get_color_from_rating(value: float,fade: bool = false) -> Color:
+
+	var color_map = {
+		0: Color("9ca3eb"),
+		5: Color("374cd0"),
+		10: Color("91cc53"),
+		15: Color("d1bd28"),
+		20: Color("ee5c3c"),
+		25: Color("ad232d"),
+		30: Color("845696"), 
+		35: Color("483f7d"),
+	}
+	var keys = color_map.keys()
+	keys.sort()
+
+	if value <= keys[0]:
+		return color_map[keys[0]]
+	if value >= keys[-1]:
+		return color_map[keys[-1]]
+	
+	for i in range(keys.size() - 1):
+		var a = keys[i]
+		var b = keys[i + 1]
+		if fade:
+			if value >= a and value <= b:
+				var t = (value - a) / float(b - a)
+				return color_map[a].lerp(color_map[b], t)
+		else:
+			if value >= a and value < b:
+				return color_map[a]
+	return color_map[keys[0]]
 
 static func calculate_rating(chart: ParsedChart) -> float:
 	if chart == null:
@@ -56,10 +93,7 @@ static func calculate_rating(chart: ParsedChart) -> float:
 	if event_times.is_empty():
 		return 0.0
 
-	var state := {
-		"occupied_rail_id": -1,
-		"free_x": 0.0
-	}
+	var state := OccupancyState.new()
 
 	for time_ms in event_times:
 		_resolve_occupancy_at_time(state, rails, time_ms)
@@ -284,33 +318,33 @@ static func _build_event_times(notes: Array[Note], rails: Array[Rail]) -> Array[
 	result.sort()
 	return result
 
-static func _resolve_occupancy_at_time(state: Dictionary, rails: Array[Rail], time_ms: int) -> void:
-	var occupied_rail_id := int(state["occupied_rail_id"])
+static func _resolve_occupancy_at_time(state: OccupancyState, rails: Array[Rail], time_ms: int) -> void:
+	var occupied_rail_id := int(state.occupied_rail_id)
 	var active_rails := _get_sorted_active_rails_at_time(rails, time_ms)
 
 	if occupied_rail_id != -1:
 		var occupied_rail = _find_rail_by_id(rails, occupied_rail_id)
 
 		if occupied_rail != null and _is_rail_active_at_time(occupied_rail, time_ms):
-			state["free_x"] = occupied_rail._get_rail_x_at_time(time_ms)
+			state.free_x = occupied_rail._get_rail_x_at_time(time_ms)
 			return
 
 		if occupied_rail != null:
 			var last_time :int = occupied_rail.end_time
-			state["free_x"] = occupied_rail._get_rail_x_at_time(last_time)
+			state.free_x = occupied_rail._get_rail_x_at_time(last_time)
 
-		state["occupied_rail_id"] = -1
+		state.occupied_rail_id = -1
 		occupied_rail_id = -1
 
 	if occupied_rail_id == -1 and not active_rails.is_empty():
-		var target_rail = _find_closest_rail_by_x(active_rails, float(state["free_x"]), time_ms)
+		var target_rail = _find_closest_rail_by_x(active_rails, float(state.free_x), time_ms)
 		if target_rail != null:
-			state["occupied_rail_id"] = int(target_rail.id)
-			state["free_x"] = target_rail._get_rail_x_at_time(time_ms)
+			state.occupied_rail_id = int(target_rail.id)
+			state.free_x = target_rail._get_rail_x_at_time(time_ms)
 
 
 static func _process_notes_at_time(
-	state: Dictionary,
+	state: OccupancyState,
 	rails: Array[Rail],
 	note_owner_by_note: Dictionary,
 	time_ms: int,
@@ -337,13 +371,13 @@ static func _process_notes_at_time(
 		else:
 			playable_notes.append(note)
 
-	if int(state["occupied_rail_id"]) == -1:
-		var auto_rail = _find_closest_rail_by_x(active_rails, float(state["free_x"]), time_ms)
+	if int(state.occupied_rail_id) == -1:
+		var auto_rail = _find_closest_rail_by_x(active_rails, float(state.free_x), time_ms)
 		if auto_rail != null:
-			state["occupied_rail_id"] = int(auto_rail.id)
-			state["free_x"] = auto_rail._get_rail_x_at_time(time_ms)
+			state.occupied_rail_id = int(auto_rail.id)
+			state.free_x = auto_rail._get_rail_x_at_time(time_ms)
 
-	var occupied_rail_id := int(state["occupied_rail_id"])
+	var occupied_rail_id := int(state.occupied_rail_id)
 
 	if not playable_notes.is_empty():
 		var candidate_targets := _collect_unique_playable_target_rails(
@@ -401,10 +435,10 @@ static func _process_notes_at_time(
 
 		_add_inputs_at_time(segments, start_time, time_ms, note_input_weight)
 
-		state["occupied_rail_id"] = best_target_rail_id
+		state.occupied_rail_id = best_target_rail_id
 		var target_rail = _find_rail_by_id(rails, best_target_rail_id)
 		if target_rail != null:
-			state["free_x"] = target_rail._get_rail_x_at_time(time_ms)
+			state.free_x = target_rail._get_rail_x_at_time(time_ms)
 
 		if move_note != null:
 			var move_target := _find_nearest_rail_in_direction(
@@ -414,8 +448,8 @@ static func _process_notes_at_time(
 				time_ms
 			)
 			if move_target != null:
-				state["occupied_rail_id"] = int(move_target.id)
-				state["free_x"] = move_target._get_rail_x_at_time(time_ms)
+				state.occupied_rail_id = int(move_target.id)
+				state.free_x = move_target._get_rail_x_at_time(time_ms)
 
 		return
 
@@ -451,10 +485,10 @@ static func _process_notes_at_time(
 				float(evade_steps) * HIDDEN_MOVE_INPUT_WEIGHT
 			)
 
-			state["occupied_rail_id"] = safe_target_rail_id
+			state.occupied_rail_id = safe_target_rail_id
 			var safe_rail: Rail = _find_rail_by_id(rails, safe_target_rail_id)
 			if safe_rail != null:
-				state["free_x"] = safe_rail._get_rail_x_at_time(time_ms)
+				state.free_x = safe_rail._get_rail_x_at_time(time_ms)
 
 static func _collect_unique_playable_target_rails(
 	playable_notes: Array,
