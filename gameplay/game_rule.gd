@@ -68,14 +68,7 @@ func reset(start_time: int, autoplay_enabled: bool, playback_start_ms: int) -> v
 
 	_autoplay = Autoplay.new() if autoplay_enabled else null
 	if _autoplay != null:
-		# Compatibility bridge: Autoplay.setup currently expects note -> order Dictionary.
-		var order_by_note: Dictionary = {}
-		var rails: Array[Rail] = []
-		for rail_state in _rail_states:
-			rails.append(rail_state.rail)
-		for state in _note_states:
-			order_by_note[state.note] = state.order
-		_autoplay.setup(rails, playback_start_ms, order_by_note)
+		_autoplay.setup(_rail_states, _note_states, playback_start_ms)
 
 	_set_next_note()
 	_build_event_times()
@@ -165,7 +158,67 @@ func set_standing_rail(rail: Rail) -> void:
 	standing_rail = rail
 	standing_rail_changed.emit(standing_rail)
 
-# Kept with these names because Autoplay may call them directly.
+
+# Public rule actions. Autoplay uses only these methods and never touches private state.
+func has_hold() -> bool:
+	return _holding_hit != null or _holding_move != null
+
+
+func get_standing_rail() -> Rail:
+	return standing_rail
+
+
+func is_rail_active(rail: Rail, time: int) -> bool:
+	return rail != null and time >= rail.start_time - Score.T.GREAT and time <= rail.end_time
+
+
+func hit(time: int) -> void:
+	var keycode := int(Config.action_hit2) if _holding_hit != null else int(Config.action_hit1)
+	_input_action(time, keycode)
+
+
+func move(dir: Note.Dir, time: int, allow_free_movement: bool = true) -> void:
+	_move_action(dir, time, allow_free_movement)
+
+
+func release_note(note: Note, time: int) -> void:
+	if _holding_hit != null and _holding_hit.note == note:
+		_release_long_hit(time)
+		return
+	if _holding_move != null and _holding_move.note == note:
+		_release_long_move(time)
+
+
+func move_toward(target: Rail, time: int) -> bool:
+	if target == null or has_hold():
+		return false
+	if standing_rail == target:
+		return true
+
+	if standing_rail == null:
+		if not is_rail_active(target, time):
+			return false
+		set_standing_rail(target)
+		_player.move_to_rail(target)
+		return true
+
+	var current_time := clampi(time, standing_rail.start_time, standing_rail.end_time)
+	var target_time := clampi(time, target.start_time, target.end_time)
+	var current_x := GameplayPlayfield.normalized_x_to_world(
+		standing_rail._get_rail_x_at_time(current_time)
+	)
+	var target_x := GameplayPlayfield.normalized_x_to_world(
+		target._get_rail_x_at_time(target_time)
+	)
+
+	if is_equal_approx(current_x, target_x):
+		return false
+
+	var dir := Note.Dir.LEFT if target_x < current_x else Note.Dir.RIGHT
+	_move_player(dir, true, time)
+	return standing_rail == target
+
+
 func _input_action(time: int, keycode: int) -> void:
 	if _next_note == null or standing_rail == null or _next_note.note.type != Note.NoteType.HIT:
 		_player.play_hit_animation()
@@ -267,11 +320,8 @@ func _handle_input(input: ReplayInput, time: int) -> void:
 			if _holding_move != null and _pending_move_dir == Note.Dir.RIGHT:
 				_release_long_move(time)
 
-func _is_rail_active(rail: Rail, time: int) -> bool:
-	return time >= rail.start_time - Score.T.GREAT and time <= rail.end_time
-
 func _update_standing_rail(time: int) -> void:
-	if standing_rail != null and _is_rail_active(standing_rail, time):
+	if standing_rail != null and is_rail_active(standing_rail, time):
 		return
 	var new_rail := _find_closest_rail(time)
 	if new_rail != null and new_rail != standing_rail:
@@ -289,7 +339,7 @@ func _find_closest_rail(time: int) -> Rail:
 	var min_dist := INF
 	for state in _rail_states:
 		var rail := state.rail
-		if not _is_rail_active(rail, time):
+		if not is_rail_active(rail, time):
 			continue
 		var rail_x := GameplayPlayfield.normalized_x_to_world(rail._get_rail_x_at_time(time))
 		var dist := absf(rail_x - current_x)
@@ -306,7 +356,7 @@ func _find_nearest_rail(dir: Note.Dir, time: int) -> Rail:
 	var min_dist := INF
 	for state in _rail_states:
 		var rail := state.rail
-		if rail == standing_rail or not _is_rail_active(rail, time):
+		if rail == standing_rail or not is_rail_active(rail, time):
 			continue
 		var rail_x := GameplayPlayfield.normalized_x_to_world(rail._get_rail_x_at_time(time))
 		var delta_x := rail_x - current_x
