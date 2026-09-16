@@ -12,11 +12,11 @@
 [ext_resource type="Shader" uid="uid://bsgm7ys7ay7o" path="res://resources/shaders/stage_sky.gdshader" id="8_t6o8f"]
 [ext_resource type="Texture2D" uid="uid://cw8cihgunxcv6" path="res://icon.svg" id="9_elju3"]
 [ext_resource type="Script" uid="uid://diqrkfivlom6w" path="res://scenes/gameplay/song_meta.gd" id="9_lb4ud"]
-[ext_resource type="Script" uid="uid://7f545n8r3bi5" path="res://gameplay/stage_visualizer.gd" id="9_stage_visualizer"]
+[ext_resource type="Script" uid="uid://7f545n8r3bi5" path="res://gameplay/visuals/stage_visualizer.gd" id="9_stage_visualizer"]
 [ext_resource type="Shader" uid="uid://4mtwqgndg04i" path="res://resources/shaders/replay_vignette.gdshader" id="11_7cr05"]
 [ext_resource type="FontFile" uid="uid://cay31gip2omwr" path="res://resources/fonts/BebasNeue-Regular.ttf" id="11_bhb63"]
 [ext_resource type="Shader" uid="uid://dy3vprchl3ib" path="res://resources/shaders/stage_interface.gdshader" id="16_stage_interface"]
-[ext_resource type="Script" uid="uid://b4cssi4m02jn6" path="res://gameplay/stage_overlay.gd" id="17_stage_overlay"]
+[ext_resource type="Script" uid="uid://b4cssi4m02jn6" path="res://gameplay/visuals/stage_overlay.gd" id="17_stage_overlay"]
 [ext_resource type="Shader" uid="uid://c2itb617g8s1e" path="res://resources/shaders/stage_vignette.gdshader" id="18_stage_vignette"]
 [ext_resource type="PackedScene" uid="uid://ciy8qmxxf5it3" path="res://scenes/gameplay/dialogue.tscn" id="19_c6mtg"]
 [ext_resource type="Script" uid="uid://dal7wvp1onurm" path="res://scenes/gameplay/label.gd" id="20_r4rys"]
@@ -24,7 +24,7 @@
 [ext_resource type="Texture2D" uid="uid://g4w7jxdx88sv" path="res://resources/icons/play.svg" id="21_c6mtg"]
 [ext_resource type="Texture2D" uid="uid://bkx4imkofvyyn" path="res://resources/icons/clock.svg" id="21_sxh0i"]
 [ext_resource type="Texture2D" uid="uid://4mpob6r0inkq" path="res://resources/icons/arrow-big-left.svg" id="23_ol8dy"]
-[ext_resource type="Script" uid="uid://eviwqn52onoo" path="res://gameplay/score_hud.gd" id="30_score_hud"]
+[ext_resource type="Script" uid="uid://eviwqn52onoo" path="res://gameplay/visuals/score_hud.gd" id="30_score_hud"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sky1"]
 shader = ExtResource("8_t6o8f")
@@ -53,6 +53,67 @@ albedo_color = Color(0.023529412, 0.019607844, 0.05490196, 0.5137255)
 material = SubResource("StandardMaterial3D_player_shadow")
 height = 0.015
 radial_segments = 48
+
+[sub_resource type="Animation" id="Animation_c6mtg"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite3D:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite3D:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0, 0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_l0mho"]
+resource_name = "miss"
+length = 0.36666667
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite3D:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.03333333, 0.36666667),
+"transitions": PackedFloat32Array(1, 0.20306315),
+"update": 0,
+"values": [Color(0.44, 0.096800014, 0.096800014, 1), Color(1, 1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite3D:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.03333334, 0.36666667),
+"transitions": PackedFloat32Array(0.17677675, 1),
+"update": 0,
+"values": [Vector3(-0.34906584, 0, 0), Vector3(0, 0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ol8dy"]
+_data = {
+&"RESET": SubResource("Animation_c6mtg"),
+&"miss": SubResource("Animation_l0mho")
+}
 
 [sub_resource type="Animation" id="Animation_00tan"]
 length = 0.001
@@ -204,6 +265,13 @@ script = ExtResource("2_q64rj")
 sprite = NodePath("Sprite3D")
 hit_star_effect_scene = ExtResource("3_hit_stars")
 
+[node name="VFXAnimationPlayer" type="AnimationPlayer" parent="Player" unique_id=952719552]
+libraries/ = SubResource("AnimationLibrary_ol8dy")
+
+[node name="SkinEffects" type="AnimationPlayer" parent="Player" unique_id=297134405]
+root_node = NodePath("../..")
+libraries/ = SubResource("AnimationLibrary_ct7aa")
+
 [node name="Sprite3D" type="Sprite3D" parent="Player" unique_id=1036638687 node_paths=PackedStringArray("effectplayer")]
 layers = 4
 offset = Vector2(0, 980)
@@ -211,13 +279,10 @@ pixel_size = 0.0009
 render_priority = 2
 texture = ExtResource("7_sxh0i")
 script = ExtResource("4_gh441")
-effectplayer = NodePath("../../AnimationPlayer")
+effectplayer = NodePath("../SkinEffects")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=906267777]
 bus = &"Music"
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=297134405]
-libraries/ = SubResource("AnimationLibrary_ct7aa")
 
 [node name="PlayArea" type="Node3D" parent="." unique_id=1670040184]
 transform = Transform3D(1, 0, 0, 0, 0.8329211, -0.5533914, 0, 0.5533914, 0.8329211, 0, 0, 0)

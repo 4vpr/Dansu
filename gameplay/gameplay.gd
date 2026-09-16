@@ -155,7 +155,7 @@ func _update_game(delta: float) -> void:
 	if _rule.failed_state:
 		return
 
-	_audio.update(Game.current_time, delta)
+	_audio.update(int(Game.current_time), delta)
 	_visuals.apply(Game.current_time)
 	_spawner.set_rail_color(_visuals.rail_color)
 	_update_score_hud()
@@ -259,6 +259,8 @@ func _on_note_judged(
 
 	if judgement != Score.NONE:
 		_spawn_judge_popup(judgement)
+		if judgement == Score.MISS:
+			$Player/VFXAnimationPlayer.play("miss")
 	if judgement == Score.MISS or judgement == Score.NONE:
 		return
 
