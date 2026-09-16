@@ -88,7 +88,7 @@ func event_times() -> Array[int]:
 	return times
 
 
-func advance(gameplay: Node, time: int) -> void:
+func advance(gameplay: GameRule, time: int) -> void:
 	while _index < events.size() and events[_index].time <= time:
 		var event := events[_index]
 		_index += 1
@@ -124,7 +124,7 @@ func _required_rail(entries: Array[NoteEntry]) -> Rail:
 	return null
 
 
-func _prepare(gameplay: Node, event: Event) -> void:
+func _prepare(gameplay: GameRule, event: Event) -> void:
 	if gameplay.holding_long_hit_note != null or gameplay.holding_long_move_note != null:
 		return
 	var target := event.target
@@ -136,7 +136,7 @@ func _prepare(gameplay: Node, event: Event) -> void:
 	gameplay.player.move_to_rail(target)
 
 
-func _safe_rail(gameplay: Node, event: Event) -> Rail:
+func _safe_rail(gameplay: GameRule, event: Event) -> Rail:
 	var forbidden: Array[Rail] = []
 	for entry in event.entries:
 		if entry.note.type == Note.NoteType.SPIKE:
