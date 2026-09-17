@@ -6,5 +6,5 @@ reloadable = true
 
 [libraries]
 
-windows.debug.x86_64 = "res://bin/dansusql.windows.template_debug.x86_64.local_scores_v3.dll"
-windows.release.x86_64 = "res://bin/dansusql.windows.template_release.x86_64.local_scores_v3.dll"
+windows.debug.x86_64 = "res://addons/dansusql/dansusql.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://addons/dansusql/dansusql.windows.template_release.x86_64.dll"
