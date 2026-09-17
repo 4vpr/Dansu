@@ -3,7 +3,7 @@ class_name GameplayAudio
 
 const DEFAULT_HIT_SFX := preload("res://resources/audio/hitsounds/chop.wav")
 const DEFAULT_MOVE_SFX := preload("res://resources/audio/hitsounds/chop.wav")
-const SFX_PLAYER_COUNT := 8
+const SFX_PLAYER_COUNT := 20
 const SONG_FADE_DELAY_MS := 1000.0
 const SONG_FADE_DB_PER_SECOND := 30.0
 const MUSIC_BUS := &"Music"

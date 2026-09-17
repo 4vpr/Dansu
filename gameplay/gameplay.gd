@@ -4,6 +4,7 @@ const GAMEPLAY_SCENE_PATH := "res://scenes/gameplay/gameplay.tscn"
 const RESULT_SCENE_PATH := "res://scenes/result_scene.tscn"
 const CHART_EDITOR_SCENE_PATH := "res://scenes/chart/editor/editor_scene.tscn"
 const JUDGE_POPUP_SCENE := preload("res://scenes/gameplay/judge_popup.tscn")
+const COMBOBRAKE_SOUND := preload("res://resources/audio/combobreak2.wav")
 const RESULT_DELAY_AFTER_PLAY_END_MS := 2000.0
 const LEAD_IN_MS := 3000.0
 const COMBO_POP_SCALE := Vector2(0.96, 1.12)
@@ -261,6 +262,7 @@ func _on_note_judged(
 		_spawn_judge_popup(judgement)
 		if judgement == Score.MISS:
 			$Player/VFXAnimationPlayer.play("miss")
+			_audio.play_sfx(COMBOBRAKE_SOUND)
 	if judgement == Score.MISS or judgement == Score.NONE:
 		return
 
@@ -350,9 +352,9 @@ func _spawn_judge_popup(judgement: int) -> void:
 	popup.global_position = player.global_position + JUDGE_POPUP_OFFSET
 
 func _update_replay_hud() -> void:
-	$Control/ReplayVignette.visible = is_replay_mode
+	$Control/ReplayVignette.visible = is_replay_mode or autoplay_enabled
 	$Control/ReplayLabel.visible = is_replay_mode or autoplay_enabled
-	$Control/ReplayLabel.text = "AUTOPLAY" if autoplay_enabled else "REPLAY"
+	$Control/ReplayLabel.text = "WATCHING AUTOPLAY" if autoplay_enabled else "WATCHING REPLAY"
 	$Control/PauseMenu/Retry.visible = not is_replay_mode
 
 func _on_resume_activated() -> void:
