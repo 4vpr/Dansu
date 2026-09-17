@@ -18,8 +18,13 @@ var _package := ChartPackageBuilder.BuildResult.new()
 var _target: ChartSet
 var _submitter := -1
 var _upload: HTTPRequest
+const DEFAULT_BUILTIN_PACK_ID := "dansu"
+
+@export var pack_id_input: LineEdit
+
 var _builtin_button: Button
 var _publish_as_builtin := false
+var _publish_pack_id := DEFAULT_BUILTIN_PACK_ID
 
 func _ready() -> void:
 	dialog.confirmed.connect(_submit.bind(false))
@@ -28,11 +33,20 @@ func _ready() -> void:
 	Auth.state_changed.connect(_on_auth_changed)
 	_builtin_button = dialog.add_button("Upload + add as built-in", true, "builtin")
 	_builtin_button.visible = false
+	if is_instance_valid(pack_id_input):
+		pack_id_input.placeholder_text = DEFAULT_BUILTIN_PACK_ID
+		pack_id_input.text_changed.connect(_on_pack_id_changed)
 
 func set_selection(chartset: ChartSet) -> void:
 	if busy or selection == chartset:
 		return
 	selection = chartset
+	if is_instance_valid(pack_id_input):
+		pack_id_input.text = (
+			chartset.pack_id
+			if chartset != null and not chartset.pack_id.is_empty()
+			else DEFAULT_BUILTIN_PACK_ID
+		)
 	remote.clear()
 	lookup_error = ""
 	_lookup()
@@ -159,12 +173,28 @@ func _update_dialog() -> void:
 	var common_disabled := checking or _thread != null or _upload != null or not lookup_error.is_empty() or not _package.error.is_empty() or _package.path.is_empty()
 	dialog.get_ok_button().disabled = common_disabled or not restriction().is_empty()
 	if is_instance_valid(_builtin_button):
+		var pack_id_valid := FileSystem.is_valid_pack_id(_get_pack_id())
 		_builtin_button.visible = can_publish_builtin()
 		_builtin_button.text = "Upload + add as built-in" if remote.is_empty() else "Update built-in map"
-		_builtin_button.disabled = common_disabled or not restriction(true).is_empty()
+		_builtin_button.disabled = common_disabled or not restriction(true).is_empty() or not pack_id_valid
 
 func can_publish_builtin() -> bool:
 	return OS.has_feature("editor") and Auth.is_admin()
+
+func _get_pack_id() -> String:
+	if is_instance_valid(pack_id_input):
+		var value := pack_id_input.text.strip_edges().to_lower()
+		if not value.is_empty():
+			return value
+	if _target != null and not _target.pack_id.is_empty():
+		return _target.pack_id.to_lower()
+	return DEFAULT_BUILTIN_PACK_ID
+
+
+func _on_pack_id_changed(_value: String) -> void:
+	_update_dialog()
+	state_changed.emit()
+
 
 func _on_custom_action(action: StringName) -> void:
 	if action == &"builtin" and can_publish_builtin():
@@ -176,6 +206,15 @@ func _submit(as_builtin: bool = false) -> void:
 		return
 	if as_builtin and (not can_publish_builtin() or not restriction(true).is_empty()):
 		return
+
+	if as_builtin:
+		_publish_pack_id = _get_pack_id()
+		if not FileSystem.is_valid_pack_id(_publish_pack_id):
+			Notification.notice("Invalid pack ID.", Notification.Type.WARNING)
+			return
+	else:
+		_publish_pack_id = DEFAULT_BUILTIN_PACK_ID
+
 	_publish_as_builtin = as_builtin
 	var file := FileAccess.open(_package.path, FileAccess.READ)
 	if file == null:
@@ -224,7 +263,12 @@ func _on_uploaded(result: int, code: int, _headers: PackedStringArray, bytes: Pa
 				if write_error != OK:
 					builtin_result = ChartPackageInstaller.InstallResult.failure("Could not finish saving the server chart package.")
 				else:
-					builtin_result = FileSystem.install_packaged_chartset(_package.path, _target.uuid, _target.folder_name)
+					builtin_result = FileSystem.install_packaged_chartset(
+						_package.path,
+						_target.uuid,
+						_target.folder_name.get_file(),
+						_publish_pack_id,
+					)
 		dialog.hide()
 		busy = false
 		_remove_package()
@@ -235,6 +279,7 @@ func _on_uploaded(result: int, code: int, _headers: PackedStringArray, bytes: Pa
 		if _publish_as_builtin and builtin_result.error.is_empty():
 			CM.rescan_library()
 		_publish_as_builtin = false
+		_publish_pack_id = DEFAULT_BUILTIN_PACK_ID
 		_lookup()
 		published.emit()
 	else:

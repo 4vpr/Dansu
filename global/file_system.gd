@@ -33,11 +33,11 @@ static func packaged_chartsets() -> Dictionary:
 	var result := {}
 	for uuid_value in parsed:
 		var uuid := str(uuid_value).strip_edges().to_lower()
-		var folder_name := str(parsed[uuid_value]).strip_edges()
-		if not _is_chartset_uuid(uuid) or folder_name.is_empty() or folder_name in [".", ".."] or folder_name != folder_name.validate_filename():
+		var relative_path := str(parsed[uuid_value]).strip_edges().replace("\\", "/")
+		if not _is_chartset_uuid(uuid) or not _is_safe_packaged_chartset_path(relative_path):
 			push_warning("[charts] ignoring invalid packaged chartset entry: %s" % uuid_value)
 			continue
-		result[uuid] = folder_name
+		result[uuid] = relative_path
 	return result
 
 
@@ -48,12 +48,23 @@ static func packaged_chartset_folders() -> PackedStringArray:
 	return folders
 
 
-static func install_packaged_chartset(archive_path: String, chartset_uuid: String, preferred_folder_name: String) -> ChartPackageInstaller.InstallResult:
+static func install_packaged_chartset(
+	archive_path: String,
+	chartset_uuid: String,
+	preferred_folder_name: String,
+	pack_id: String,
+) -> ChartPackageInstaller.InstallResult:
 	if not OS.has_feature("editor"):
 		return ChartPackageInstaller.InstallResult.failure("Built-in chartsets can only be installed while running from the editor.")
+
 	var uuid := chartset_uuid.strip_edges().to_lower()
 	if not _is_chartset_uuid(uuid):
 		return ChartPackageInstaller.InstallResult.failure("The chartset UUID is invalid.")
+
+	var normalized_pack_id := pack_id.strip_edges().to_lower()
+	if not is_valid_pack_id(normalized_pack_id):
+		return ChartPackageInstaller.InstallResult.failure("The pack ID is invalid.")
+
 	var archive_absolute := ProjectSettings.globalize_path(archive_path)
 	if not FileAccess.file_exists(archive_absolute):
 		return ChartPackageInstaller.InstallResult.failure("The server chart package is missing.")
@@ -63,23 +74,45 @@ static func install_packaged_chartset(archive_path: String, chartset_uuid: Strin
 	var raw_manifest = JSON.parse_string(FileAccess.get_file_as_string(packaged_chartsets_manifest_path))
 	if not raw_manifest is Dictionary:
 		return ChartPackageInstaller.InstallResult.failure("The built-in chartset JSON is invalid.")
+
 	var manifest := packaged_chartsets()
 	if manifest.size() != raw_manifest.size():
 		return ChartPackageInstaller.InstallResult.failure("The built-in chartset JSON contains invalid entries.")
-	var folder_name := str(manifest.get(uuid, ""))
-	if folder_name.is_empty():
-		folder_name = _unique_packaged_folder_name(preferred_folder_name, manifest)
-	if folder_name.is_empty():
-		return ChartPackageInstaller.InstallResult.failure("Could not choose a built-in chartset folder name.")
+
+	var old_relative_path := str(manifest.get(uuid, ""))
+	var relative_path := ""
+
+	if not old_relative_path.is_empty() and old_relative_path.get_slice("/", 0).to_lower() == normalized_pack_id:
+		relative_path = old_relative_path
+	else:
+		var preferred_name := preferred_folder_name.get_file().strip_edges()
+		if preferred_name.is_empty() and not old_relative_path.is_empty():
+			preferred_name = old_relative_path.get_file()
+		var folder_name := _unique_packaged_folder_name(
+			preferred_name,
+			normalized_pack_id,
+			manifest,
+		)
+		if folder_name.is_empty():
+			return ChartPackageInstaller.InstallResult.failure("Could not choose a built-in chartset folder name.")
+		relative_path = normalized_pack_id.path_join(folder_name).replace("\\", "/")
 
 	var root_absolute := ProjectSettings.globalize_path(official_chart_path)
 	ensure_dir(root_absolute)
-	var target_absolute := root_absolute.path_join(folder_name)
+
+	var target_absolute := root_absolute.path_join(relative_path)
+	ensure_dir(target_absolute.get_base_dir())
+
 	var staging_absolute := root_absolute.path_join(".%s.builtin-stage" % uuid)
 	var backup_absolute := root_absolute.path_join(".%s.builtin-backup" % uuid)
 	_remove_directory_tree(staging_absolute)
 	_remove_directory_tree(backup_absolute)
-	var extraction_error := _extract_packaged_chartset_archive(archive_absolute, staging_absolute, uuid)
+
+	var extraction_error := _extract_packaged_chartset_archive(
+		archive_absolute,
+		staging_absolute,
+		uuid,
+	)
 	if not extraction_error.is_empty():
 		_remove_directory_tree(staging_absolute)
 		return ChartPackageInstaller.InstallResult.failure(extraction_error)
@@ -88,35 +121,84 @@ static func install_packaged_chartset(archive_path: String, chartset_uuid: Strin
 	if had_target and DirAccess.rename_absolute(target_absolute, backup_absolute) != OK:
 		_remove_directory_tree(staging_absolute)
 		return ChartPackageInstaller.InstallResult.failure("Could not replace the existing built-in chartset folder.")
+
 	if DirAccess.rename_absolute(staging_absolute, target_absolute) != OK:
 		if had_target:
 			DirAccess.rename_absolute(backup_absolute, target_absolute)
-		_remove_directory_tree(staging_absolute)
 		return ChartPackageInstaller.InstallResult.failure("Could not finish copying the built-in chartset folder.")
 
-	manifest[uuid] = folder_name
-	if not write_text_atomic(packaged_chartsets_manifest_path, JSON.stringify(manifest, "\t") + "\n"):
+	manifest[uuid] = relative_path
+	if not write_text_atomic(packaged_chartsets_manifest_path, JSON.stringify(manifest, "	") + "
+"):
 		_remove_directory_tree(target_absolute)
 		if had_target:
 			DirAccess.rename_absolute(backup_absolute, target_absolute)
 		return ChartPackageInstaller.InstallResult.failure("Could not update the built-in chartset JSON.")
+
 	_remove_directory_tree(backup_absolute)
-	return ChartPackageInstaller.InstallResult.completed(folder_name)
+
+	if not old_relative_path.is_empty() and old_relative_path != relative_path:
+		var old_absolute := root_absolute.path_join(old_relative_path)
+		if not _remove_directory_tree(old_absolute):
+			push_warning("[charts] failed to remove previous packaged chartset folder: %s" % old_relative_path)
+
+	return ChartPackageInstaller.InstallResult.completed(relative_path)
 
 
-static func _unique_packaged_folder_name(preferred_name: String, manifest: Dictionary) -> String:
+static func _unique_packaged_folder_name(
+	preferred_name: String,
+	pack_id: String,
+	manifest: Dictionary,
+) -> String:
 	var base_name := preferred_name.strip_edges().validate_filename()
 	if base_name.is_empty():
 		base_name = "chartset"
+
 	var used_folders := {}
 	for value in manifest.values():
-		used_folders[str(value).to_lower()] = true
+		var relative_path := str(value).replace("\\", "/")
+		if relative_path.get_slice("/", 0).to_lower() == pack_id:
+			used_folders[relative_path.get_file().to_lower()] = true
+
+	var pack_root := official_chart_path.path_join(pack_id)
 	var candidate := base_name
 	var suffix := 2
-	while used_folders.has(candidate.to_lower()) or DirAccess.dir_exists_absolute(ProjectSettings.globalize_path(official_chart_path.path_join(candidate))):
+	while (
+		used_folders.has(candidate.to_lower())
+		or DirAccess.dir_exists_absolute(
+			ProjectSettings.globalize_path(pack_root.path_join(candidate))
+		)
+	):
 		candidate = "%s_%d" % [base_name, suffix]
 		suffix += 1
+
 	return candidate
+
+
+static func is_valid_pack_id(value: String) -> bool:
+	var pack_id := value.strip_edges().to_lower()
+	if pack_id.is_empty() or pack_id in [".", ".."]:
+		return false
+	if "/" in pack_id or "\\" in pack_id or ":" in pack_id:
+		return false
+	return pack_id == pack_id.validate_filename()
+
+
+static func _is_safe_packaged_chartset_path(value: String) -> bool:
+	var normalized := value.strip_edges().replace("\\", "/")
+	if normalized.is_empty() or normalized.begins_with("/") or ":" in normalized:
+		return false
+
+	var parts := normalized.split("/")
+	if parts.size() < 2 or not is_valid_pack_id(parts[0]):
+		return false
+
+	for index in range(1, parts.size()):
+		var part := str(parts[index])
+		if part.is_empty() or part in [".", ".."] or part != part.validate_filename():
+			return false
+
+	return true
 
 
 static func _is_chartset_uuid(value: String) -> bool:
