@@ -32,7 +32,7 @@
 [ext_resource type="PackedScene" uid="uid://v4bxpkucqi2h" path="res://scenes/common/account_panel.tscn" id="30_account"]
 [ext_resource type="PackedScene" uid="uid://bn7mb3j7iupek" path="res://scenes/mainmenu/song_filter_popup.tscn" id="31_filter"]
 [ext_resource type="Script" uid="uid://df0tdddwomkwc" path="res://network/chart_catalogue.gd" id="32_catalogue"]
-[ext_resource type="Script" uid="uid://c7rtexp5pv8at" path="res://network/chart_publisher.gd" id="33_publisher"]
+[ext_resource type="Script" uid="uid://cy4ck1y7mk4gu" path="res://network/chart_publisher.gd" id="33_publisher"]
 [ext_resource type="Shader" uid="uid://lyl0i1warddt" path="res://resources/shaders/card_shine.gdshader" id="34_shine"]
 [ext_resource type="Texture2D" uid="uid://dggi6xmwgmp00" path="res://resources/icons/drum.svg" id="35_xuiok"]
 [ext_resource type="PackedScene" path="res://scenes/mainmenu/playlist_panel.tscn" id="36_playlists"]
@@ -1329,9 +1329,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -148.0
 offset_top = -100.0
-offset_right = 5.000061
-offset_bottom = 173.00006
+offset_right = 95.00006
+offset_bottom = 173.00009
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2

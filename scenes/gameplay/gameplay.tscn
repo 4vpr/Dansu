@@ -55,7 +55,7 @@ height = 0.015
 radial_segments = 48
 
 [sub_resource type="Animation" id="Animation_c6mtg"]
-length = 0.001
+length = 0.93333334
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -79,6 +79,18 @@ tracks/1/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 0,
 "values": [Vector3(0, 0, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Control/Vignette:material:shader_parameter/edge_color")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(0, 0, 0, 1)]
 }
 
 [sub_resource type="Animation" id="Animation_l0mho"]
@@ -107,6 +119,18 @@ tracks/1/keys = {
 "transitions": PackedFloat32Array(0.17677675, 1),
 "update": 0,
 "values": [Vector3(-0.34906584, 0, 0), Vector3(0, 0, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Control/Vignette:material:shader_parameter/edge_color")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.033333335, 0.23333333),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(0.7, 0.133, 0.133, 1), Color(0, 0, 0, 1)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_ol8dy"]
@@ -201,13 +225,13 @@ bg_color = Color(0.6, 0.6, 1, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_5fgof"]
 shader = ExtResource("11_7cr05")
-shader_parameter/dot_color = Color(1, 1, 1, 0.16470589)
-shader_parameter/open_area = Vector2(0.9, 0.7)
+shader_parameter/dot_color = Color(1, 1, 1, 0.30980393)
+shader_parameter/open_area = Vector2(0.9, 0.8)
 shader_parameter/ring_spacing = 18.000000569999997
-shader_parameter/dot_spacing = 42.6310018349725
+shader_parameter/dot_spacing = 64.0
 shader_parameter/max_dot_radius = 5.070000193325
 shader_parameter/shrink_distance = 172.406007714285
-shader_parameter/speed = 5.0000002375
+shader_parameter/speed = 10.000000475
 shader_parameter/softness = 1.0
 shader_parameter/squareness = 4.5
 
@@ -226,7 +250,7 @@ shader_parameter/speed = 3.0
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_stage_vignette"]
 shader = ExtResource("18_stage_vignette")
 shader_parameter/edge_color = Color(0, 0, 0, 1)
-shader_parameter/strength = 0.5810000275975
+shader_parameter/strength = 0.46
 
 [node name="Gameplay" type="Node3D" unique_id=1019670328 node_paths=PackedStringArray("player", "rail_container", "songplayer", "dim", "pause_menu", "gameplay_camera", "hud_root", "combo_container", "combo_label", "score_hud", "world_environment", "stage_visualizer")]
 script = ExtResource("1_m3hu3")

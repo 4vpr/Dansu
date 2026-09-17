@@ -140,7 +140,7 @@ func _refresh() -> void:
 	
 	for chart in charts:
 		var new_display: TextureRect = rating_displayer.instantiate()
-		new_display.self_modulate = Game.get_color_from_rating(chart.rating)
+		new_display.self_modulate = Rating.get_color_from_rating(chart.rating)
 		rating_hbox.add_child(new_display)
 
 	rating_hbox.queue_sort()

@@ -15,38 +15,22 @@ var editor_playtest_active := false
 var editor_playtest_start_time_ms := 0.0
 var editor_playtest_saved_snapshot: EditorSnapshot
 
-var color_map = {
-	0: Color("9ca3eb"),
-	5: Color("374cd0"),
-	10: Color("91cc53"),
-	15: Color("d1bd28"),
-	20: Color("ee5c3c"),
-	25: Color("ad232d"),
-	30: Color("845696"), 
-	35: Color("483f7d"),
-}
-
-func get_color_from_rating(value: float,fade: bool = false) -> Color:
-	var keys = color_map.keys()
-	keys.sort()
-
-	if value <= keys[0]:
-		return color_map[keys[0]]
-	if value >= keys[-1]:
-		return color_map[keys[-1]]
-	
-	for i in range(keys.size() - 1):
-		var a = keys[i]
-		var b = keys[i + 1]
-		if fade:
-			if value >= a and value <= b:
-				var t = (value - a) / float(b - a)
-				return color_map[a].lerp(color_map[b], t)
-		else:
-			if value >= a and value < b:
-				return color_map[a]
-	return color_map[keys[0]]
-
+func _init() -> void:
+	Input.set_custom_mouse_cursor(
+	preload("res://resources/textures/cursor_circle.svg"),
+	Input.CURSOR_ARROW,
+	Vector2(12, 12)
+	)
+	Input.set_custom_mouse_cursor(
+		preload("res://resources/textures/cursor_circle_hover.svg"),
+		Input.CURSOR_POINTING_HAND,
+		Vector2(12, 12)
+	)
+	Input.set_custom_mouse_cursor(
+		preload("res://resources/textures/cursor_circle_input.svg"),
+		Input.CURSOR_IBEAM,
+		Vector2(12, 12)
+	)
 
 func play_selected_chart(autoplay: bool = false) -> void:
 	cancel_editor_playtest()
