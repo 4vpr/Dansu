@@ -21,8 +21,10 @@ var _note_states: Array[GameplayNoteState] = []
 var _touch_states: Array[GameplayNoteState] = []
 var _long_states: Array[GameplayNoteState] = []
 
-var _next_note: GameplayNoteState
-var _next_note_index := 0
+var _next_hit_index := 0
+var _next_move_left_index := 0
+var _next_move_right_index := 0
+var _miss_index := 0
 var _touch_index := 0
 var _long_index := 0
 
@@ -56,8 +58,10 @@ func reset(start_time: int, autoplay_enabled: bool, playback_start_ms: int) -> v
 	failed_state = false
 	last_simulated_time = start_time - 1
 
-	_next_note = null
-	_next_note_index = 0
+	_next_hit_index = 0
+	_next_move_left_index = 0
+	_next_move_right_index = 0
+	_miss_index = 0
 	_touch_index = 0
 	_long_index = 0
 	_holding_move = null
@@ -70,7 +74,6 @@ func reset(start_time: int, autoplay_enabled: bool, playback_start_ms: int) -> v
 	if _autoplay != null:
 		_autoplay.setup(_rail_states, _note_states, playback_start_ms)
 
-	_set_next_note()
 	_build_event_times()
 
 func skip_before(time_ms: int) -> void:
@@ -88,8 +91,10 @@ func skip_before(time_ms: int) -> void:
 	while _long_index < _long_states.size() and _long_states[_long_index].release_processed:
 		_long_index += 1
 
-	_next_note_index = 0
-	_set_next_note()
+	_next_hit_index = 0
+	_next_move_left_index = 0
+	_next_move_right_index = 0
+	_miss_index = 0
 
 func process(target_time: int, inputs: Array[ReplayInput], exclusive: bool) -> void:
 	if failed_state:
@@ -169,7 +174,7 @@ func get_standing_rail() -> Rail:
 
 
 func is_rail_active(rail: Rail, time: int) -> bool:
-	return rail != null and time >= rail.start_time - Score.T.GREAT and time <= rail.end_time
+	return rail != null and time >= rail.start_time - Score.T_V2.GREAT and time <= rail.end_time
 
 
 func hit(time: int) -> void:
@@ -220,20 +225,20 @@ func move_toward(target: Rail, time: int) -> bool:
 
 
 func _input_action(time: int, keycode: int) -> void:
-	if _next_note == null or standing_rail == null or _next_note.note.type != Note.NoteType.HIT:
+	var state := _get_next_hit_note()
+	if state == null or standing_rail == null:
 		_player.play_hit_animation()
 		return
-	if _next_note.rail_state.rail != standing_rail:
+	if state.rail_state.rail != standing_rail:
 		_player.play_hit_animation()
 		return
 
-	var gap := _next_note.note.time - time
-	var judgement := score.get_judgement(gap)
+	var gap := state.note.time - time
+	var judgement := _get_judgement(gap)
 	if judgement == Score.NONE:
 		_player.play_hit_animation()
 		return
 
-	var state := _next_note
 	_process_note(state, judgement, gap)
 	if state.note.length > 0:
 		_holding_hit = state
@@ -241,16 +246,11 @@ func _input_action(time: int, keycode: int) -> void:
 		_player.set_hold_animation(true)
 
 func _move_action(dir: Note.Dir, time: int, allow_free_movement: bool = true) -> void:
-	if (
-		_next_note != null
-		and _next_note.note.type == Note.NoteType.MOVE
-		and _next_note.rail_state.rail == standing_rail
-		and _next_note.note.dir == dir
-	):
-		var gap := _next_note.note.time - time
-		var judgement := score.get_judgement(gap)
+	var state := _get_next_move_note(dir)
+	if state != null and state.rail_state.rail == standing_rail:
+		var gap := state.note.time - time
+		var judgement := _get_judgement(gap)
 		if judgement != Score.NONE:
-			var state := _next_note
 			_player.play_move_note_animation(state.note, dir)
 			_process_note(state, judgement, gap)
 			if state.note.length > 0:
@@ -270,15 +270,15 @@ func _build_event_times() -> void:
 		for time in _autoplay.event_times():
 			_event_times.append(time)
 	for rail_state in _rail_states:
-		_event_times.append(rail_state.rail.start_time - Score.T.GREAT)
+		_event_times.append(rail_state.rail.start_time - Score.T_V2.GREAT)
 		_event_times.append(rail_state.rail.end_time + 1)
 	for state in _note_states:
 		if state.note.type == Note.NoteType.TRACE or state.note.type == Note.NoteType.SPIKE:
 			_event_times.append(state.note.time)
 		elif state.note.type == Note.NoteType.HIT or state.note.type == Note.NoteType.MOVE:
-			_event_times.append(state.note.time + Score.T.BAD + 1)
+			_event_times.append(state.note.time + Score.T_V2.BAD + 1)
 			if state.note.length > 0:
-				_event_times.append(state.note.end_time + Score.T.BAD + 1)
+				_event_times.append(state.note.end_time + Score.T_V2.BAD + 1)
 
 	_event_times.sort()
 	_dedupe_event_times()
@@ -373,16 +373,29 @@ func _move_player(dir: Note.Dir, play_animation: bool, time: int) -> void:
 	if _holding_hit != null or _holding_move != null:
 		return
 	var rail := _find_nearest_rail(dir, time)
-	if rail != null:
-		set_standing_rail(rail)
-		_player.move_to_rail(rail, play_animation)
+	if rail == null:
+		return
+
+	var previous_rail := standing_rail
+	if previous_rail != null and previous_rail != rail:
+		_miss_past_notes_on_rail(previous_rail, time)
+
+	set_standing_rail(rail)
+	_player.move_to_rail(rail, play_animation)
 
 func _check_miss(time: int) -> void:
-	while _next_note != null:
-		var gap := _next_note.note.time - time
-		if gap >= -Score.T.BAD:
+	while _miss_index < _note_states.size():
+		var state := _note_states[_miss_index]
+		if state.processed or (state.note.type != Note.NoteType.HIT and state.note.type != Note.NoteType.MOVE):
+			_miss_index += 1
+			continue
+
+		var gap := state.note.time - time
+		if gap >= -Score.T_V2.BAD:
 			break
-		_process_note(_next_note, Score.MISS, gap)
+
+		_process_note(state, Score.MISS, gap)
+		_miss_index += 1
 
 func _check_long_release_miss(time: int) -> void:
 	while _long_index < _long_states.size():
@@ -390,7 +403,7 @@ func _check_long_release_miss(time: int) -> void:
 		if state.release_processed:
 			_long_index += 1
 			continue
-		if time <= state.note.end_time + Score.T.BAD:
+		if time <= state.note.end_time + Score.T_V2.BAD:
 			break
 		_process_release(state, Score.MISS, float(state.note.end_time) - time)
 		_clear_hold(state)
@@ -444,7 +457,7 @@ func _judge_release(state: GameplayNoteState, time: int) -> void:
 	if state == null or state.release_processed:
 		return
 	var gap := float(state.note.end_time) - time
-	var judgement := score.get_judgement(gap)
+	var judgement := _get_judgement(gap)
 	if judgement == Score.NONE:
 		judgement = Score.MISS
 	_process_release(state, judgement, gap)
@@ -458,23 +471,69 @@ func _clear_hold(state: GameplayNoteState) -> void:
 		_pending_move_dir = Note.Dir.NONE
 	_player.set_hold_animation(_holding_hit != null or _holding_move != null)
 
-func _set_next_note() -> void:
-	_next_note = null
-	while _next_note_index < _note_states.size():
-		var state := _note_states[_next_note_index]
-		_next_note_index += 1
+func _get_next_hit_note() -> GameplayNoteState:
+	while _next_hit_index < _note_states.size():
+		var state := _note_states[_next_hit_index]
+		if state.processed or state.note.type != Note.NoteType.HIT:
+			_next_hit_index += 1
+			continue
+		return state
+	return null
+
+
+func _get_next_move_note(dir: Note.Dir) -> GameplayNoteState:
+	var index := _next_move_left_index if dir == Note.Dir.LEFT else _next_move_right_index
+	while index < _note_states.size():
+		var state := _note_states[index]
+		if state.processed or state.note.type != Note.NoteType.MOVE or state.note.dir != dir:
+			index += 1
+			continue
+		if dir == Note.Dir.LEFT:
+			_next_move_left_index = index
+		else:
+			_next_move_right_index = index
+		return state
+
+	if dir == Note.Dir.LEFT:
+		_next_move_left_index = index
+	else:
+		_next_move_right_index = index
+	return null
+
+
+func _miss_past_notes_on_rail(rail: Rail, time: int) -> void:
+	for index in range(_miss_index, _note_states.size()):
+		var state := _note_states[index]
+		if state.note.time >= time:
+			break
 		if state.processed:
 			continue
-		if state.note.type == Note.NoteType.HIT or state.note.type == Note.NoteType.MOVE:
-			_next_note = state
-			return
+		if state.note.type != Note.NoteType.HIT and state.note.type != Note.NoteType.MOVE:
+			continue
+		if state.rail_state.rail != rail:
+			continue
+		_process_note(state, Score.MISS, state.note.time - time)
+
+
+func _get_judgement(gap: float) -> int:
+	var absolute := absf(gap)
+	if absolute <= Score.T_V2.PERFECT_PLUS:
+		return Score.PERFECT_PLUS
+	if absolute <= Score.T_V2.PERFECT:
+		return Score.PERFECT
+	if absolute <= Score.T_V2.GREAT:
+		return Score.GREAT
+	if absolute <= Score.T_V2.OK:
+		return Score.OK
+	if absolute <= Score.T_V2.BAD:
+		return Score.BAD
+	return Score.NONE
+
 
 func _process_note(state: GameplayNoteState, judgement: int, gap: float) -> void:
 	state.processed = true
 	state.judgement = judgement
 	_apply_judgement(state, judgement, gap, false)
-	if _next_note == state:
-		_set_next_note()
 
 func _process_release(state: GameplayNoteState, judgement: int, gap: float) -> void:
 	if state == null or state.release_processed:
