@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b3lscqj3t54uh"
-path="res://.godot/imported/cursor_circle_input.svg-70bde2ac66d9e5b5dcbc6d2d821fca73.ctex"
+uid="uid://ba5nkshlmjjib"
+path="res://.godot/imported/cursor_circle.svg-f63e0b44938beefb4303389d4dd906f6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/textures/cursor_circle_input.svg"
-dest_files=["res://.godot/imported/cursor_circle_input.svg-70bde2ac66d9e5b5dcbc6d2d821fca73.ctex"]
+source_file="res://resources/textures/cursor/cursor_circle.svg"
+dest_files=["res://.godot/imported/cursor_circle.svg-f63e0b44938beefb4303389d4dd906f6.ctex"]
 
 [params]
 

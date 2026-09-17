@@ -17,17 +17,17 @@ var editor_playtest_saved_snapshot: EditorSnapshot
 
 func _init() -> void:
 	Input.set_custom_mouse_cursor(
-	preload("res://resources/textures/cursor_circle.svg"),
+	preload("res://resources/textures/cursor/cursor_circle.svg"),
 	Input.CURSOR_ARROW,
 	Vector2(12, 12)
 	)
 	Input.set_custom_mouse_cursor(
-		preload("res://resources/textures/cursor_circle_hover.svg"),
+		preload("res://resources/textures/cursor/cursor_circle_hover.svg"),
 		Input.CURSOR_POINTING_HAND,
 		Vector2(12, 12)
 	)
 	Input.set_custom_mouse_cursor(
-		preload("res://resources/textures/cursor_circle_input.svg"),
+		preload("res://resources/textures/cursor/cursor_circle_input.svg"),
 		Input.CURSOR_IBEAM,
 		Vector2(12, 12)
 	)
