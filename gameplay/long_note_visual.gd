@@ -15,6 +15,7 @@ const HIT_EDGE_COLOR := Color("6061df")
 const MOVE_BODY_COLOR := Color("f15b6b")
 const MOVE_EDGE_COLOR := Color("b83f4d")
 const FAILED_BRIGHTNESS := 0.3
+const BODY_RENDER_PRIORITY := 1
 
 class MeshCacheEntry:
 	extends RefCounted
@@ -194,7 +195,7 @@ func _setup_material() -> void:
 	var body_color: Color = colors[0]
 	_cap_color = body_color
 	_material = _get_material_template(_note.type).duplicate() as ShaderMaterial
-	_material.render_priority = 0
+	_material.render_priority = BODY_RENDER_PRIORITY
 	_material.set_shader_parameter("spawn_fade_distance", GameplayPlayfield.get_spawn_fade_distance())
 	var owner_transform := _head_owner.transform
 	_material.set_shader_parameter("owner_z_axis", Vector3(
@@ -212,7 +213,7 @@ static func _get_material_template(note_type: Note.NoteType) -> ShaderMaterial:
 	var colors := _get_visual_colors(note_type)
 	var material := ShaderMaterial.new()
 	material.shader = BODY_SHADER
-	material.render_priority = 0
+	material.render_priority = BODY_RENDER_PRIORITY
 	material.set_shader_parameter("body_color", colors[0])
 	material.set_shader_parameter("edge_color", colors[1])
 	material.set_shader_parameter("holding", 0.0)

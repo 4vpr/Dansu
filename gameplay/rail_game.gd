@@ -6,8 +6,6 @@ const DEFAULT_WIDTH := 0.1
 const DEFAULT_OUTLINE_SIZE := 0.1
 const CAP_SEGMENTS := 10
 const SAMPLE_INTERVAL_MS := 16.0
-const OUTLINE_WORLD_Y_OFFSET := -0.01
-const SHADOW_WORLD_Y_OFFSET := -0.035
 const SHADOW_EXTRA_SIZE := 0.025
 const DEFAULT_FILL_COLOR := Color(0.135, 0.132, 0.205, 1.0)
 const DEFAULT_OUTLINE_COLOR := Color(0.455, 0.420, 0.690, 1.0)
@@ -15,8 +13,6 @@ const DEFAULT_ACCENT_COLOR := Color(0.575, 0.520, 0.860, 1.0)
 const DEFAULT_SHADOW_COLOR := Color(0.025, 0.025, 0.04, 1.0)
 const IDLE_BRIGHTNESS := 0.38
 const STANDING_BRIGHTNESS := 1.0
-const FILL_DEPTH_CLIP_SCALE := 1.0
-const OUTLINE_DEPTH_CLIP_SCALE := 1.0
 
 class RailMeshCacheEntry:
 	extends RefCounted
@@ -24,9 +20,7 @@ class RailMeshCacheEntry:
 	var rail: Rail
 	var rail_width := 0.0
 	var rail_outline_size := 0.0
-	var fill_mesh: ArrayMesh = null
-	var outline_mesh: ArrayMesh = null
-	var shadow_mesh: ArrayMesh = null
+	var mesh: ArrayMesh = null
 
 static var _mesh_cache: Array[RailMeshCacheEntry] = []
 
@@ -38,13 +32,9 @@ var rail: Rail
 @export var note_container: Node3D
 @export var width: float = DEFAULT_WIDTH
 @export var mesh_instance: MeshInstance3D
-@export var outline_mesh_instance: MeshInstance3D
-@export var shadow_mesh_instance: MeshInstance3D
 
 var outline_size := DEFAULT_OUTLINE_SIZE
-var _fill_material: ShaderMaterial = null
-var _outline_material: ShaderMaterial = null
-var _shadow_material: ShaderMaterial = null
+var _material: ShaderMaterial = null
 var _theme_color := DEFAULT_ACCENT_COLOR
 
 var is_standing := false:
@@ -71,12 +61,7 @@ static func prebake_for_rail(_rail: Rail, rail_width: float = DEFAULT_WIDTH, rai
 	new_entry.rail = _rail
 	new_entry.rail_width = rail_width
 	new_entry.rail_outline_size = rail_outline_size
-	new_entry.fill_mesh = build_ribbon_mesh(path, rail_width)
-	new_entry.outline_mesh = build_ribbon_mesh(path, rail_width + (rail_outline_size * 2.0))
-	new_entry.shadow_mesh = build_ribbon_mesh(
-		path,
-		rail_width + ((rail_outline_size + SHADOW_EXTRA_SIZE) * 2.0)
-	)
+	new_entry.mesh = build_ribbon_mesh(path, _get_visual_width(rail_width, rail_outline_size))
 	_mesh_cache.append(new_entry)
 
 
@@ -84,8 +69,8 @@ func _ready() -> void:
 	if rail != null and not rail.points.is_empty():
 		position.z = GameplayPlayfield.rail_origin_z(rail.start_time, Game.current_time)
 
-	_apply_prebaked_meshes()
-	_apply_materials()
+	_apply_prebaked_mesh()
+	_apply_material()
 
 
 func _process(_delta: float) -> void:
@@ -95,37 +80,26 @@ func _process(_delta: float) -> void:
 	_update_material_position()
 
 
-func _apply_prebaked_meshes() -> void:
+func _apply_prebaked_mesh() -> void:
 	if rail == null:
 		mesh_instance.mesh = null
-		if outline_mesh_instance != null:
-			outline_mesh_instance.mesh = null
-		if shadow_mesh_instance != null:
-			shadow_mesh_instance.mesh = null
 		return
 
 	prebake_for_rail(rail, width, outline_size)
 	var cached_entry := _find_cached_mesh_entry(rail, width, outline_size)
-	mesh_instance.mesh = cached_entry.fill_mesh if cached_entry != null else null
-	if outline_mesh_instance != null:
-		outline_mesh_instance.mesh = cached_entry.outline_mesh if cached_entry != null else null
-	if shadow_mesh_instance != null:
-		shadow_mesh_instance.mesh = cached_entry.shadow_mesh if cached_entry != null else null
+	mesh_instance.mesh = cached_entry.mesh if cached_entry != null else null
 
 
-func _apply_materials() -> void:
-	_fill_material = _create_material(_theme_color.darkened(0.75), _theme_color, 1.0, FILL_DEPTH_CLIP_SCALE, 0.0)
-	_outline_material = _create_material(_theme_color.darkened(0.20), _theme_color, 0.0, OUTLINE_DEPTH_CLIP_SCALE, 1.0)
-	_shadow_material = _create_material(_theme_color.darkened(0.955), _theme_color.darkened(0.955), 0.0, 1.0, 1.0)
+func _apply_material() -> void:
+	_material = ShaderMaterial.new()
+	_material.shader = CLIP_SHADER
+	_material.set_shader_parameter("min_visible_z", 0.0)
 
-	mesh_instance.material_override = _fill_material
-	if outline_mesh_instance != null:
-		outline_mesh_instance.material_override = _outline_material
-		outline_mesh_instance.position.y = OUTLINE_WORLD_Y_OFFSET
-	if shadow_mesh_instance != null:
-		shadow_mesh_instance.material_override = _shadow_material
-		shadow_mesh_instance.position.y = SHADOW_WORLD_Y_OFFSET
+	var visual_width := _get_visual_width(width, outline_size)
+	_material.set_shader_parameter("fill_width_ratio", width / visual_width)
+	_material.set_shader_parameter("outline_width_ratio", (width + outline_size * 2.0) / visual_width)
 
+	mesh_instance.material_override = _material
 	_update_brightness()
 	_update_material_position()
 	_update_theme_color()
@@ -137,43 +111,27 @@ func set_theme_color(color: Color) -> void:
 
 
 func _update_theme_color() -> void:
-	if _fill_material != null:
-		_fill_material.set_shader_parameter("albedo_color", _theme_color.darkened(0.75))
-		_fill_material.set_shader_parameter("accent_color", _theme_color)
-	if _outline_material != null:
-		_outline_material.set_shader_parameter("albedo_color", _theme_color.darkened(0.20))
-		_outline_material.set_shader_parameter("accent_color", _theme_color)
-	if _shadow_material != null:
-		var shadow_color := _theme_color.darkened(0.955)
-		_shadow_material.set_shader_parameter("albedo_color", shadow_color)
-		_shadow_material.set_shader_parameter("accent_color", shadow_color)
-
-
-func _create_material(color: Color, accent_color: Color, emission_strength: float, depth_clip_scale: float, surface_role: float) -> ShaderMaterial:
-	var material := ShaderMaterial.new()
-	material.shader = CLIP_SHADER
-	material.set_shader_parameter("min_visible_z", 0.0)
-	material.set_shader_parameter("albedo_color", color)
-	material.set_shader_parameter("accent_color", accent_color)
-	material.set_shader_parameter("brightness", STANDING_BRIGHTNESS)
-	material.set_shader_parameter("emission_strength", emission_strength)
-	material.set_shader_parameter("depth_clip_scale", depth_clip_scale)
-	material.set_shader_parameter("surface_role", surface_role)
-	return material
+	if _material == null:
+		return
+	_material.set_shader_parameter("fill_color", _theme_color.darkened(0.75))
+	_material.set_shader_parameter("outline_color", _theme_color.darkened(0.20))
+	var shadow_color := _theme_color.darkened(0.955)
+	_material.set_shader_parameter("shadow_color", shadow_color)
+	_material.set_shader_parameter("accent_color", _theme_color)
 
 
 func _update_brightness() -> void:
-	if _fill_material != null:
-		_fill_material.set_shader_parameter("brightness", STANDING_BRIGHTNESS if is_standing else IDLE_BRIGHTNESS)
+	if _material != null:
+		_material.set_shader_parameter("brightness", STANDING_BRIGHTNESS if is_standing else IDLE_BRIGHTNESS)
 
 
 func _update_material_position() -> void:
-	if _fill_material != null:
-		_fill_material.set_shader_parameter("rail_origin_z", position.z)
-	if _outline_material != null:
-		_outline_material.set_shader_parameter("rail_origin_z", position.z)
-	if _shadow_material != null:
-		_shadow_material.set_shader_parameter("rail_origin_z", position.z)
+	if _material != null:
+		_material.set_shader_parameter("rail_origin_z", position.z)
+
+
+static func _get_visual_width(rail_width: float, rail_outline_size: float) -> float:
+	return rail_width + ((rail_outline_size + SHADOW_EXTRA_SIZE) * 2.0)
 
 
 static func _sample_curve_points_for_rail(_rail: Rail) -> Array[Vector3]:
@@ -327,8 +285,8 @@ static func _append_cap(st: SurfaceTool, center: Vector3, forward: Vector3, radi
 		var next_point := _get_cap_point(center, side, forward, radius, angle, is_start)
 
 		st.set_uv(Vector2(0.5, 0.5)); st.add_vertex(center)
-		st.set_uv(Vector2(0, 0)); st.add_vertex(prev_point)
-		st.set_uv(Vector2(1, 0)); st.add_vertex(next_point)
+		st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(prev_point)
+		st.set_uv(Vector2(0.0, 0.0)); st.add_vertex(next_point)
 
 		prev_point = next_point
 
