@@ -262,7 +262,6 @@ func _on_note_judged(
 		_spawn_judge_popup(judgement)
 		if judgement == Score.MISS:
 			$Player/VFXAnimationPlayer.play("miss")
-			_audio.play_sfx(COMBOBRAKE_SOUND)
 	if judgement == Score.MISS or judgement == Score.NONE:
 		return
 

@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://bbdx5bqe5jpho" path="res://scenes/gameplay/shadow.gd" id="4_i6m2i"]
 [ext_resource type="FontFile" uid="uid://drcicje7q2t7x" path="res://resources/fonts/Next Bravo.ttf" id="6_0w2j2"]
 [ext_resource type="Shader" uid="uid://qbfnricvyktb" path="res://resources/shaders/wave.gdshader" id="6_gh441"]
+[ext_resource type="AudioStream" uid="uid://86xa1i5ms4gd" path="res://resources/audio/combobreak2.wav" id="7_l0mho"]
 [ext_resource type="Texture2D" uid="uid://bmbyphvjkh055" path="res://resources/skins/original/sprites/dance1.png" id="7_sxh0i"]
 [ext_resource type="Shader" uid="uid://bsgm7ys7ay7o" path="res://resources/shaders/stage_sky.gdshader" id="8_t6o8f"]
 [ext_resource type="Texture2D" uid="uid://cw8cihgunxcv6" path="res://icon.svg" id="9_elju3"]
@@ -92,6 +93,18 @@ tracks/2/keys = {
 "update": 0,
 "values": [Color(0, 0, 0, 1)]
 }
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = false
+tracks/3/path = NodePath("VFXAnimationPlayer/AudioStreamPlayer2:playing")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(),
+"transitions": PackedFloat32Array(),
+"update": 1,
+"values": []
+}
 
 [sub_resource type="Animation" id="Animation_l0mho"]
 resource_name = "miss"
@@ -131,6 +144,18 @@ tracks/2/keys = {
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
 "values": [Color(0.7, 0.133, 0.133, 1), Color(0, 0, 0, 1)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("VFXAnimationPlayer/AudioStreamPlayer2:playing")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(),
+"transitions": PackedFloat32Array(),
+"update": 0,
+"values": []
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_ol8dy"]
@@ -291,6 +316,12 @@ hit_star_effect_scene = ExtResource("3_hit_stars")
 
 [node name="VFXAnimationPlayer" type="AnimationPlayer" parent="Player" unique_id=952719552]
 libraries/ = SubResource("AnimationLibrary_ol8dy")
+
+[node name="AudioStreamPlayer2" type="AudioStreamPlayer" parent="Player/VFXAnimationPlayer" unique_id=302843884]
+stream = ExtResource("7_l0mho")
+volume_db = -28.907
+pitch_scale = 1.5
+bus = &"SFX"
 
 [node name="SkinEffects" type="AnimationPlayer" parent="Player" unique_id=297134405]
 root_node = NodePath("../..")
